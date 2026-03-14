@@ -1,4 +1,4 @@
-const { coachingMessage } = require('../../lib/anthropic');
+import { coachingMessage } from '../../lib/anthropic';
 
 const ONBOARDING_SYSTEM_PROMPT = `You are FocusBuddy — conducting a deep onboarding conversation with a new user. Your goal is to genuinely understand who this person is so the app can serve them well from day one.
 
@@ -36,7 +36,7 @@ PERSONA OPTIONS (for your suggestion at the end):
 
 When suggesting personas, explain WHY based on what they told you. Suggest a primary, optional secondary and tertiary. Be specific.`;
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
