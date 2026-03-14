@@ -245,3 +245,139 @@
   .navEmail { display: none; }
   .main { padding: 40px 16px 60px; }
 }
+
+/* ── Check-in Screen ── */
+
+.checkinMain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 65px);
+  padding: 24px;
+}
+
+.checkinCard {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.checkinMessages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 120px;
+}
+
+.checkinBubbleAssistant {
+  background: #221608;
+  border: 1px solid rgba(255,200,120,0.1);
+  border-radius: 18px 18px 18px 4px;
+  padding: 16px 20px;
+  color: #f0ead6;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  max-width: 85%;
+  align-self: flex-start;
+}
+
+.checkinBubbleUser {
+  background: #ff4d1c;
+  border-radius: 18px 18px 4px 18px;
+  padding: 14px 20px;
+  color: #110d06;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  max-width: 75%;
+  align-self: flex-end;
+}
+
+.typingDots {
+  font-size: 1.4rem;
+  letter-spacing: 4px;
+  color: rgba(240,234,214,0.4);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.checkinForm {
+  display: flex;
+  gap: 0;
+  background: #221608;
+  border: 1px solid rgba(255,200,120,0.1);
+  border-radius: 100px;
+  padding: 6px 6px 6px 24px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-top: 8px;
+}
+
+.checkinForm:focus-within {
+  border-color: rgba(255,77,28,0.4);
+  box-shadow: 0 0 0 3px rgba(255,77,28,0.1);
+}
+
+.checkinInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f0ead6;
+  font-size: 0.95rem;
+  min-width: 0;
+  padding-right: 8px;
+}
+
+.checkinInput::placeholder { color: rgba(240,234,214,0.3); }
+
+.checkinSendBtn {
+  background: #ff4d1c;
+  color: #110d06;
+  border: none;
+  border-radius: 100px;
+  width: 42px;
+  height: 42px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.checkinSendBtn:hover:not(:disabled) { background: #ff7043; }
+.checkinSendBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.checkinSkip {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid rgba(255,77,28,0.3);
+  border-radius: 100px;
+  padding: 10px 24px;
+  color: #ff4d1c;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+
+.checkinSkip:hover {
+  background: rgba(255,77,28,0.1);
+}
+
+.checkinSkipSmall {
+  background: transparent;
+  border: none;
+  color: rgba(240,234,214,0.25);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 4px;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+
+.checkinSkipSmall:hover { color: rgba(240,234,214,0.5); }
