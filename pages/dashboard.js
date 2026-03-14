@@ -133,7 +133,7 @@ export default function Dashboard() {
           <form onSubmit={addTask} className={styles.addForm}>
             <input
               type="text"
-              placeholder="What do you need to do? Add it here..."
+              placeholder="What do you need to do today?"
               value={newTask}
               onChange={e => setNewTask(e.target.value)}
               className={styles.addInput}
