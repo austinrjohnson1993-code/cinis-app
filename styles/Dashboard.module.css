@@ -98,6 +98,7 @@
   color: #f0ead6;
   font-size: 0.95rem;
   min-width: 0;
+  padding-right: 8px;
 }
 
 .addInput::placeholder { color: rgba(240,234,214,0.3); }
