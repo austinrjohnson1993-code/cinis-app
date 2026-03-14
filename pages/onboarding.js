@@ -244,34 +244,6 @@ export default function Onboarding() {
     }
   }
 
-  const assistantStyle = {
-    background: '#221608',
-    border: '1px solid rgba(255,200,120,0.1)',
-    borderRadius: '18px 18px 18px 4px',
-    padding: '16px 20px',
-    color: '#f0ead6',
-    WebkitTextFillColor: '#f0ead6',
-    fontSize: '1.05rem',
-    lineHeight: '1.6',
-    maxWidth: '85%',
-    alignSelf: 'flex-start',
-    marginBottom: '8px'
-  }
-
-  const userStyle = {
-    background: '#ff4d1c',
-    borderRadius: '18px 18px 4px 18px',
-    padding: '14px 20px',
-    color: '#110d06',
-    WebkitTextFillColor: '#110d06',
-    fontSize: '1rem',
-    fontWeight: '500',
-    lineHeight: '1.5',
-    maxWidth: '75%',
-    alignSelf: 'flex-end',
-    marginBottom: '8px'
-  }
-
   if (!user) return null
 
   // WELCOME SCREEN
@@ -406,13 +378,13 @@ export default function Onboarding() {
           <div className={styles.conversationMessages}>
             <div className={styles.conversationSpacer} />
             {messages.map((msg, i) => (
-              <div key={i} style={msg.role === 'assistant' ? assistantStyle : userStyle}>
+              <div key={i} className={msg.role === 'assistant' ? styles.assistantBubble : styles.userBubble}>
                 {msg.content}
               </div>
             ))}
             {loading && (
-              <div style={assistantStyle}>
-                <span style={{ fontSize: '1.4rem', letterSpacing: '4px', color: 'rgba(240,234,214,0.4)', WebkitTextFillColor: 'rgba(240,234,214,0.4)' }}>···</span>
+              <div className={styles.assistantBubble}>
+                <span className={styles.typingDots}>···</span>
               </div>
             )}
             <div ref={messagesEndRef} />

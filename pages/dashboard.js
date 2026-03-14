@@ -199,32 +199,6 @@ export default function Dashboard() {
   const completedTasks = tasks.filter(t => t.completed)
   const firstName = getFirstName()
 
-  const assistantBubbleStyle = {
-    background: '#221608',
-    border: '1px solid rgba(255,200,120,0.1)',
-    borderRadius: '18px 18px 18px 4px',
-    padding: '16px 20px',
-    color: '#f0ead6',
-    WebkitTextFillColor: '#f0ead6',
-    fontSize: '1.05rem',
-    lineHeight: '1.6',
-    maxWidth: '85%',
-    alignSelf: 'flex-start',
-  }
-
-  const userBubbleStyle = {
-    background: '#ff4d1c',
-    borderRadius: '18px 18px 4px 18px',
-    padding: '14px 20px',
-    color: '#110d06',
-    WebkitTextFillColor: '#110d06',
-    fontSize: '1rem',
-    fontWeight: '500',
-    lineHeight: '1.5',
-    maxWidth: '75%',
-    alignSelf: 'flex-end',
-  }
-
   if (loading) return (
     <div className={styles.loadingPage}>
       <span className="brand"><span className="focus">Focus</span><span className="buddy">Buddy</span></span>
@@ -250,18 +224,18 @@ export default function Dashboard() {
             <div className={styles.checkinCard}>
               <div className={styles.checkinMessages}>
                 {checkinLoading && checkinMessages.length === 0 && (
-                  <div style={assistantBubbleStyle}>
-                    <span style={{ fontSize: '1.4rem', letterSpacing: '4px', color: 'rgba(240,234,214,0.4)', WebkitTextFillColor: 'rgba(240,234,214,0.4)' }}>···</span>
+                  <div className={styles.checkinBubbleAssistant}>
+                    <span className={styles.typingDots}>···</span>
                   </div>
                 )}
                 {checkinMessages.map((msg, i) => (
-                  <div key={i} style={msg.role === 'assistant' ? assistantBubbleStyle : userBubbleStyle}>
+                  <div key={i} className={msg.role === 'assistant' ? styles.checkinBubbleAssistant : styles.checkinBubbleUser}>
                     {msg.content}
                   </div>
                 ))}
                 {checkinLoading && checkinMessages.length > 0 && (
-                  <div style={assistantBubbleStyle}>
-                    <span style={{ fontSize: '1.4rem', letterSpacing: '4px', color: 'rgba(240,234,214,0.4)', WebkitTextFillColor: 'rgba(240,234,214,0.4)' }}>···</span>
+                  <div className={styles.checkinBubbleAssistant}>
+                    <span className={styles.typingDots}>···</span>
                   </div>
                 )}
               </div>

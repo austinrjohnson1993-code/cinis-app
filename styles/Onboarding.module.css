@@ -74,6 +74,40 @@
   color: rgba(240,234,214,0.25);
 }
 
+/* ── Chat Bubbles ── */
+
+.assistantBubble {
+  background: #221608;
+  border: 1px solid rgba(255,200,120,0.1);
+  border-radius: 18px 18px 18px 4px;
+  padding: 16px 20px;
+  color: #f0ead6;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  max-width: 85%;
+  align-self: flex-start;
+  margin-bottom: 8px;
+}
+
+.userBubble {
+  background: #ff4d1c;
+  border-radius: 18px 18px 4px 18px;
+  padding: 14px 20px;
+  color: #110d06;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  max-width: 75%;
+  align-self: flex-end;
+  margin-bottom: 8px;
+}
+
+.typingDots {
+  font-size: 1.4rem;
+  letter-spacing: 4px;
+  color: rgba(240,234,214,0.4);
+}
+
 /* ── Conversation Screen ── */
 
 .conversationContainer {
