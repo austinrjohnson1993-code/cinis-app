@@ -15,7 +15,7 @@ Rules:
 
 The goal: make them feel met, then find one small forward motion together.`;
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -36,6 +36,6 @@ Tasks on their list today: ${taskCount || 0}`;
     return res.status(200).json({ message: reply });
   } catch (error) {
     console.error('Anthropic API error:', error);
-    return res.status(500).json({ error: 'Something went wrong' });
+    return res.status(500).json({ error: 'Something went wrong', detail: error.message });
   }
 }
