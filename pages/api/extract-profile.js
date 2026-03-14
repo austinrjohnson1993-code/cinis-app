@@ -1,6 +1,6 @@
-const { lightweightMessage } = require('../../lib/anthropic');
+import { lightweightMessage } from '../../lib/anthropic';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -13,7 +13,7 @@ Return ONLY valid JSON, no other text:
 
 {
   "full_name": "string or null",
-  "communication_style": "string or null", 
+  "communication_style": "string or null",
   "work_schedule": "string or null",
   "sleep_habits": "string or null",
   "exercise_habits": "string or null",
