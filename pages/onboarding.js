@@ -89,25 +89,32 @@ export default function Onboarding() {
     }
   }, [selectedPersonas])
 
-  const startConversation = async () => {
-    setPhase('conversation')
+  // Fetch the first AI message whenever the conversation phase starts with no messages
+  useEffect(() => {
+    if (phase !== 'conversation' || messages.length > 0 || !user) return
+
     setLoading(true)
-    try {
-      const res = await fetch('/api/onboarding', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: 'Hi, I just signed up for FocusBuddy.' }],
-          userName: user?.email
-        })
+    fetch('/api/onboarding', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: 'Hi, I just signed up for FocusBuddy.' }],
+        userName: user.email
       })
-      const data = await res.json()
-      setMessages([{ role: 'assistant', content: data.message }])
-      if (data.isComplete) setIsComplete(true)
-    } catch (err) {
-      setMessages([{ role: 'assistant', content: "Hey! What should I call you?" }])
-    }
-    setLoading(false)
+    })
+      .then(res => res.json())
+      .then(data => {
+        setMessages([{ role: 'assistant', content: data.message }])
+        if (data.isComplete) setIsComplete(true)
+      })
+      .catch(() => {
+        setMessages([{ role: 'assistant', content: "Hey! What should I call you?" }])
+      })
+      .finally(() => setLoading(false))
+  }, [phase, user])
+
+  const startConversation = () => {
+    setPhase('conversation')
   }
 
   const sendMessage = async (e) => {
