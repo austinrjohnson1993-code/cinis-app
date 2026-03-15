@@ -171,6 +171,21 @@ function fmtMoney(n) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n)
 }
 
+function getTaskDateLabel(task) {
+  if (!task.scheduled_for && !task.due_time) return null
+  const date = new Date(task.scheduled_for || task.due_time)
+  const today = new Date()
+  const tomorrow = new Date()
+  tomorrow.setDate(today.getDate() + 1)
+  if (date.toDateString() === today.toDateString()) return 'Today'
+  if (date.toDateString() === tomorrow.toDateString()) return 'Tomorrow'
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const diffDays = Math.ceil((date - today) / (1000 * 60 * 60 * 24))
+  if (diffDays <= 7) return days[date.getDay()]
+  return `${days[date.getDay()].slice(0,3)} ${months[date.getMonth()]} ${date.getDate()}`
+}
+
 const RECURRENCE_OPTIONS = [
   { value: 'none', label: 'Once' },
   { value: 'daily', label: 'Daily' },
@@ -345,6 +360,7 @@ export default function Dashboard() {
 
   // Finance sub-tabs
   const [financeSub, setFinanceSub] = useState('bills')
+  const [expandedLearnCard, setExpandedLearnCard] = useState(null)
   const [monthlyIncome, setMonthlyIncome] = useState(0)
   const [monthlyIncomeInput, setMonthlyIncomeInput] = useState('')
 
@@ -395,7 +411,9 @@ export default function Dashboard() {
     const themeId = profile.accent_color && profile.accent_color.startsWith('#')
       ? null // legacy hex color, map to closest or default
       : profile.accent_color
-    const theme = THEMES.find(t => t.id === themeId) || THEMES.find(t => t.accent === profile.accent_color) || THEMES[0]
+    // Fallback: check localStorage if profile has no accent_color
+    const resolvedId = themeId || (typeof localStorage !== 'undefined' ? localStorage.getItem('fb_accent_color') : null)
+    const theme = THEMES.find(t => t.id === resolvedId) || THEMES.find(t => t.accent === profile.accent_color) || THEMES[0]
     setActiveTheme(theme)
     applyTheme(theme)
     if (profile.full_name) setSettingsName(profile.full_name)
@@ -921,12 +939,15 @@ export default function Dashboard() {
     applyTheme(theme)
     setActiveTheme(theme)
     setProfile(prev => ({ ...prev, accent_color: theme.id }))
+    if (typeof localStorage !== 'undefined') localStorage.setItem('fb_accent_color', theme.id)
     if (user) {
-      await fetch('/api/settings', {
+      // Direct Supabase update for reliability, plus API route as backup
+      await supabase.from('profiles').update({ accent_color: theme.id }).eq('id', user.id)
+      fetch('/api/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, updates: { accent_color: theme.id } }),
-      })
+      }).catch(() => {})
     }
   }
 
@@ -1305,12 +1326,17 @@ export default function Dashboard() {
                       <button onClick={() => completeTask(topTask)} className={styles.focusCheck} aria-label="Complete task" />
                       <div className={styles.focusTaskInfo} onClick={() => setDetailTask(topTask)} style={{ cursor: 'pointer' }}>
                         <span className={styles.focusTaskTitle}>{topTask.title}</span>
-                        {topTask.due_time && (() => {
-                          const fmt = formatDueTime(topTask.due_time)
+                        {(() => {
+                          const fmt = topTask.due_time ? formatDueTime(topTask.due_time) : null
+                          const dateLabel = getTaskDateLabel(topTask)
+                          const dateDisplay = dateLabel
+                            ? (fmt ? `${dateLabel} · ${fmt.label}` : dateLabel)
+                            : (fmt ? fmt.label : null)
+                          if (!dateDisplay) return null
                           return (
-                            <span className={`${styles.focusDueTime} ${fmt.urgent ? styles.focusDueUrgent : ''}`}>
-                              {fmt.urgent && <span className={styles.urgentDot} />}
-                              {fmt.label}
+                            <span className={`${styles.focusDueTime} ${fmt?.urgent ? styles.focusDueUrgent : ''}`}>
+                              {fmt?.urgent && <span className={styles.urgentDot} />}
+                              {dateDisplay}
                             </span>
                           )
                         })()}
@@ -1350,6 +1376,10 @@ export default function Dashboard() {
                         <div className={styles.taskGroupLabel}>Up next</div>
                         {restTasks.map(task => {
                           const dueFmt = task.due_time ? formatDueTime(task.due_time) : null
+                          const dateLabel = getTaskDateLabel(task)
+                          const dateDisplay = dateLabel
+                            ? (dueFmt ? `${dateLabel} · ${dueFmt.label}` : dateLabel)
+                            : (dueFmt ? dueFmt.label : null)
                           return (
                             <SortableTaskCard key={task.id} id={task.id}>
                               {(dragHandleProps) => (
@@ -1360,7 +1390,7 @@ export default function Dashboard() {
                                     <span className={styles.taskTitle}>{task.title}</span>
                                     {task.notes && <span className={styles.taskNotes}>{task.notes}</span>}
                                     <div className={styles.taskMeta}>
-                                      {dueFmt && <span className={`${styles.taskDueTime} ${dueFmt.urgent ? styles.taskDueUrgent : ''}`}>{dueFmt.label}</span>}
+                                      {dateDisplay && <span className={`${styles.taskDueTime} ${dueFmt?.urgent ? styles.taskDueUrgent : ''}`}>{dateDisplay}</span>}
                                       {task.rollover_count > 0 && <span className={styles.taskRollover}>↷ {task.rollover_count}×</span>}
                                       {task.consequence_level === 'external' && <span className={styles.taskExternal}>External</span>}
                                       {task.recurrence && task.recurrence !== 'none' && <span className={styles.taskRecurrence}>↻ {task.recurrence}</span>}
@@ -2278,40 +2308,66 @@ export default function Dashboard() {
                       icon: '💰', title: 'The 50/30/20 Rule',
                       body: 'Split your take-home pay: 50% to needs (rent, groceries, bills), 30% to wants (dining, subscriptions, fun), 20% to savings or debt payoff. It\'s not a strict rule — it\'s a starting point.',
                       tag: 'Most people have no idea where their money goes. This gives it somewhere to go.',
+                      impl: '1. Find your monthly take-home pay. 2. Multiply by 0.5 — that\'s your needs ceiling. 3. Multiply by 0.3 — that\'s your wants budget. 4. The remaining 20% goes to savings or debt before you spend anything else. 5. Track for one month without judging — just observe.',
                     },
                     {
                       icon: '🔥', title: 'The Debt Avalanche',
                       body: 'List your debts by interest rate, highest first. Pay minimums on everything, then throw every extra dollar at the highest-rate debt. Once it\'s gone, roll that payment to the next one.',
                       tag: 'This method saves the most money in interest over time.',
+                      impl: '1. List every debt with its balance and interest rate. 2. Set up minimum autopay on all of them. 3. Put every extra dollar toward the highest-rate debt. 4. When that debt hits zero, add its payment to the next highest. 5. Repeat until clear.',
                     },
                     {
                       icon: '⛄', title: 'The Emergency Fund',
                       body: "Keep 3-6 months of expenses in a separate, boring savings account you don't touch. Not for opportunities — only for actual emergencies.",
                       tag: 'Without one, any surprise expense becomes debt.',
+                      impl: "1. Open a separate savings account — label it 'Emergency Only'. 2. Calculate 3 months of your essential expenses. 3. Set up a small automatic transfer each payday — even $25 counts. 4. Build to 1 month first, then 3, then 6. 5. Do not touch it for non-emergencies.",
                     },
                     {
                       icon: '📈', title: 'Compound Interest',
                       body: 'When your money earns interest, and that interest earns interest, growth accelerates over time. Starting at 25 vs 35 can mean hundreds of thousands of dollars by retirement.',
                       tag: 'Time in the market beats timing the market.',
+                      impl: '1. Open a retirement account (401k if employer offers match — take the full match first). 2. Then open a Roth IRA if eligible. 3. Invest in a low-cost index fund (e.g. S&P 500 index). 4. Set up automatic contributions. 5. Don\'t check it daily — let time do the work.',
                     },
                     {
                       icon: '🧾', title: 'Fixed vs Variable Expenses',
                       body: 'Fixed expenses are the same every month — rent, subscriptions, loan payments. Variable expenses change — food, gas, entertainment. Cutting fixed costs has a bigger long-term impact.',
                       tag: 'Knowing the difference shows you where you actually have room to move.',
+                      impl: '1. List every expense from last month. 2. Mark each F (fixed) or V (variable). 3. Total both columns. 4. To cut fixed costs: negotiate bills, cancel unused subscriptions, shop insurance annually. 5. Variable costs are easier to cut short-term but fixed cuts compound over years.',
                     },
                     {
                       icon: '🏦', title: 'Pay Yourself First',
                       body: "Before paying any bill or buying anything, transfer a set amount to savings the moment your paycheck lands. Treat saving like a bill you owe yourself.",
                       tag: "If you wait until the end of the month to save what's left, there's never anything left.",
+                      impl: "1. Decide a savings amount — even 5% of income to start. 2. Set an automatic transfer for payday, the moment money lands. 3. Transfer to a separate account you don't see daily. 4. Treat it like rent — not optional. 5. Increase by 1% every 3 months.",
                     },
-                  ].map(({ icon, title, body, tag }) => (
-                    <div key={title} className={styles.learnCard}>
-                      <div className={styles.learnCardIcon}>{icon}</div>
-                      <div className={styles.learnCardTitle}>{title}</div>
-                      <div className={styles.learnCardBody}>{body}</div>
-                      <div className={styles.learnCardTag}>Why it matters: {tag}</div>
-                    </div>
-                  ))}
+                  ].map(({ icon, title, body, tag, impl }) => {
+                    const isOpen = expandedLearnCard === title
+                    return (
+                      <div key={title} className={`${styles.learnCard} ${isOpen ? styles.learnCardExpanded : ''}`}>
+                        <div className={styles.learnCardHeader} onClick={() => setExpandedLearnCard(isOpen ? null : title)}>
+                          <span className={styles.learnCardIcon}>{icon}</span>
+                          <span className={styles.learnCardTitle}>{title}</span>
+                          <span className={styles.learnCardChevron}>▼</span>
+                        </div>
+                        {isOpen && (
+                          <div className={styles.learnCardContent}>
+                            <div className={styles.learnCardBody}>{body}</div>
+                            <div className={styles.learnCardTag}>Why it matters: {tag}</div>
+                            <div className={styles.learnCardImplement}>
+                              <div className={styles.learnCardImplementTitle}>How to implement this</div>
+                              <div className={styles.learnCardImplementSteps}>{impl}</div>
+                              <button
+                                className={styles.learnCardApplyBtn}
+                                onClick={() => { setFinanceSub('budget'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                              >
+                                See this applied to my budget →
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
 
