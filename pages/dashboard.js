@@ -400,7 +400,7 @@ export default function Dashboard() {
       fetch('/api/checkin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, checkInType: getCheckinType() })
+        body: JSON.stringify({ userId: user.id, checkInType: getCheckinType(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
       })
         .then(r => r.json())
         .then(data => {
@@ -503,7 +503,7 @@ export default function Dashboard() {
       const res = await fetch('/api/checkin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, checkInType: 'weekly_summary' })
+        body: JSON.stringify({ userId: user.id, checkInType: 'weekly_summary', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
       })
       const data = await res.json()
       setWeeklySummary(data.message || '')
@@ -748,7 +748,7 @@ export default function Dashboard() {
     try {
       const res = await fetch('/api/checkin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, checkInType: getCheckinType(), messages: updated })
+        body: JSON.stringify({ userId: user.id, checkInType: getCheckinType(), messages: updated, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
       })
       const data = await res.json()
       if (data.message) setCheckinMessages(prev => [...prev, { role: 'assistant', content: data.message }])
