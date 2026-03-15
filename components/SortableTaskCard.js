@@ -13,9 +13,11 @@ export default function SortableTaskCard({ id, children }) {
     position: isDragging ? 'relative' : undefined,
   }
 
+  const dragHandleProps = { ...listeners, ...attributes }
+
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      {children}
+    <div ref={setNodeRef} style={style}>
+      {typeof children === 'function' ? children(dragHandleProps) : children}
     </div>
   )
 }

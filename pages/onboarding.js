@@ -162,10 +162,12 @@ function computePersonas(answers) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+const RANK_ITEMS_DEFAULT = ['Deep focus work', 'Quick wins', 'External commitments', 'Self-care / personal tasks']
+
 export default function Onboarding() {
   const router = useRouter()
   const [user, setUser] = useState(null)
-  const [phase, setPhase] = useState('intro') // intro | questions | analyzing | reveal | saving
+  const [phase, setPhase] = useState('intro') // intro | questions | rankq | analyzing | reveal | saving
   const [name, setName] = useState('')
   const [checkinTimes, setCheckinTimes] = useState(['morning', 'evening'])
   const [currentQ, setCurrentQ] = useState(0)
@@ -173,6 +175,8 @@ export default function Onboarding() {
   const [animKey, setAnimKey] = useState(0)
   const [personaBlend, setPersonaBlend] = useState([])
   const [personaVoice, setPersonaVoice] = useState('female')
+  const [rankItems, setRankItems] = useState([...RANK_ITEMS_DEFAULT])
+  const [rankDragIdx, setRankDragIdx] = useState(null)
 
   useEffect(() => {
     const isReset = window.location.search.includes('reset=1')
@@ -203,17 +207,31 @@ export default function Onboarding() {
       setAnimKey(k => k + 1)
       setCurrentQ(q => q + 1)
     } else {
-      const keys = computePersonas(newAnswers)
-      const blend = (keys.length ? keys : ['coach']).map(k => PERSONA_DEFS[k].label)
-      setPersonaBlend(blend)
-      setPhase('analyzing')
-      setTimeout(() => setPhase('reveal'), 1500)
+      // After last question, show ranked priorities question
+      setPhase('rankq')
     }
+  }
+
+  const handleBack = () => {
+    if (currentQ > 0) {
+      setAnimKey(k => k + 1)
+      setCurrentQ(q => q - 1)
+    } else {
+      setPhase('intro')
+    }
+  }
+
+  const handleRankSubmit = () => {
+    const keys = computePersonas(answers)
+    const blend = (keys.length ? keys : ['coach']).map(k => PERSONA_DEFS[k].label)
+    setPersonaBlend(blend)
+    setPhase('analyzing')
+    setTimeout(() => setPhase('reveal'), 1500)
   }
 
   const handleConfirm = async () => {
     setPhase('saving')
-    await supabase.from('profiles').upsert({
+    const upsertData = {
       id: user.id,
       email: user.email,
       full_name: name.trim() || user.email.split('@')[0],
@@ -223,8 +241,15 @@ export default function Onboarding() {
       persona_set: true,
       checkin_times: checkinTimes,
       onboarding_complete: true,
+      tutorial_completed: false,
       created_at: new Date().toISOString(),
-    })
+    }
+    // Save ranked_priorities gracefully — column may not exist yet
+    try {
+      await supabase.from('profiles').upsert({ ...upsertData, ranked_priorities: rankItems })
+    } catch {
+      await supabase.from('profiles').upsert(upsertData)
+    }
     router.push('/dashboard')
   }
 
@@ -286,7 +311,7 @@ export default function Onboarding() {
   // ── Questions ─────────────────────────────────────────────────────────────
   if (phase === 'questions') {
     const q = QUESTIONS[currentQ]
-    const progress = ((currentQ + 1) / QUESTIONS.length) * 100
+    const progress = ((currentQ + 1) / (QUESTIONS.length + 1)) * 100
 
     return (
       <>
@@ -297,22 +322,79 @@ export default function Onboarding() {
           </div>
 
           <div className={styles.questionContainer}>
-            <span className={styles.questionCount}>{currentQ + 1} of {QUESTIONS.length}</span>
+            <div className={styles.questionNav}>
+              <button onClick={handleBack} className={styles.backBtn}>← Back</button>
+              <span className={styles.questionCount}>{currentQ + 1} of {QUESTIONS.length + 1}</span>
+            </div>
 
             <div key={animKey} className={styles.questionWrap}>
               <h2 className={styles.questionText}>{q.text}</h2>
               <div className={styles.optionsGrid}>
-                {q.options.map(opt => (
-                  <button
-                    key={opt.id}
-                    onClick={() => handleAnswer(opt.id)}
-                    className={styles.optionCard}
+                {q.options.map(opt => {
+                  const selected = answers[currentQ] === opt.id
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => handleAnswer(opt.id)}
+                      className={`${styles.optionCard} ${selected ? styles.optionCardSelected : ''}`}
+                    >
+                      <span className={`${styles.optionLetter} ${selected ? styles.optionLetterSelected : ''}`}>{opt.id.toUpperCase()}</span>
+                      <span className={styles.optionText}>{opt.text}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  // ── Rank question ─────────────────────────────────────────────────────────
+  if (phase === 'rankq') {
+    const progress = (QUESTIONS.length / (QUESTIONS.length + 1)) * 100
+    return (
+      <>
+        <Head><title>Getting Started — FocusBuddy</title></Head>
+        <div className={styles.page}>
+          <div className={styles.progressBar}>
+            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+          </div>
+          <div className={styles.questionContainer}>
+            <div className={styles.questionNav}>
+              <button onClick={() => { setPhase('questions'); setCurrentQ(QUESTIONS.length - 1); setAnimKey(k => k + 1) }} className={styles.backBtn}>← Back</button>
+              <span className={styles.questionCount}>{QUESTIONS.length + 1} of {QUESTIONS.length + 1}</span>
+            </div>
+            <div className={styles.questionWrap}>
+              <h2 className={styles.questionText}>Drag to rank what matters most to you.</h2>
+              <p className={styles.rankSubtext}>Top = highest priority. This helps FocusBuddy sort your tasks.</p>
+              <div className={styles.rankList}>
+                {rankItems.map((item, i) => (
+                  <div
+                    key={item}
+                    draggable
+                    onDragStart={() => setRankDragIdx(i)}
+                    onDragOver={e => { e.preventDefault() }}
+                    onDrop={() => {
+                      if (rankDragIdx === null || rankDragIdx === i) return
+                      const next = [...rankItems]
+                      const [moved] = next.splice(rankDragIdx, 1)
+                      next.splice(i, 0, moved)
+                      setRankItems(next)
+                      setRankDragIdx(null)
+                    }}
+                    className={styles.rankItem}
                   >
-                    <span className={styles.optionLetter}>{opt.id.toUpperCase()}</span>
-                    <span className={styles.optionText}>{opt.text}</span>
-                  </button>
+                    <span className={styles.rankPosition}>{i + 1}</span>
+                    <span className={styles.rankItemText}>{item}</span>
+                    <span className={styles.rankHandle}>⠿</span>
+                  </div>
                 ))}
               </div>
+              <button onClick={handleRankSubmit} className={styles.startBtn} style={{ marginTop: '28px' }}>
+                Done →
+              </button>
             </div>
           </div>
         </div>

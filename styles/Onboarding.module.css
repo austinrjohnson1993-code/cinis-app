@@ -179,6 +179,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   max-width: 680px;
   margin: 0 auto;
   padding: 72px 24px 48px;
@@ -191,8 +192,6 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #ff4d1c;
-  margin-bottom: 32px;
-  display: block;
 }
 
 .questionWrap {
@@ -282,6 +281,101 @@
 
 .optionCard:hover .optionText {
   color: #f0ead6;
+}
+
+/* ── FIX 5: Selected state ── */
+
+.optionCardSelected {
+  background: rgba(255,77,28,0.1) !important;
+  border-color: rgba(255,77,28,0.5) !important;
+  transform: none !important;
+}
+
+.optionLetterSelected {
+  background: rgba(255,77,28,0.25) !important;
+  color: #ff4d1c !important;
+}
+
+/* ── FIX 5: Question nav row ── */
+
+.questionNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(240,234,214,0.35);
+  cursor: pointer;
+  font-family: 'Figtree', sans-serif;
+  padding: 0;
+  transition: color 0.15s;
+}
+.backBtn:hover { color: rgba(240,234,214,0.65); }
+
+/* ── FIX 5: Rank question ── */
+
+.rankSubtext {
+  font-size: 0.88rem;
+  color: rgba(240,234,214,0.4);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.rankList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rankItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #1a1006;
+  border: 1px solid rgba(255,200,120,0.1);
+  border-radius: 14px;
+  padding: 16px 18px;
+  cursor: grab;
+  transition: all 0.15s;
+  user-select: none;
+}
+.rankItem:hover {
+  border-color: rgba(255,77,28,0.3);
+  background: rgba(255,77,28,0.06);
+}
+.rankItem:active { cursor: grabbing; }
+
+.rankPosition {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(255,77,28,0.12);
+  color: #ff4d1c;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rankItemText {
+  flex: 1;
+  font-size: 0.92rem;
+  color: rgba(240,234,214,0.8);
+  font-weight: 500;
+}
+
+.rankHandle {
+  color: rgba(240,234,214,0.2);
+  font-size: 1rem;
+  letter-spacing: -1px;
 }
 
 /* ── Analyzing screen ── */

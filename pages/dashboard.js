@@ -315,6 +315,31 @@ export default function Dashboard() {
   const [journalReminderShown, setJournalReminderShown] = useState(false)
   const [showJournalReminder, setShowJournalReminder] = useState(false)
 
+  // FIX 1: Drag hint
+  const [dragHintDismissed, setDragHintDismissed] = useState(false)
+
+  // FIX 2: Task edit mode
+  const [detailEditing, setDetailEditing] = useState(false)
+  const [detailEditTitle, setDetailEditTitle] = useState('')
+  const [detailEditDueDate, setDetailEditDueDate] = useState('')
+  const [detailEditDueTime, setDetailEditDueTime] = useState('')
+  const [detailEditConsequence, setDetailEditConsequence] = useState('self')
+  const [detailEditRecurrence, setDetailEditRecurrence] = useState('none')
+  const [detailEditNotes, setDetailEditNotes] = useState('')
+  const [detailSaving, setDetailSaving] = useState(false)
+
+  // FIX 3: Bulk task import
+  const [addMode, setAddMode] = useState('single')
+  const [bulkText, setBulkText] = useState('')
+  const [bulkParsing, setBulkParsing] = useState(false)
+  const [bulkPreview, setBulkPreview] = useState([])
+  const [bulkListening, setBulkListening] = useState(false)
+  const bulkRecognitionRef = useRef(null)
+
+  // FIX 4: Tutorial
+  const [showTutorial, setShowTutorial] = useState(false)
+  const [tutorialStep, setTutorialStep] = useState(0)
+
   // Settings
   const [settingsName, setSettingsName] = useState('')
   const [settingsSaving, setSettingsSaving] = useState(false)
@@ -353,6 +378,7 @@ export default function Dashboard() {
     if (detailTask) {
       setDetailNoteEdit(detailTask.notes || '')
       setDetailNoteEditing(false)
+      setDetailEditing(false)
     }
   }, [detailTask?.id])
 
@@ -429,6 +455,20 @@ export default function Dashboard() {
       fetchAlarms(user.id)
     }
   }, [activeTab, user])
+
+  // FIX 1: load drag hint dismissed state from localStorage
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('fb_drag_hint_dismissed')) {
+      setDragHintDismissed(true)
+    }
+  }, [])
+
+  // FIX 4: show tutorial for new users
+  useEffect(() => {
+    if (profile && profile.tutorial_completed === false) {
+      setShowTutorial(true)
+    }
+  }, [profile])
 
   // ── Data fetching ─────────────────────────────────────────────────────────
 
@@ -907,6 +947,110 @@ export default function Dashboard() {
     await supabase.from('tasks').update({ notes }).eq('id', detailTask.id)
   }
 
+  // FIX 1
+  const dismissDragHint = () => {
+    setDragHintDismissed(true)
+    if (typeof localStorage !== 'undefined') localStorage.setItem('fb_drag_hint_dismissed', '1')
+  }
+
+  // FIX 2: Task edit mode
+  const openDetailEdit = () => {
+    const t = detailTask
+    setDetailEditTitle(t.title)
+    const due = t.due_time ? new Date(t.due_time) : null
+    setDetailEditDueDate(due ? due.toISOString().split('T')[0] : '')
+    setDetailEditDueTime(due ? `${String(due.getHours()).padStart(2,'0')}:${String(due.getMinutes()).padStart(2,'0')}` : '')
+    setDetailEditConsequence(t.consequence_level || 'self')
+    setDetailEditRecurrence(t.recurrence || 'none')
+    setDetailEditNotes(t.notes || '')
+    setDetailEditing(true)
+  }
+
+  const saveDetailEdit = async () => {
+    if (!detailEditTitle.trim()) return
+    setDetailSaving(true)
+    let due_time = null
+    if (detailEditDueDate) {
+      const dateStr = detailEditDueTime ? `${detailEditDueDate}T${detailEditDueTime}` : `${detailEditDueDate}T23:59`
+      due_time = new Date(dateStr).toISOString()
+    }
+    const updates = {
+      title: detailEditTitle.trim(),
+      due_time,
+      consequence_level: detailEditConsequence,
+      recurrence: detailEditRecurrence,
+      notes: detailEditNotes.trim() || null,
+    }
+    await supabase.from('tasks').update(updates).eq('id', detailTask.id)
+    const updated = { ...detailTask, ...updates }
+    setTasks(prev => prev.map(t => t.id === detailTask.id ? updated : t))
+    setDetailTask(updated)
+    setDetailEditing(false)
+    setDetailSaving(false)
+    showToast('Task updated')
+  }
+
+  // FIX 3: Bulk task import
+  const parseBulkTasks = async () => {
+    if (!bulkText.trim()) return
+    setBulkParsing(true)
+    try {
+      const res = await fetch('/api/parse-bulk-tasks', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: bulkText })
+      })
+      const data = await res.json()
+      setBulkPreview((data.tasks || []).map((t, i) => ({ ...t, _id: i })))
+    } catch { showToast('Parse failed — try again') }
+    setBulkParsing(false)
+  }
+
+  const addAllBulkTasks = async () => {
+    if (!bulkPreview.length || !user) return
+    const inserts = bulkPreview.map(t => {
+      let due_time = null
+      if (t.due_date) {
+        const dateStr = t.due_time ? `${t.due_date}T${t.due_time}` : `${t.due_date}T23:59`
+        due_time = new Date(dateStr).toISOString()
+      }
+      return {
+        user_id: user.id, title: t.title, completed: false, archived: false,
+        due_time, consequence_level: t.consequence_level || 'self',
+        notes: t.notes || null, recurrence: t.recurrence || 'none',
+        rollover_count: 0, priority_score: 0,
+        created_at: new Date().toISOString(), scheduled_for: new Date().toISOString()
+      }
+    })
+    const { data } = await supabase.from('tasks').insert(inserts).select()
+    if (data) setTasks(prev => [...data, ...prev])
+    setBulkPreview([]); setBulkText(''); setAddMode('single'); setShowAddModal(false)
+    showToast(`${inserts.length} task${inserts.length !== 1 ? 's' : ''} added`)
+  }
+
+  const startBulkListening = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) { alert('Voice input not supported. Try Chrome or Safari.'); return }
+    const recognition = new SR()
+    recognition.lang = 'en-US'; recognition.continuous = false; recognition.interimResults = false
+    recognition.onstart = () => setBulkListening(true)
+    recognition.onend = () => setBulkListening(false)
+    recognition.onresult = (e) => {
+      const t = e.results[0][0].transcript
+      setBulkText(prev => prev ? prev + '\n' + t : t)
+    }
+    recognition.onerror = () => setBulkListening(false)
+    bulkRecognitionRef.current = recognition; recognition.start()
+  }
+
+  // FIX 4: Tutorial
+  const dismissTutorial = async (complete) => {
+    setShowTutorial(false)
+    if (complete && user) {
+      await supabase.from('profiles').update({ tutorial_completed: true }).eq('id', user.id)
+      setProfile(prev => ({ ...prev, tutorial_completed: true }))
+    }
+  }
+
   const handleRunRollover = async () => {
     try {
       const res = await fetch('/api/rollover-tasks', { method: 'POST' })
@@ -933,6 +1077,7 @@ export default function Dashboard() {
   const handleDragEnd = async (event) => {
     const { active, over } = event
     if (!over || active.id === over.id) return
+    if (!dragHintDismissed) dismissDragHint()
     const oldIndex = pendingTasks.findIndex(t => t.id === active.id)
     const newIndex = pendingTasks.findIndex(t => t.id === over.id)
     if (oldIndex === -1 || newIndex === -1) return
@@ -1186,39 +1331,50 @@ export default function Dashboard() {
               )}
 
               {restTasks.length > 0 && (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={restTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                    <div className={styles.taskGroup}>
-                      <div className={styles.taskGroupLabel}>Up next</div>
-                      {restTasks.map(task => {
-                        const dueFmt = task.due_time ? formatDueTime(task.due_time) : null
-                        return (
-                          <SortableTaskCard key={task.id} id={task.id}>
-                            <div className={styles.taskCard}>
-                              <button onClick={() => completeTask(task)} className={styles.taskCheck} aria-label="Complete" />
-                              <div className={styles.taskInfo} onClick={() => setDetailTask(task)} style={{ cursor: 'pointer' }}>
-                                <span className={styles.taskTitle}>{task.title}</span>
-                                {task.notes && <span className={styles.taskNotes}>{task.notes}</span>}
-                                <div className={styles.taskMeta}>
-                                  {dueFmt && <span className={`${styles.taskDueTime} ${dueFmt.urgent ? styles.taskDueUrgent : ''}`}>{dueFmt.label}</span>}
-                                  {task.rollover_count > 0 && <span className={styles.taskRollover}>↷ {task.rollover_count}×</span>}
-                                  {task.consequence_level === 'external' && <span className={styles.taskExternal}>External</span>}
-                                  {task.recurrence && task.recurrence !== 'none' && <span className={styles.taskRecurrence}>↻ {task.recurrence}</span>}
-                                </div>
-                              </div>
-                              <div className={styles.taskActions}>
-                                <button onClick={() => rescheduleTask(task)} className={styles.taskAction} title="Push to tomorrow">
-                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-                                </button>
-                                <button onClick={() => archiveTask(task)} className={styles.taskActionDelete} title="Remove">×</button>
-                              </div>
-                            </div>
-                          </SortableTaskCard>
-                        )
-                      })}
+                <>
+                  {!dragHintDismissed && (
+                    <div className={styles.dragHintBanner}>
+                      <span>⠿ Drag to set your priority order — top task becomes your focus</span>
+                      <button onClick={dismissDragHint} className={styles.dragHintClose}>×</button>
                     </div>
-                  </SortableContext>
-                </DndContext>
+                  )}
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={restTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                      <div className={styles.taskGroup}>
+                        <div className={styles.taskGroupLabel}>Up next</div>
+                        {restTasks.map(task => {
+                          const dueFmt = task.due_time ? formatDueTime(task.due_time) : null
+                          return (
+                            <SortableTaskCard key={task.id} id={task.id}>
+                              {(dragHandleProps) => (
+                                <div className={styles.taskCard}>
+                                  <div className={styles.dragHandle} {...dragHandleProps} title="Drag to reorder">⠿</div>
+                                  <button onClick={() => completeTask(task)} className={styles.taskCheck} aria-label="Complete" />
+                                  <div className={styles.taskInfo} onClick={() => setDetailTask(task)} style={{ cursor: 'pointer' }}>
+                                    <span className={styles.taskTitle}>{task.title}</span>
+                                    {task.notes && <span className={styles.taskNotes}>{task.notes}</span>}
+                                    <div className={styles.taskMeta}>
+                                      {dueFmt && <span className={`${styles.taskDueTime} ${dueFmt.urgent ? styles.taskDueUrgent : ''}`}>{dueFmt.label}</span>}
+                                      {task.rollover_count > 0 && <span className={styles.taskRollover}>↷ {task.rollover_count}×</span>}
+                                      {task.consequence_level === 'external' && <span className={styles.taskExternal}>External</span>}
+                                      {task.recurrence && task.recurrence !== 'none' && <span className={styles.taskRecurrence}>↻ {task.recurrence}</span>}
+                                    </div>
+                                  </div>
+                                  <div className={styles.taskActions}>
+                                    <button onClick={() => rescheduleTask(task)} className={styles.taskAction} title="Push to tomorrow">
+                                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                                    </button>
+                                    <button onClick={() => archiveTask(task)} className={styles.taskActionDelete} title="Remove">×</button>
+                                  </div>
+                                </div>
+                              )}
+                            </SortableTaskCard>
+                          )
+                        })}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                </>
               )}
 
               {pendingTasks.length === 0 && completedTasks.length === 0 && (
@@ -2054,101 +2210,176 @@ export default function Dashboard() {
 
         {/* ADD TASK MODAL */}
         {showAddModal && (
-          <div className={styles.modalOverlay} onClick={e => e.target === e.currentTarget && setShowAddModal(false)}>
+          <div className={styles.modalOverlay} onClick={e => e.target === e.currentTarget && (setShowAddModal(false), resetForm(), setAddMode('single'), setBulkPreview([]), setBulkText(''))}>
             <div className={styles.modal}>
               <div className={styles.modalHeader}>
                 <h2 className={styles.modalTitle}>New task</h2>
                 <div className={styles.modalHeaderRight}>
-                  <button type="button" onClick={listening ? stopListening : startListening}
-                    className={`${styles.micBtn} ${listening ? styles.micBtnActive : ''}`}
-                    title={listening ? 'Stop recording' : 'Speak your task'}>
-                    {listening ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-                    ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
-                      </svg>
-                    )}
-                  </button>
-                  <button onClick={() => { setShowAddModal(false); resetForm() }} className={styles.modalClose}>×</button>
+                  {addMode === 'single' && (
+                    <button type="button" onClick={listening ? stopListening : startListening}
+                      className={`${styles.micBtn} ${listening ? styles.micBtnActive : ''}`}
+                      title={listening ? 'Stop recording' : 'Speak your task'}>
+                      {listening ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+                        </svg>
+                      )}
+                    </button>
+                  )}
+                  <button onClick={() => { setShowAddModal(false); resetForm(); setAddMode('single'); setBulkPreview([]); setBulkText('') }} className={styles.modalClose}>×</button>
                 </div>
               </div>
 
-              {(listening || parsing || voiceTranscript) && (
-                <div className={styles.voiceState}>
-                  {listening && (
-                    <div className={styles.voiceListening}>
-                      <span className={styles.voiceDot} /><span className={styles.voiceDot} /><span className={styles.voiceDot} />
-                      <span className={styles.voiceListeningText}>Listening...</span>
+              {/* Single / Bulk toggle */}
+              <div className={styles.modeToggleRow}>
+                <button type="button" onClick={() => setAddMode('single')}
+                  className={`${styles.modeToggleBtn} ${addMode === 'single' ? styles.modeToggleBtnActive : ''}`}>
+                  Single task
+                </button>
+                <button type="button" onClick={() => setAddMode('bulk')}
+                  className={`${styles.modeToggleBtn} ${addMode === 'bulk' ? styles.modeToggleBtnActive : ''}`}>
+                  Bulk import
+                </button>
+              </div>
+
+              {addMode === 'single' && (
+                <>
+                  {(listening || parsing || voiceTranscript) && (
+                    <div className={styles.voiceState}>
+                      {listening && (
+                        <div className={styles.voiceListening}>
+                          <span className={styles.voiceDot} /><span className={styles.voiceDot} /><span className={styles.voiceDot} />
+                          <span className={styles.voiceListeningText}>Listening...</span>
+                        </div>
+                      )}
+                      {parsing && <div className={styles.voiceParsing}>Working out the details...</div>}
+                      {voiceTranscript && !listening && !parsing && <div className={styles.voiceTranscript}>"{voiceTranscript}"</div>}
                     </div>
                   )}
-                  {parsing && <div className={styles.voiceParsing}>Working out the details...</div>}
-                  {voiceTranscript && !listening && !parsing && <div className={styles.voiceTranscript}>"{voiceTranscript}"</div>}
-                </div>
+                  <form onSubmit={addTask} className={styles.modalForm}>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>What needs to get done?</label>
+                      <input ref={titleInputRef} type="text" placeholder="e.g. Call the insurance company"
+                        value={newTitle} onChange={e => setNewTitle(e.target.value)}
+                        className={styles.fieldInput} required />
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>Due date</label>
+                      <div className={styles.quickRow}>
+                        <button type="button" onClick={() => setNewDueDate(todayStr())}
+                          className={`${styles.quickBtn} ${newDueDate === todayStr() ? styles.quickBtnActive : ''}`}>Today</button>
+                        <button type="button" onClick={() => setNewDueDate(tomorrowStr())}
+                          className={`${styles.quickBtn} ${newDueDate === tomorrowStr() ? styles.quickBtnActive : ''}`}>Tomorrow</button>
+                        <input type="date" value={newDueDate} onChange={e => setNewDueDate(e.target.value)} className={styles.fieldInputCompact} />
+                      </div>
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>Due time</label>
+                      <div className={styles.quickRow}>
+                        {[['Morning', '09:00'], ['Afternoon', '14:00'], ['Evening', '18:00']].map(([label, val]) => (
+                          <button key={val} type="button"
+                            onClick={() => { setNewDueTime(val); if (!newDueDate) setNewDueDate(todayStr()) }}
+                            className={`${styles.quickBtn} ${newDueTime === val ? styles.quickBtnActive : ''}`}
+                            disabled={!newDueDate}>{label}</button>
+                        ))}
+                        <input type="time" value={newDueTime} onChange={e => setNewDueTime(e.target.value)}
+                          className={styles.fieldInputCompact} disabled={!newDueDate} />
+                      </div>
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>Type</label>
+                      <div className={styles.toggleRow}>
+                        <button type="button" onClick={() => setNewConsequence('self')}
+                          className={`${styles.toggleBtn} ${newConsequence === 'self' ? styles.toggleBtnActive : ''}`}>Personal</button>
+                        <button type="button" onClick={() => setNewConsequence('external')}
+                          className={`${styles.toggleBtn} ${newConsequence === 'external' ? styles.toggleBtnActive : ''}`}>External commitment</button>
+                      </div>
+                      <p className={styles.fieldHint}>
+                        {newConsequence === 'external' ? 'Someone else is counting on this — it gets priority.' : 'This is for you — still important, context matters.'}
+                      </p>
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>Repeat</label>
+                      <div className={styles.toggleRow}>
+                        {RECURRENCE_OPTIONS.map(opt => (
+                          <button key={opt.value} type="button" onClick={() => setNewRecurrence(opt.value)}
+                            className={`${styles.toggleBtn} ${newRecurrence === opt.value ? styles.toggleBtnActive : ''}`}>
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>Notes <span className={styles.fieldLabelOptional}>(optional)</span></label>
+                      <input type="text" placeholder="Context that makes this easier to start"
+                        value={newNotes} onChange={e => setNewNotes(e.target.value)} className={styles.fieldInput} />
+                    </div>
+                    <button type="submit" disabled={adding || !newTitle.trim()} className={styles.modalSubmit}>
+                      {adding ? 'Adding...' : 'Add to my list'}
+                    </button>
+                  </form>
+                </>
               )}
 
-              <form onSubmit={addTask} className={styles.modalForm}>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>What needs to get done?</label>
-                  <input ref={titleInputRef} type="text" placeholder="e.g. Call the insurance company"
-                    value={newTitle} onChange={e => setNewTitle(e.target.value)}
-                    className={styles.fieldInput} required />
-                </div>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Due date</label>
-                  <div className={styles.quickRow}>
-                    <button type="button" onClick={() => setNewDueDate(todayStr())}
-                      className={`${styles.quickBtn} ${newDueDate === todayStr() ? styles.quickBtnActive : ''}`}>Today</button>
-                    <button type="button" onClick={() => setNewDueDate(tomorrowStr())}
-                      className={`${styles.quickBtn} ${newDueDate === tomorrowStr() ? styles.quickBtnActive : ''}`}>Tomorrow</button>
-                    <input type="date" value={newDueDate} onChange={e => setNewDueDate(e.target.value)} className={styles.fieldInputCompact} />
+              {addMode === 'bulk' && (
+                <div className={styles.modalForm}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Paste or speak your tasks — one per line</label>
+                    <textarea
+                      className={styles.bulkTextarea}
+                      placeholder={"Call the insurance company\nPay electric bill by Friday\nSchedule dentist appointment next week\nReturn Amazon package"}
+                      value={bulkText}
+                      onChange={e => setBulkText(e.target.value)}
+                    />
                   </div>
-                </div>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Due time</label>
-                  <div className={styles.quickRow}>
-                    {[['Morning', '09:00'], ['Afternoon', '14:00'], ['Evening', '18:00']].map(([label, val]) => (
-                      <button key={val} type="button"
-                        onClick={() => { setNewDueTime(val); if (!newDueDate) setNewDueDate(todayStr()) }}
-                        className={`${styles.quickBtn} ${newDueTime === val ? styles.quickBtnActive : ''}`}
-                        disabled={!newDueDate}>{label}</button>
-                    ))}
-                    <input type="time" value={newDueTime} onChange={e => setNewDueTime(e.target.value)}
-                      className={styles.fieldInputCompact} disabled={!newDueDate} />
+                  <div className={styles.bulkActionRow}>
+                    <button type="button" onClick={() => navigator.clipboard.readText().then(t => setBulkText(prev => prev ? prev + '\n' + t : t)).catch(() => {})}
+                      className={styles.bulkActionBtn}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                      Paste
+                    </button>
+                    <button type="button" onClick={bulkListening ? () => { bulkRecognitionRef.current?.stop(); setBulkListening(false) } : startBulkListening}
+                      className={`${styles.bulkActionBtn} ${bulkListening ? styles.bulkActionBtnActive : ''}`}>
+                      {bulkListening ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+                        </svg>
+                      )}
+                      {bulkListening ? 'Listening...' : 'Speak'}
+                    </button>
+                    <button type="button" onClick={parseBulkTasks} disabled={bulkParsing || !bulkText.trim()}
+                      className={styles.bulkParseBtn}>
+                      {bulkParsing ? 'Parsing...' : 'Parse →'}
+                    </button>
                   </div>
-                </div>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Type</label>
-                  <div className={styles.toggleRow}>
-                    <button type="button" onClick={() => setNewConsequence('self')}
-                      className={`${styles.toggleBtn} ${newConsequence === 'self' ? styles.toggleBtnActive : ''}`}>Personal</button>
-                    <button type="button" onClick={() => setNewConsequence('external')}
-                      className={`${styles.toggleBtn} ${newConsequence === 'external' ? styles.toggleBtnActive : ''}`}>External commitment</button>
-                  </div>
-                  <p className={styles.fieldHint}>
-                    {newConsequence === 'external' ? 'Someone else is counting on this — it gets priority.' : 'This is for you — still important, context matters.'}
-                  </p>
-                </div>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Repeat</label>
-                  <div className={styles.toggleRow}>
-                    {RECURRENCE_OPTIONS.map(opt => (
-                      <button key={opt.value} type="button" onClick={() => setNewRecurrence(opt.value)}
-                        className={`${styles.toggleBtn} ${newRecurrence === opt.value ? styles.toggleBtnActive : ''}`}>
-                        {opt.label}
+
+                  {bulkPreview.length > 0 && (
+                    <>
+                      <div className={styles.fieldGroup} style={{ marginTop: '16px' }}>
+                        <label className={styles.fieldLabel}>Preview — {bulkPreview.length} task{bulkPreview.length !== 1 ? 's' : ''}</label>
+                        <div className={styles.bulkPreviewList}>
+                          {bulkPreview.map((t, i) => (
+                            <div key={t._id} className={styles.bulkPreviewItem}>
+                              <input className={styles.bulkPreviewInput} value={t.title}
+                                onChange={e => setBulkPreview(prev => prev.map((x, xi) => xi === i ? { ...x, title: e.target.value } : x))} />
+                              {t.due_date && <span className={styles.bulkPreviewMeta}>{t.due_date}</span>}
+                              <button type="button" onClick={() => setBulkPreview(prev => prev.filter((_, xi) => xi !== i))}
+                                className={styles.bulkPreviewRemove}>×</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <button type="button" onClick={addAllBulkTasks} className={styles.modalSubmit}>
+                        Add all {bulkPreview.length} task{bulkPreview.length !== 1 ? 's' : ''}
                       </button>
-                    ))}
-                  </div>
+                    </>
+                  )}
                 </div>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Notes <span className={styles.fieldLabelOptional}>(optional)</span></label>
-                  <input type="text" placeholder="Context that makes this easier to start"
-                    value={newNotes} onChange={e => setNewNotes(e.target.value)} className={styles.fieldInput} />
-                </div>
-                <button type="submit" disabled={adding || !newTitle.trim()} className={styles.modalSubmit}>
-                  {adding ? 'Adding...' : 'Add to my list'}
-                </button>
-              </form>
+              )}
             </div>
           </div>
         )}
@@ -2250,64 +2481,132 @@ export default function Dashboard() {
 
         {/* TASK DETAIL MODAL */}
         {detailTask && (
-          <div className={styles.modalOverlay} onClick={e => e.target === e.currentTarget && setDetailTask(null)}>
+          <div className={styles.modalOverlay} onClick={e => e.target === e.currentTarget && (setDetailTask(null), setDetailEditing(false))}>
             <div className={styles.modal}>
               <div className={styles.modalHeader}>
-                <h2 className={styles.detailTitle}>{detailTask.title}</h2>
-                <button onClick={() => setDetailTask(null)} className={styles.modalClose}>×</button>
+                {detailEditing ? (
+                  <input className={styles.detailEditTitleInput} value={detailEditTitle}
+                    onChange={e => setDetailEditTitle(e.target.value)} autoFocus />
+                ) : (
+                  <h2 className={styles.detailTitle}>{detailTask.title}</h2>
+                )}
+                <div className={styles.modalHeaderRight}>
+                  {!detailEditing && (
+                    <button onClick={openDetailEdit} className={styles.detailEditBtn}>Edit</button>
+                  )}
+                  <button onClick={() => { setDetailTask(null); setDetailEditing(false) }} className={styles.modalClose}>×</button>
+                </div>
               </div>
-              <div className={styles.detailBody}>
-                {(detailTask.due_time || detailTask.due_date) && (
+
+              {detailEditing ? (
+                <div className={styles.detailEditForm}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Due date</label>
+                    <div className={styles.quickRow}>
+                      <button type="button" onClick={() => setDetailEditDueDate(todayStr())}
+                        className={`${styles.quickBtn} ${detailEditDueDate === todayStr() ? styles.quickBtnActive : ''}`}>Today</button>
+                      <button type="button" onClick={() => setDetailEditDueDate(tomorrowStr())}
+                        className={`${styles.quickBtn} ${detailEditDueDate === tomorrowStr() ? styles.quickBtnActive : ''}`}>Tomorrow</button>
+                      <input type="date" value={detailEditDueDate} onChange={e => setDetailEditDueDate(e.target.value)} className={styles.fieldInputCompact} />
+                    </div>
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Due time</label>
+                    <input type="time" value={detailEditDueTime} onChange={e => setDetailEditDueTime(e.target.value)}
+                      className={styles.fieldInputCompact} disabled={!detailEditDueDate} />
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Type</label>
+                    <div className={styles.toggleRow}>
+                      <button type="button" onClick={() => setDetailEditConsequence('self')}
+                        className={`${styles.toggleBtn} ${detailEditConsequence === 'self' ? styles.toggleBtnActive : ''}`}>Personal</button>
+                      <button type="button" onClick={() => setDetailEditConsequence('external')}
+                        className={`${styles.toggleBtn} ${detailEditConsequence === 'external' ? styles.toggleBtnActive : ''}`}>External commitment</button>
+                    </div>
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Repeat</label>
+                    <div className={styles.toggleRow}>
+                      {RECURRENCE_OPTIONS.map(opt => (
+                        <button key={opt.value} type="button" onClick={() => setDetailEditRecurrence(opt.value)}
+                          className={`${styles.toggleBtn} ${detailEditRecurrence === opt.value ? styles.toggleBtnActive : ''}`}>
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Notes</label>
+                    <input type="text" placeholder="Context or notes..." value={detailEditNotes}
+                      onChange={e => setDetailEditNotes(e.target.value)} className={styles.fieldInput} />
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.detailBody}>
+                  {(detailTask.due_time || detailTask.due_date) && (
+                    <div className={styles.detailRow}>
+                      <span className={styles.detailLabel}>Due</span>
+                      <span className={styles.detailValue}>
+                        {detailTask.due_time
+                          ? `${new Date(detailTask.due_time).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · ${new Date(detailTask.due_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+                          : detailTask.due_date}
+                      </span>
+                    </div>
+                  )}
                   <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>Due</span>
-                    <span className={styles.detailValue}>
-                      {detailTask.due_time
-                        ? `${new Date(detailTask.due_time).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · ${new Date(detailTask.due_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
-                        : detailTask.due_date}
+                    <span className={styles.detailLabel}>Type</span>
+                    <span className={`${styles.detailValue} ${detailTask.consequence_level === 'external' ? styles.detailValueExt : ''}`}>
+                      {detailTask.consequence_level === 'external' ? 'External commitment' : 'Personal'}
                     </span>
                   </div>
-                )}
-                <div className={styles.detailRow}>
-                  <span className={styles.detailLabel}>Type</span>
-                  <span className={`${styles.detailValue} ${detailTask.consequence_level === 'external' ? styles.detailValueExt : ''}`}>
-                    {detailTask.consequence_level === 'external' ? 'External commitment' : 'Personal'}
-                  </span>
-                </div>
-                <div className={styles.detailRow}>
-                  <span className={styles.detailLabel}>Repeats</span>
-                  <span className={styles.detailValue}>
-                    {detailTask.recurrence === 'daily' ? 'Daily' : detailTask.recurrence === 'weekly' ? 'Weekly' : 'Once'}
-                  </span>
-                </div>
-                {detailTask.rollover_count > 0 && (
                   <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>Rolled over</span>
-                    <span className={styles.detailValue}>{detailTask.rollover_count}×</span>
+                    <span className={styles.detailLabel}>Repeats</span>
+                    <span className={styles.detailValue}>
+                      {detailTask.recurrence === 'daily' ? 'Daily' : detailTask.recurrence === 'weekly' ? 'Weekly' : 'Once'}
+                    </span>
                   </div>
-                )}
-                <div className={styles.detailNotesBlock}>
-                  <span className={styles.detailLabel}>Notes</span>
-                  {(detailNoteEditing || !detailTask.notes) ? (
-                    <div className={styles.detailNoteEditRow}>
-                      <input type="text" className={styles.detailNoteInput} placeholder="Add a note..."
-                        value={detailNoteEdit} onChange={e => setDetailNoteEdit(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && saveDetailNote()} autoFocus={detailNoteEditing} />
-                      <button className={styles.detailNoteSaveBtn} onClick={saveDetailNote}>Save</button>
+                  {detailTask.rollover_count > 0 && (
+                    <div className={styles.detailRow}>
+                      <span className={styles.detailLabel}>Rolled over</span>
+                      <span className={styles.detailValue}>{detailTask.rollover_count}×</span>
                     </div>
-                  ) : (
-                    <p className={styles.detailNotesText} onClick={() => setDetailNoteEditing(true)} style={{ cursor: 'pointer' }} title="Click to edit">
-                      {detailTask.notes}
-                    </p>
                   )}
+                  <div className={styles.detailNotesBlock}>
+                    <span className={styles.detailLabel}>Notes</span>
+                    {(detailNoteEditing || !detailTask.notes) ? (
+                      <div className={styles.detailNoteEditRow}>
+                        <input type="text" className={styles.detailNoteInput} placeholder="Add a note..."
+                          value={detailNoteEdit} onChange={e => setDetailNoteEdit(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && saveDetailNote()} autoFocus={detailNoteEditing} />
+                        <button className={styles.detailNoteSaveBtn} onClick={saveDetailNote}>Save</button>
+                      </div>
+                    ) : (
+                      <p className={styles.detailNotesText} onClick={() => setDetailNoteEditing(true)} style={{ cursor: 'pointer' }} title="Click to edit">
+                        {detailTask.notes}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
+
               <div className={styles.detailActions}>
-                {detailTask.completed ? (
-                  <button className={styles.detailBtnSecondary} onClick={() => { uncompleteTask(detailTask); setDetailTask(null) }}>Mark incomplete</button>
+                {detailEditing ? (
+                  <>
+                    <button className={styles.detailBtnPrimary} onClick={saveDetailEdit} disabled={detailSaving || !detailEditTitle.trim()}>
+                      {detailSaving ? 'Saving...' : 'Save changes'}
+                    </button>
+                    <button className={styles.detailBtnSecondary} onClick={() => setDetailEditing(false)}>Cancel</button>
+                  </>
                 ) : (
-                  <button className={styles.detailBtnPrimary} onClick={() => { completeTask(detailTask); setDetailTask(null) }}>Mark complete</button>
+                  <>
+                    {detailTask.completed ? (
+                      <button className={styles.detailBtnSecondary} onClick={() => { uncompleteTask(detailTask); setDetailTask(null) }}>Mark incomplete</button>
+                    ) : (
+                      <button className={styles.detailBtnPrimary} onClick={() => { completeTask(detailTask); setDetailTask(null) }}>Mark complete</button>
+                    )}
+                    <button className={styles.detailBtnSecondary} onClick={() => { rescheduleTask(detailTask); setDetailTask(null) }}>Push to tomorrow</button>
+                  </>
                 )}
-                <button className={styles.detailBtnSecondary} onClick={() => { rescheduleTask(detailTask); setDetailTask(null) }}>Push to tomorrow</button>
               </div>
             </div>
           </div>
@@ -2400,6 +2699,43 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* TUTORIAL OVERLAY — FIX 4 */}
+        {showTutorial && (() => {
+          const TUTORIAL_STEPS = [
+            { icon: '☑️', title: 'Your Task Deck', body: 'Your #1 priority stays at the top. Drag to reorder. Tap any task to see details or edit it. The top task becomes your focus card.' },
+            { icon: '💬', title: 'Daily Check-ins', body: "FocusBuddy checks in 3× a day — morning, midday, and evening. It adjusts your task list automatically based on what you tell it." },
+            { icon: '🎯', title: 'Focus Sessions', body: "Start a countdown timer for your top task — 15, 25, or 45 minutes. When time's up, tell it how it went and FocusBuddy responds." },
+            { icon: '📓', title: 'Journal', body: 'Think out loud. FocusBuddy listens, reflects back what it hears, and can turn anything you mention into a task. Entries are saved automatically.' },
+          ]
+          const step = TUTORIAL_STEPS[tutorialStep]
+          const isLast = tutorialStep === TUTORIAL_STEPS.length - 1
+          return (
+            <div className={styles.tutorialOverlay}>
+              <div className={styles.tutorialCard}>
+                <div className={styles.tutorialIcon}>{step.icon}</div>
+                <div className={styles.tutorialTitle}>{step.title}</div>
+                <div className={styles.tutorialBody}>{step.body}</div>
+                <div className={styles.tutorialFooter}>
+                  <div className={styles.tutorialDots}>
+                    {TUTORIAL_STEPS.map((_, i) => (
+                      <div key={i} className={`${styles.tutorialDot} ${i === tutorialStep ? styles.tutorialDotActive : ''}`} />
+                    ))}
+                  </div>
+                  <div className={styles.tutorialActions}>
+                    <button className={styles.tutorialSkip} onClick={() => dismissTutorial(true)}>Skip</button>
+                    <button className={styles.tutorialNext} onClick={() => {
+                      if (isLast) { dismissTutorial(true) }
+                      else setTutorialStep(s => s + 1)
+                    }}>
+                      {isLast ? "Let's go →" : 'Next →'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* PERSONA SETTINGS MODAL */}
         {showPersonaModal && (
