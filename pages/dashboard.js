@@ -1510,10 +1510,11 @@ export default function Dashboard() {
             <div className={styles.focusView}>
               {/* Sub-tab nav */}
               <div className={styles.focusSubNav}>
-                {[['session','Session'],['fuel','Fuel'],['move','Move'],['supplements','Supplements']].map(([id, label]) => (
+                {[['session','⏱','Session'],['fuel','🥗','Fuel'],['move','🏃','Move'],['supplements','💊','Supplements']].map(([id, icon, label]) => (
                   <button key={id} onClick={() => setFocusSubTab(id)}
                     className={`${styles.focusSubNavBtn} ${focusSubTab === id ? styles.focusSubNavBtnActive : ''}`}>
-                    {label}
+                    <span className={styles.subTabIcon}>{icon}</span>
+                    <span className={styles.subTabLabel}>{label}</span>
                   </button>
                 ))}
               </div>
@@ -2137,10 +2138,11 @@ export default function Dashboard() {
 
               {/* Sub-tab nav */}
               <div className={styles.financeSubTabs}>
-                {[['bills','Bills'],['budget','Budget'],['learn','Learn'],['insights','Insights']].map(([id, label]) => (
+                {[['bills','🧾','Bills'],['budget','📊','Budget'],['learn','📚','Learn'],['insights','🤖','Insights']].map(([id, icon, label]) => (
                   <button key={id} onClick={() => setFinanceSub(id)}
                     className={`${styles.financeSubTab} ${financeSub === id ? styles.financeSubTabActive : ''}`}>
-                    {label}
+                    <span className={styles.subTabIcon}>{icon}</span>
+                    <span className={styles.subTabLabel}>{label}</span>
                   </button>
                 ))}
               </div>
