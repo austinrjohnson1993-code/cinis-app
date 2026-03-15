@@ -3,7 +3,7 @@
   justify-content: center; font-size: 2rem;
 }
 
-.appShell { min-height: 100vh; display: flex; background: #110d06; }
+.appShell { min-height: 100vh; display: flex; background: #110d06 var(--accent-gradient); }
 
 /* ── Sidebar ── */
 .sidebar {
@@ -1522,12 +1522,6 @@
 }
 .dragHandle:hover { color: rgba(240,234,214,0.45); }
 .dragHandle:active { cursor: grabbing; }
-
-/* ════════════════════════════════════════════
-   THEMES / GRADIENT
-   ════════════════════════════════════════════ */
-
-:root { --accent: #ff4d1c; --accent-gradient: none; --logo-color: #ff4d1c; }
 
 /* ════════════════════════════════════════════
    COMING UP SECTION
