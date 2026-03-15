@@ -61,10 +61,73 @@ function formatDueTime(due_time) {
   return { label: `Due at ${timeStr}`, urgent: false }
 }
 
-function todayStr() { return new Date().toISOString().split('T')[0] }
+// Always use local time, not UTC, so dates never shift in non-UTC timezones
+function localDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+function todayStr() { return localDateStr(new Date()) }
 function tomorrowStr() {
-  const t = new Date(); t.setDate(t.getDate() + 1)
-  return t.toISOString().split('T')[0]
+  const t = new Date(); t.setDate(t.getDate() + 1); return localDateStr(t)
+}
+
+// Returns the local-date base of a task (from due_date > due_time > scheduled_for)
+function taskBaseDate(task) {
+  if (task.due_date) {
+    const [y, m, d] = task.due_date.split('-').map(Number)
+    return new Date(y, m - 1, d)
+  }
+  if (task.due_time) {
+    const dt = new Date(task.due_time)
+    return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate())
+  }
+  if (task.scheduled_for) {
+    const dt = new Date(task.scheduled_for)
+    return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate())
+  }
+  return null
+}
+
+// Build a map of { 'YYYY-MM-DD': task[] } for all task occurrences in a given month,
+// expanding recurring tasks into virtual future occurrences (display only — no DB writes).
+function getTaskOccurrencesForMonth(tasks, year, month) {
+  const result = {}
+  const addToDate = (dStr, task) => {
+    if (!result[dStr]) result[dStr] = []
+    result[dStr].push(task)
+  }
+
+  tasks.forEach(task => {
+    if (task.archived) return
+    const base = taskBaseDate(task)
+    if (!base) return
+
+    if (task.recurrence === 'daily') {
+      // Show on every day for 30 days from base date
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(base)
+        d.setDate(d.getDate() + i)
+        if (d.getFullYear() === year && d.getMonth() === month) {
+          addToDate(localDateStr(d), task)
+        }
+      }
+    } else if (task.recurrence === 'weekly') {
+      // Show on same weekday every week for 8 weeks from base date
+      for (let i = 0; i < 8; i++) {
+        const d = new Date(base)
+        d.setDate(d.getDate() + i * 7)
+        if (d.getFullYear() === year && d.getMonth() === month) {
+          addToDate(localDateStr(d), task)
+        }
+      }
+    } else {
+      // recurrence === 'none': only the base date
+      if (base.getFullYear() === year && base.getMonth() === month) {
+        addToDate(localDateStr(base), task)
+      }
+    }
+  })
+
+  return result
 }
 
 const RECURRENCE_OPTIONS = [
@@ -103,7 +166,9 @@ export default function Dashboard() {
   // Calendar
   const [calView, setCalView] = useState('month')
   const [calMonth, setCalMonth] = useState(() => {
-    const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0); return d
+    // new Date(y, m, 1) uses local time — avoids UTC month-shift bugs
+    const now = new Date()
+    return new Date(now.getFullYear(), now.getMonth(), 1)
   })
   const [calDay, setCalDay] = useState(null)
 
@@ -275,23 +340,34 @@ export default function Dashboard() {
   }
 
   // ── Calendar helpers ──
-  function calDStr(d) {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  }
-  function calTasksForDate(dStr) {
+
+  // Tasks that land on a specific day in the day view, expanding recurrence
+  function calTasksForDay(dStr) {
+    const [y, m, d] = dStr.split('-').map(Number)
+    const target = new Date(y, m - 1, d)
     return tasks.filter(t => {
       if (t.archived) return false
-      if (t.due_date) return t.due_date === dStr
-      if (t.due_time) return new Date(t.due_time).toISOString().split('T')[0] === dStr
-      if (t.scheduled_for) return new Date(t.scheduled_for).toISOString().split('T')[0] === dStr
-      return false
+      const base = taskBaseDate(t)
+      if (!base) return false
+      if (t.recurrence === 'daily') {
+        return target >= base
+      }
+      if (t.recurrence === 'weekly') {
+        if (target < base) return false
+        const diffMs = target - base
+        const diffDays = Math.round(diffMs / 86400000)
+        return diffDays % 7 === 0
+      }
+      // none
+      return localDateStr(base) === dStr
     })
   }
+
   function calPrevMonth() {
-    setCalMonth(d => { const n = new Date(d); n.setMonth(n.getMonth() - 1); return n })
+    setCalMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))
   }
   function calNextMonth() {
-    setCalMonth(d => { const n = new Date(d); n.setMonth(n.getMonth() + 1); return n })
+    setCalMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))
   }
 
   const pendingTasks = sortByPriority(tasks.filter(t => !t.completed))
@@ -508,7 +584,8 @@ export default function Dashboard() {
             const todayDStr = todayStr()
             const year = calMonth.getFullYear()
             const month = calMonth.getMonth()
-            const monthName = calMonth.toLocaleString('default', { month: 'long' })
+            // Use explicit locale options to guarantee local-time month name
+            const monthName = calMonth.toLocaleDateString('en-US', { month: 'long' })
             const firstDayOfWeek = new Date(year, month, 1).getDay()
             const daysInMonth = new Date(year, month + 1, 0).getDate()
             const cells = []
@@ -516,10 +593,13 @@ export default function Dashboard() {
             for (let d = 1; d <= daysInMonth; d++) cells.push(d)
             while (cells.length % 7 !== 0) cells.push(null)
 
+            // Pre-compute occurrences for the whole month (handles recurrence)
+            const monthOccurrences = getTaskOccurrencesForMonth(tasks, year, month)
+
             // ── DAY VIEW ──
             if (calView === 'day' && calDay) {
-              const dayDStr = calDStr(calDay)
-              const dayTasks = calTasksForDate(dayDStr)
+              const dayDStr = localDateStr(calDay)
+              const dayTasks = calTasksForDay(dayDStr)
               const unscheduled = dayTasks.filter(t => !t.due_time)
               const scheduled = dayTasks.filter(t => !!t.due_time)
               const HOURS = Array.from({ length: 18 }, (_, i) => i + 6) // 6am–11pm
@@ -612,7 +692,7 @@ export default function Dashboard() {
                   {cells.map((day, idx) => {
                     if (!day) return <div key={idx} className={styles.calCellEmpty} />
                     const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-                    const dayTasks = calTasksForDate(dStr)
+                    const dayTasks = monthOccurrences[dStr] || []
                     const isToday = dStr === todayDStr
                     return (
                       <div key={idx}
