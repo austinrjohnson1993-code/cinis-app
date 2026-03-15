@@ -137,7 +137,7 @@ async function callClaude(messages, systemPrompt, useTools = true) {
 // ── Tool execution ───────────────────────────────────────────────────────────
 
 async function executeTool(toolName, input, supabaseAdmin, userId) {
-  console.log('[checkin:executeTool] called with:', JSON.stringify({ toolName, input }))
+  console.log('[executeTool] called:', toolName, JSON.stringify(input))
 
   if (toolName === 'reschedule_task') {
     const { task_id, scheduled_for, due_time } = input
@@ -166,7 +166,7 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
         .from('tasks').update(updates).eq('id', task_id).select().single()
       updateErr = error
       updated = data
-      console.log('[checkin:executeTool] result:', JSON.stringify({ error, data }))
+      console.log('[executeTool] supabase result:', JSON.stringify(data), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] reschedule_task update threw:', e)
       return { tool: 'reschedule_task', taskId: task_id, result: 'error', updatedTask: null }
@@ -192,7 +192,7 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
         .from('tasks').update({ due_time }).eq('id', task_id).select().single()
       updateErr = error
       updated = data
-      console.log('[checkin:executeTool] result:', JSON.stringify({ error, data }))
+      console.log('[executeTool] supabase result:', JSON.stringify(data), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] update_task_time threw:', e)
       return { tool: 'update_task_time', taskId: task_id, result: 'error', updatedTask: null }
@@ -216,7 +216,7 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
       const { error } = await supabaseAdmin
         .from('profiles').update({ next_checkin_at: checkin_time }).eq('id', userId)
       profileErr = error
-      console.log('[checkin:executeTool] result:', JSON.stringify({ error }))
+      console.log('[executeTool] supabase result:', JSON.stringify(null), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] schedule_morning_checkin threw:', e)
       return { tool: 'schedule_morning_checkin', taskId: null, result: 'error' }
@@ -244,7 +244,7 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
         .eq('id', task_id).select().single()
       updateErr = error
       updated = data
-      console.log('[checkin:executeTool] result:', JSON.stringify({ error, data }))
+      console.log('[executeTool] supabase result:', JSON.stringify(data), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] complete_task threw:', e)
       return { tool: 'complete_task', taskId: task_id, result: 'error', updatedTask: null }
@@ -271,7 +271,7 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
         .eq('id', task_id).select().single()
       updateErr = error
       updated = data
-      console.log('[checkin:executeTool] result:', JSON.stringify({ error, data }))
+      console.log('[executeTool] supabase result:', JSON.stringify(data), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] archive_task threw:', e)
       return { tool: 'archive_task', taskId: task_id, result: 'error', updatedTask: null }
@@ -307,7 +307,7 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
         .single()
       insertErr = error
       inserted = data
-      console.log('[checkin:executeTool] result:', JSON.stringify({ error, data }))
+      console.log('[executeTool] supabase result:', JSON.stringify(data), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] create_alarm threw:', e)
       return { tool: 'create_alarm', result: 'error', alarm: null }
@@ -433,8 +433,8 @@ Write the evening check-in. 2-3 sentences. One specific win or honest acknowledg
 export const config = { maxDuration: 30 }
 
 export default async function handler(req, res) {
-  console.log('[checkin] ANTHROPIC_API_KEY prefix:', process.env.ANTHROPIC_API_KEY?.slice(0, 10))
-  console.log('[checkin] KEY length:', process.env.ANTHROPIC_API_KEY?.length)
+  console.log('[checkin] API key prefix:', process.env.ANTHROPIC_API_KEY?.slice(0, 15))
+  console.log('[checkin] API key length:', process.env.ANTHROPIC_API_KEY?.length)
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
@@ -446,6 +446,7 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Rate limit exceeded', message: "You've been busy! Give it a moment." })
   }
 
+  try {
   const supabaseAdmin = getAdminClient()
 
   // One-time cleanup: remove any stale "Morning check-in" tasks created by old tool code
@@ -546,5 +547,10 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error('[checkin] opening error:', err.message)
     return res.status(500).json({ error: 'Failed to generate check-in' })
+  }
+
+  } catch (err) {
+    console.error('[checkin] unhandled error:', err)
+    return res.status(500).json({ error: err.message })
   }
 }
