@@ -27,24 +27,20 @@ const NAV_ITEMS = [
   )},
 ]
 
-// ── Priority Engine ──────────────────────────────────────────
 function computePriorityScore(task) {
   if (task.completed) return 0
   let score = 50
-
   if (task.due_time) {
     const hoursUntilDue = (new Date(task.due_time) - new Date()) / (1000 * 60 * 60)
-    if (hoursUntilDue < 0)       score += 100  // overdue
+    if (hoursUntilDue < 0)       score += 100
     else if (hoursUntilDue < 1)  score += 90
     else if (hoursUntilDue < 2)  score += 75
     else if (hoursUntilDue < 6)  score += 55
     else if (hoursUntilDue < 12) score += 35
     else if (hoursUntilDue < 24) score += 20
   }
-
   if (task.consequence_level === 'external') score += 40
   score += (task.rollover_count || 0) * 15
-
   return score
 }
 
@@ -57,16 +53,26 @@ function sortByPriority(tasks) {
 function formatDueTime(due_time) {
   if (!due_time) return null
   const due = new Date(due_time)
-  const now = new Date()
-  const hoursUntil = (due - now) / (1000 * 60 * 60)
+  const hoursUntil = (due - new Date()) / (1000 * 60 * 60)
   const timeStr = due.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-  if (hoursUntil < 0) return { label: `Overdue · ${timeStr}`, urgent: true }
-  if (hoursUntil < 1) return { label: `Due in ${Math.round(hoursUntil * 60)}m`, urgent: true }
-  if (hoursUntil < 3) return { label: `Due at ${timeStr}`, urgent: true }
+  if (hoursUntil < 0)  return { label: `Overdue · ${timeStr}`, urgent: true }
+  if (hoursUntil < 1)  return { label: `Due in ${Math.round(hoursUntil * 60)}m`, urgent: true }
+  if (hoursUntil < 3)  return { label: `Due at ${timeStr}`, urgent: true }
   return { label: `Due at ${timeStr}`, urgent: false }
 }
 
-// ── Main Component ───────────────────────────────────────────
+function todayStr() { return new Date().toISOString().split('T')[0] }
+function tomorrowStr() {
+  const t = new Date(); t.setDate(t.getDate() + 1)
+  return t.toISOString().split('T')[0]
+}
+
+const RECURRENCE_OPTIONS = [
+  { value: 'none', label: 'Once' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+]
+
 export default function Dashboard() {
   const router = useRouter()
   const [user, setUser] = useState(null)
@@ -78,13 +84,20 @@ export default function Dashboard() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [completing, setCompleting] = useState(null)
 
-  // Add task form state
+  // Add task form
   const [newTitle, setNewTitle] = useState('')
   const [newDueDate, setNewDueDate] = useState('')
   const [newDueTime, setNewDueTime] = useState('')
   const [newConsequence, setNewConsequence] = useState('self')
+  const [newNotes, setNewNotes] = useState('')
+  const [newRecurrence, setNewRecurrence] = useState('none')
   const [adding, setAdding] = useState(false)
 
+  // Voice
+  const [listening, setListening] = useState(false)
+  const [voiceTranscript, setVoiceTranscript] = useState('')
+  const [parsing, setParsing] = useState(false)
+  const recognitionRef = useRef(null)
   const titleInputRef = useRef(null)
 
   useEffect(() => {
@@ -121,6 +134,12 @@ export default function Dashboard() {
     setLoading(false)
   }
 
+  const resetForm = () => {
+    setNewTitle(''); setNewDueDate(''); setNewDueTime('')
+    setNewConsequence('self'); setNewNotes(''); setNewRecurrence('none')
+    setVoiceTranscript('')
+  }
+
   const addTask = async (e) => {
     e.preventDefault()
     if (!newTitle.trim() || !user) return
@@ -139,6 +158,8 @@ export default function Dashboard() {
       archived: false,
       due_time,
       consequence_level: newConsequence,
+      notes: newNotes.trim() || null,
+      recurrence: newRecurrence,
       rollover_count: 0,
       priority_score: 0,
       created_at: new Date().toISOString(),
@@ -147,17 +168,63 @@ export default function Dashboard() {
 
     const { data } = await supabase.from('tasks').insert(task).select().single()
     if (data) setTasks(prev => [data, ...prev])
-    setNewTitle('')
-    setNewDueDate('')
-    setNewDueTime('')
-    setNewConsequence('self')
+    resetForm()
     setAdding(false)
     setShowAddModal(false)
   }
 
+  // ── Voice input ──
+  const startListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      alert('Voice input is not supported in this browser. Try Chrome or Safari.')
+      return
+    }
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'en-US'
+    recognition.continuous = false
+    recognition.interimResults = false
+
+    recognition.onstart = () => setListening(true)
+    recognition.onend = () => setListening(false)
+
+    recognition.onresult = async (event) => {
+      const transcript = event.results[0][0].transcript
+      setVoiceTranscript(transcript)
+      setParsing(true)
+      try {
+        const res = await fetch('/api/parse-task', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript })
+        })
+        const parsed = await res.json()
+        if (parsed.title) setNewTitle(parsed.title)
+        if (parsed.due_date) setNewDueDate(parsed.due_date)
+        if (parsed.due_time) setNewDueTime(parsed.due_time)
+        if (parsed.consequence_level) setNewConsequence(parsed.consequence_level)
+        if (parsed.notes) setNewNotes(parsed.notes)
+        if (parsed.recurrence) setNewRecurrence(parsed.recurrence)
+      } catch (err) {
+        console.error('Voice parse error:', err)
+      }
+      setParsing(false)
+    }
+
+    recognition.onerror = () => setListening(false)
+    recognitionRef.current = recognition
+    recognition.start()
+  }
+
+  const stopListening = () => {
+    recognitionRef.current?.stop()
+    setListening(false)
+  }
+
+  // ── Task actions ──
   const completeTask = async (task) => {
     setCompleting(task.id)
-    await new Promise(r => setTimeout(r, 400)) // animation window
+    await new Promise(r => setTimeout(r, 400))
     const updated = { ...task, completed: true, completed_at: new Date().toISOString() }
     await supabase.from('tasks').update({ completed: true, completed_at: updated.completed_at }).eq('id', task.id)
     setTasks(prev => prev.map(t => t.id === task.id ? updated : t))
@@ -215,7 +282,7 @@ export default function Dashboard() {
       <Head><title>Dashboard — FocusBuddy</title></Head>
       <div className={styles.appShell}>
 
-        {/* SIDEBAR — desktop */}
+        {/* SIDEBAR */}
         <aside className={styles.sidebar}>
           <div className={styles.sidebarLogo}>
             <span className="brand"><span className="focus">Focus</span><span className="buddy">Buddy</span></span>
@@ -238,7 +305,7 @@ export default function Dashboard() {
         {/* MAIN */}
         <main className={styles.main}>
 
-          {/* ── TASKS VIEW ── */}
+          {/* TASKS */}
           {activeTab === 'tasks' && (
             <div className={styles.view}>
               <div className={styles.viewHeader}>
@@ -257,7 +324,7 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              {/* FOCUS CARD — top priority */}
+              {/* FOCUS CARD */}
               {topTask && (
                 <div className={styles.focusCardWrap}>
                   <div className={styles.focusLabel}>
@@ -268,14 +335,18 @@ export default function Dashboard() {
                     {topTask.rollover_count > 0 && (
                       <div className={styles.rolloverBadge}>
                         ↷ Rolled over {topTask.rollover_count}×
+                        {topTask.rollover_count >= 2 && (
+                          <button className={styles.breakItDown} onClick={() => {
+                            setNewTitle(`First step: ${topTask.title}`)
+                            setShowAddModal(true)
+                          }}>
+                            · Break it down →
+                          </button>
+                        )}
                       </div>
                     )}
                     <div className={styles.focusCardBody}>
-                      <button
-                        onClick={() => completeTask(topTask)}
-                        className={styles.focusCheck}
-                        aria-label="Complete task"
-                      />
+                      <button onClick={() => completeTask(topTask)} className={styles.focusCheck} aria-label="Complete task" />
                       <div className={styles.focusTaskInfo}>
                         <span className={styles.focusTaskTitle}>{topTask.title}</span>
                         {topTask.due_time && (() => {
@@ -287,28 +358,35 @@ export default function Dashboard() {
                             </span>
                           )
                         })()}
-                        {topTask.consequence_level === 'external' && (
-                          <span className={styles.externalBadge}>External commitment</span>
+                        {topTask.notes && (
+                          <span className={styles.focusNotes}>{topTask.notes}</span>
                         )}
+                        <div className={styles.focusBadgeRow}>
+                          {topTask.consequence_level === 'external' && (
+                            <span className={styles.externalBadge}>External commitment</span>
+                          )}
+                          {topTask.recurrence && topTask.recurrence !== 'none' && (
+                            <span className={styles.recurrenceBadge}>
+                              {topTask.recurrence === 'daily' ? '↻ Daily' : '↻ Weekly'}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className={styles.focusCardActions}>
-                      <button onClick={() => rescheduleTask(topTask)} className={styles.focusAction} title="Push to tomorrow">
-                        Tomorrow
+                      <button onClick={() => rescheduleTask(topTask)} className={styles.focusAction}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:'5px'}}><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                        Push to tomorrow
                       </button>
-                      <button onClick={() => archiveTask(topTask)} className={styles.focusActionDelete} title="Remove">
-                        Remove
-                      </button>
+                      <button onClick={() => archiveTask(topTask)} className={styles.focusActionDelete}>×</button>
                     </div>
                   </div>
-
-                  {/* STACK — visual depth cards */}
                   {restTasks.length > 0 && <div className={styles.stackCard2} />}
                   {restTasks.length > 1 && <div className={styles.stackCard3} />}
                 </div>
               )}
 
-              {/* REST OF LIST */}
+              {/* UP NEXT */}
               {restTasks.length > 0 && (
                 <div className={styles.taskGroup}>
                   <div className={styles.taskGroupLabel}>Up next</div>
@@ -319,6 +397,7 @@ export default function Dashboard() {
                         <button onClick={() => completeTask(task)} className={styles.taskCheck} aria-label="Complete" />
                         <div className={styles.taskInfo}>
                           <span className={styles.taskTitle}>{task.title}</span>
+                          {task.notes && <span className={styles.taskNotes}>{task.notes}</span>}
                           <div className={styles.taskMeta}>
                             {dueFmt && (
                               <span className={`${styles.taskDueTime} ${dueFmt.urgent ? styles.taskDueUrgent : ''}`}>
@@ -331,10 +410,17 @@ export default function Dashboard() {
                             {task.consequence_level === 'external' && (
                               <span className={styles.taskExternal}>External</span>
                             )}
+                            {task.recurrence && task.recurrence !== 'none' && (
+                              <span className={styles.taskRecurrence}>
+                                ↻ {task.recurrence}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className={styles.taskActions}>
-                          <button onClick={() => rescheduleTask(task)} className={styles.taskAction} title="Tomorrow">↷</button>
+                          <button onClick={() => rescheduleTask(task)} className={styles.taskAction} title="Push to tomorrow">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                          </button>
                           <button onClick={() => archiveTask(task)} className={styles.taskActionDelete} title="Remove">×</button>
                         </div>
                       </div>
@@ -343,7 +429,7 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* EMPTY STATE */}
+              {/* EMPTY */}
               {pendingTasks.length === 0 && completedTasks.length === 0 && (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyIcon}>✦</div>
@@ -373,7 +459,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ── CHECK-IN VIEW ── */}
+          {/* CHECK-IN */}
           {activeTab === 'checkin' && (
             <div className={styles.view}>
               <div className={styles.header}>
@@ -388,7 +474,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ── CALENDAR VIEW ── */}
+          {/* CALENDAR */}
           {activeTab === 'calendar' && (
             <div className={styles.view}>
               <div className={styles.header}>
@@ -403,7 +489,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ── JOURNAL VIEW ── */}
+          {/* JOURNAL */}
           {activeTab === 'journal' && (
             <div className={styles.view}>
               <div className={styles.header}>
@@ -420,7 +506,7 @@ export default function Dashboard() {
 
         </main>
 
-        {/* BOTTOM NAV — mobile */}
+        {/* BOTTOM NAV */}
         <nav className={styles.bottomNav}>
           {NAV_ITEMS.map(item => (
             <button key={item.id} onClick={() => setActiveTab(item.id)}
@@ -433,13 +519,52 @@ export default function Dashboard() {
 
         {/* ADD TASK MODAL */}
         {showAddModal && (
-          <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && setShowAddModal(false)}>
+          <div className={styles.modalOverlay} onClick={e => e.target === e.currentTarget && setShowAddModal(false)}>
             <div className={styles.modal}>
               <div className={styles.modalHeader}>
                 <h2 className={styles.modalTitle}>New task</h2>
-                <button onClick={() => setShowAddModal(false)} className={styles.modalClose}>×</button>
+                <div className={styles.modalHeaderRight}>
+                  {/* MIC BUTTON */}
+                  <button
+                    type="button"
+                    onClick={listening ? stopListening : startListening}
+                    className={`${styles.micBtn} ${listening ? styles.micBtnActive : ''}`}
+                    title={listening ? 'Stop recording' : 'Speak your task'}
+                  >
+                    {listening ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="6" width="12" height="12" rx="2"/>
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+                      </svg>
+                    )}
+                  </button>
+                  <button onClick={() => { setShowAddModal(false); resetForm() }} className={styles.modalClose}>×</button>
+                </div>
               </div>
+
+              {/* VOICE STATE */}
+              {(listening || parsing || voiceTranscript) && (
+                <div className={styles.voiceState}>
+                  {listening && (
+                    <div className={styles.voiceListening}>
+                      <span className={styles.voiceDot} /><span className={styles.voiceDot} /><span className={styles.voiceDot} />
+                      <span className={styles.voiceListeningText}>Listening...</span>
+                    </div>
+                  )}
+                  {parsing && (
+                    <div className={styles.voiceParsing}>Working out the details...</div>
+                  )}
+                  {voiceTranscript && !listening && !parsing && (
+                    <div className={styles.voiceTranscript}>"{voiceTranscript}"</div>
+                  )}
+                </div>
+              )}
+
               <form onSubmit={addTask} className={styles.modalForm}>
+
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>What needs to get done?</label>
                   <input
@@ -453,43 +578,57 @@ export default function Dashboard() {
                   />
                 </div>
 
-                <div className={styles.fieldRow}>
-                  <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Due date</label>
-                    <input
-                      type="date"
-                      value={newDueDate}
+                {/* DATE */}
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Due date</label>
+                  <div className={styles.quickRow}>
+                    <button type="button"
+                      onClick={() => setNewDueDate(todayStr())}
+                      className={`${styles.quickBtn} ${newDueDate === todayStr() ? styles.quickBtnActive : ''}`}>
+                      Today
+                    </button>
+                    <button type="button"
+                      onClick={() => setNewDueDate(tomorrowStr())}
+                      className={`${styles.quickBtn} ${newDueDate === tomorrowStr() ? styles.quickBtnActive : ''}`}>
+                      Tomorrow
+                    </button>
+                    <input type="date" value={newDueDate}
                       onChange={e => setNewDueDate(e.target.value)}
-                      className={styles.fieldInput}
+                      className={styles.fieldInputCompact}
                     />
                   </div>
-                  <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Due time</label>
-                    <input
-                      type="time"
-                      value={newDueTime}
+                </div>
+
+                {/* TIME */}
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Due time</label>
+                  <div className={styles.quickRow}>
+                    {[['Morning', '09:00'], ['Afternoon', '14:00'], ['Evening', '18:00']].map(([label, val]) => (
+                      <button key={val} type="button"
+                        onClick={() => { setNewDueTime(val); if (!newDueDate) setNewDueDate(todayStr()) }}
+                        className={`${styles.quickBtn} ${newDueTime === val ? styles.quickBtnActive : ''}`}
+                        disabled={!newDueDate}>
+                        {label}
+                      </button>
+                    ))}
+                    <input type="time" value={newDueTime}
                       onChange={e => setNewDueTime(e.target.value)}
-                      className={styles.fieldInput}
+                      className={styles.fieldInputCompact}
                       disabled={!newDueDate}
                     />
                   </div>
                 </div>
 
+                {/* COMMITMENT TYPE */}
                 <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Type of commitment</label>
-                  <div className={styles.consequenceToggle}>
-                    <button
-                      type="button"
-                      onClick={() => setNewConsequence('self')}
-                      className={`${styles.consequenceBtn} ${newConsequence === 'self' ? styles.consequenceBtnActive : ''}`}
-                    >
+                  <label className={styles.fieldLabel}>Type</label>
+                  <div className={styles.toggleRow}>
+                    <button type="button" onClick={() => setNewConsequence('self')}
+                      className={`${styles.toggleBtn} ${newConsequence === 'self' ? styles.toggleBtnActive : ''}`}>
                       Personal
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setNewConsequence('external')}
-                      className={`${styles.consequenceBtn} ${newConsequence === 'external' ? styles.consequenceBtnActive : ''}`}
-                    >
+                    <button type="button" onClick={() => setNewConsequence('external')}
+                      className={`${styles.toggleBtn} ${newConsequence === 'external' ? styles.toggleBtnActive : ''}`}>
                       External commitment
                     </button>
                   </div>
@@ -500,11 +639,35 @@ export default function Dashboard() {
                   </p>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={adding || !newTitle.trim()}
-                  className={styles.modalSubmit}
-                >
+                {/* RECURRENCE */}
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Repeat</label>
+                  <div className={styles.toggleRow}>
+                    {RECURRENCE_OPTIONS.map(opt => (
+                      <button key={opt.value} type="button"
+                        onClick={() => setNewRecurrence(opt.value)}
+                        className={`${styles.toggleBtn} ${newRecurrence === opt.value ? styles.toggleBtnActive : ''}`}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* NOTES */}
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>
+                    Notes <span className={styles.fieldLabelOptional}>(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Context that makes this easier to start"
+                    value={newNotes}
+                    onChange={e => setNewNotes(e.target.value)}
+                    className={styles.fieldInput}
+                  />
+                </div>
+
+                <button type="submit" disabled={adding || !newTitle.trim()} className={styles.modalSubmit}>
                   {adding ? 'Adding...' : 'Add to my list'}
                 </button>
               </form>
