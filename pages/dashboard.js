@@ -242,6 +242,7 @@ export default function Dashboard() {
         .then(r => r.json())
         .then(data => {
           if (data.message) setCheckinMessages([{ role: 'assistant', content: data.message }])
+          if (data.actionsExecuted?.length > 0) fetchTasks(user.id)
         })
         .catch(() => setCheckinMessages([{ role: 'assistant', content: "Hey — how are you doing today?" }]))
         .finally(() => setCheckinLoading(false))
@@ -407,6 +408,7 @@ export default function Dashboard() {
       })
       const data = await res.json()
       if (data.message) setCheckinMessages(prev => [...prev, { role: 'assistant', content: data.message }])
+      if (data.actionsExecuted?.length > 0) fetchTasks(user.id)
     } catch {
       setCheckinMessages(prev => [...prev, { role: 'assistant', content: "I'm here. Keep going." }])
     }
