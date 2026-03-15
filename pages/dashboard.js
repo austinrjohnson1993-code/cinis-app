@@ -401,6 +401,9 @@ export default function Dashboard() {
   const [monthlyIncome, setMonthlyIncome] = useState(0)
   const [monthlyIncomeInput, setMonthlyIncomeInput] = useState('')
 
+  // Live tick for countdown displays in task list
+  const [tickNow, setTickNow] = useState(() => new Date())
+
   // Settings
   const [settingsName, setSettingsName] = useState('')
   const [settingsSaving, setSettingsSaving] = useState(false)
@@ -504,6 +507,12 @@ export default function Dashboard() {
   // Cleanup focus timer on unmount
   useEffect(() => {
     return () => clearInterval(focusIntervalRef.current)
+  }, [])
+
+  // Tick every 30s so getCountdownDisplay stays fresh in task list
+  useEffect(() => {
+    const interval = setInterval(() => setTickNow(new Date()), 30000)
+    return () => clearInterval(interval)
   }, [])
 
   // Alarm checking
@@ -1199,6 +1208,10 @@ export default function Dashboard() {
   const topTask = pendingTasks[0] || null
   const restTasks = pendingTasks.slice(1)
 
+  // Top task is always fixed as priority — drag handles only on restTasks
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const topTaskCountdown = useCountdown(topTask?.due_time)
+
   // Progress calculations
   const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
   const completedThisWeek = tasks.filter(t => t.completed && t.completed_at && new Date(t.completed_at) > sevenDaysAgo)
@@ -1363,7 +1376,7 @@ export default function Dashboard() {
                 <div className={styles.focusCardWrap}>
                   <div className={styles.focusLabel}>
                     <span className={styles.focusDot} />
-                    Priority focus
+                    {topTask.due_time ? 'Time sensitive task' : 'Priority focus'}
                   </div>
                   <div className={`${styles.focusCard} ${completing === topTask.id ? styles.focusCardCompleting : ''}`}>
                     {topTask.rollover_count > 0 && (
@@ -1380,7 +1393,12 @@ export default function Dashboard() {
                       <button onClick={() => completeTask(topTask)} className={styles.focusCheck} aria-label="Complete task" />
                       <div className={styles.focusTaskInfo} onClick={() => setDetailTask(topTask)} style={{ cursor: 'pointer' }}>
                         <span className={styles.focusTaskTitle}>{topTask.title}</span>
-                        {(() => {
+                        {topTaskCountdown && (
+                          <span style={{ fontSize: '13px', color: 'var(--accent)', opacity: 0.9, fontWeight: 600 }}>
+                            {topTaskCountdown}
+                          </span>
+                        )}
+                        {!topTaskCountdown && (() => {
                           const fmt = topTask.due_time ? formatDueTime(topTask.due_time) : null
                           const dateLabel = getTaskDateLabel(topTask)
                           const dateDisplay = dateLabel
@@ -1404,6 +1422,9 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className={styles.focusCardActions}>
+                      <button onClick={() => switchTab('focus')} className={styles.focusAction} style={{ color: 'var(--accent)', fontWeight: 700 }}>
+                        Start timer →
+                      </button>
                       <button onClick={() => rescheduleTask(topTask)} className={styles.focusAction}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:'5px'}}><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
                         Push to tomorrow
@@ -1431,9 +1452,12 @@ export default function Dashboard() {
                         {restTasks.map(task => {
                           const dueFmt = task.due_time ? formatDueTime(task.due_time) : null
                           const dateLabel = getTaskDateLabel(task)
-                          const dateDisplay = dateLabel
-                            ? (dueFmt ? `${dateLabel} · ${dueFmt.label}` : dateLabel)
-                            : (dueFmt ? dueFmt.label : null)
+                          const countdown = getCountdownDisplay(task.due_time, tickNow)
+                          const dateDisplay = countdown
+                            ? null
+                            : (dateLabel
+                                ? (dueFmt ? `${dateLabel} · ${dueFmt.label}` : dateLabel)
+                                : (dueFmt ? dueFmt.label : null))
                           return (
                             <SortableTaskCard key={task.id} id={task.id}>
                               {(dragHandleProps) => (
@@ -1444,7 +1468,8 @@ export default function Dashboard() {
                                     <span className={styles.taskTitle}>{task.title}</span>
                                     {task.notes && <span className={styles.taskNotes}>{task.notes}</span>}
                                     <div className={styles.taskMeta}>
-                                      {dateDisplay && <span className={`${styles.taskDueTime} ${dueFmt?.urgent ? styles.taskDueUrgent : ''}`}>{dateDisplay}</span>}
+                                      {countdown && <span className={`${styles.taskDueTime} ${styles.taskDueUrgent}`} style={{ color: 'var(--accent)' }}>{countdown}</span>}
+                                      {!countdown && dateDisplay && <span className={`${styles.taskDueTime} ${dueFmt?.urgent ? styles.taskDueUrgent : ''}`}>{dateDisplay}</span>}
                                       {task.rollover_count > 0 && <span className={styles.taskRollover}>↷ {task.rollover_count}×</span>}
                                       {task.consequence_level === 'external' && <span className={styles.taskExternal}>External</span>}
                                       {task.recurrence && task.recurrence !== 'none' && <span className={styles.taskRecurrence}>↻ {task.recurrence}</span>}
@@ -1577,12 +1602,15 @@ export default function Dashboard() {
               {focusSubTab === 'session' && <>
                 {focusPhase === 'setup' && (
                   <div className={styles.focusSetup}>
-                    <p className={styles.focusSetupLabel}>Priority task</p>
+                    <p className={styles.focusSetupLabel}>{topTask?.due_time ? 'Time sensitive task' : 'Priority task'}</p>
                     <h2 className={styles.focusSetupTask}>{topTask?.title || 'No tasks — add one first'}</h2>
+                    {topTask && topTaskCountdown && (
+                      <p style={{ fontSize: '13px', color: 'var(--accent)', opacity: 0.8, margin: '-8px 0 16px', fontWeight: 600 }}>{topTaskCountdown}</p>
+                    )}
                     {topTask && (
                       <>
                         <p className={styles.focusDurationLabel}>Session length</p>
-                        <div className={styles.focusDurationRow}>
+                        <div className={styles.focusDurationRow} style={{ flexWrap: 'wrap', gap: '8px' }}>
                           {[15, 25, 45].map(d => (
                             <button key={d}
                               onClick={() => { setFocusDuration(d); setFocusCustom('') }}
@@ -1592,7 +1620,8 @@ export default function Dashboard() {
                           ))}
                           <input type="number" placeholder="Custom" value={focusCustom}
                             onChange={e => { setFocusCustom(e.target.value); setFocusDuration(0) }}
-                            className={styles.focusCustomInput} min="1" max="180" />
+                            className={styles.focusCustomInput} min="1" max="180"
+                            style={{ minWidth: '80px', padding: '8px 16px', whiteSpace: 'nowrap' }} />
                         </div>
                         <button onClick={startFocus} className={styles.focusStartBtn}>Start session →</button>
                       </>
