@@ -102,6 +102,19 @@ const TOOLS = [
       },
       required: ['alarm_time', 'title']
     }
+  },
+  {
+    name: 'create_task',
+    description: "Create a new task for the user. Use when the user mentions something they need to do that isn't already on their list.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'The task title' },
+        due_time: { type: 'string', description: "Optional time string like '6:00 PM'" },
+        scheduled_for: { type: 'string', description: 'ISO date string for when to schedule it, defaults to today' }
+      },
+      required: ['title']
+    }
   }
 ]
 
@@ -307,6 +320,28 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
     }
 
     return { tool: 'create_alarm', result: insertErr ? 'error' : 'created', alarm: inserted || null }
+  }
+
+  if (toolName === 'create_task') {
+    const scheduledFor = input.scheduled_for || new Date().toISOString().split('T')[0] + 'T00:00:00.000Z'
+    const { data, error } = await supabaseAdmin
+      .from('tasks')
+      .insert({
+        user_id: userId,
+        title: input.title,
+        due_time: input.due_time || null,
+        scheduled_for: scheduledFor,
+        completed: false,
+        archived: false
+      })
+      .select()
+      .single()
+    if (error) {
+      console.error('[checkin:executeTool] create_task error:', JSON.stringify(error))
+      return { result: 'error', error: error.message }
+    }
+    console.log('[checkin:executeTool] create_task success:', data.id, data.title)
+    return { result: 'created', task_id: data.id, title: data.title }
   }
 
   console.warn('[checkin:tool] unknown tool:', toolName)
