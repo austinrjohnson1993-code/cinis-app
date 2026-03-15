@@ -19,6 +19,7 @@
   --radius-sm: 8px;
   /* Theme system — overridden at runtime via JS */
   --accent: #ff4d1c;
+  --accent-rgb: 255,77,28;
   --accent-gradient: radial-gradient(ellipse at top left, rgba(101,60,10,0.35) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.3) 0%, transparent 60%);
   --logo-color: #ff4d1c;
 }
@@ -28,6 +29,7 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--night);
   background-image:
+    radial-gradient(ellipse at top left, rgba(var(--accent-rgb), 0.06) 0%, transparent 60%),
     radial-gradient(ellipse at 20% 20%, rgba(101,60,10,0.35) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 80%, rgba(80,45,8,0.3) 0%, transparent 55%);
   color: var(--cream);
@@ -48,4 +50,4 @@ input, textarea { font-family: 'Figtree', sans-serif; }
 }
 
 .brand .focus { color: var(--cream); }
-.brand .buddy { color: var(--orange); }
+.brand .buddy { color: var(--accent); }
