@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
@@ -27,16 +27,65 @@ const NAV_ITEMS = [
   )},
 ]
 
+// ── Priority Engine ──────────────────────────────────────────
+function computePriorityScore(task) {
+  if (task.completed) return 0
+  let score = 50
+
+  if (task.due_time) {
+    const hoursUntilDue = (new Date(task.due_time) - new Date()) / (1000 * 60 * 60)
+    if (hoursUntilDue < 0)       score += 100  // overdue
+    else if (hoursUntilDue < 1)  score += 90
+    else if (hoursUntilDue < 2)  score += 75
+    else if (hoursUntilDue < 6)  score += 55
+    else if (hoursUntilDue < 12) score += 35
+    else if (hoursUntilDue < 24) score += 20
+  }
+
+  if (task.consequence_level === 'external') score += 40
+  score += (task.rollover_count || 0) * 15
+
+  return score
+}
+
+function sortByPriority(tasks) {
+  return [...tasks]
+    .map(t => ({ ...t, priority_score: computePriorityScore(t) }))
+    .sort((a, b) => b.priority_score - a.priority_score)
+}
+
+function formatDueTime(due_time) {
+  if (!due_time) return null
+  const due = new Date(due_time)
+  const now = new Date()
+  const hoursUntil = (due - now) / (1000 * 60 * 60)
+  const timeStr = due.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  if (hoursUntil < 0) return { label: `Overdue · ${timeStr}`, urgent: true }
+  if (hoursUntil < 1) return { label: `Due in ${Math.round(hoursUntil * 60)}m`, urgent: true }
+  if (hoursUntil < 3) return { label: `Due at ${timeStr}`, urgent: true }
+  return { label: `Due at ${timeStr}`, urgent: false }
+}
+
+// ── Main Component ───────────────────────────────────────────
 export default function Dashboard() {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [tasks, setTasks] = useState([])
-  const [newTask, setNewTask] = useState('')
   const [loading, setLoading] = useState(true)
-  const [adding, setAdding] = useState(false)
-  const [greeting, setGreeting] = useState('')
   const [activeTab, setActiveTab] = useState('tasks')
+  const [greeting, setGreeting] = useState('')
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [completing, setCompleting] = useState(null)
+
+  // Add task form state
+  const [newTitle, setNewTitle] = useState('')
+  const [newDueDate, setNewDueDate] = useState('')
+  const [newDueTime, setNewDueTime] = useState('')
+  const [newConsequence, setNewConsequence] = useState('self')
+  const [adding, setAdding] = useState(false)
+
+  const titleInputRef = useRef(null)
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -54,6 +103,10 @@ export default function Dashboard() {
     })
   }, [])
 
+  useEffect(() => {
+    if (showAddModal) setTimeout(() => titleInputRef.current?.focus(), 50)
+  }, [showAddModal])
+
   const fetchProfile = async (userId) => {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
     if (data) setProfile(data)
@@ -70,39 +123,74 @@ export default function Dashboard() {
 
   const addTask = async (e) => {
     e.preventDefault()
-    if (!newTask.trim() || !user) return
+    if (!newTitle.trim() || !user) return
     setAdding(true)
+
+    let due_time = null
+    if (newDueDate) {
+      const dateStr = newDueTime ? `${newDueDate}T${newDueTime}` : `${newDueDate}T23:59`
+      due_time = new Date(dateStr).toISOString()
+    }
+
     const task = {
       user_id: user.id,
-      title: newTask.trim(),
+      title: newTitle.trim(),
       completed: false,
       archived: false,
+      due_time,
+      consequence_level: newConsequence,
+      rollover_count: 0,
+      priority_score: 0,
       created_at: new Date().toISOString(),
       scheduled_for: new Date().toISOString()
     }
+
     const { data } = await supabase.from('tasks').insert(task).select().single()
-    if (data) setTasks([data, ...tasks])
-    setNewTask('')
+    if (data) setTasks(prev => [data, ...prev])
+    setNewTitle('')
+    setNewDueDate('')
+    setNewDueTime('')
+    setNewConsequence('self')
     setAdding(false)
+    setShowAddModal(false)
   }
 
-  const toggleTask = async (task) => {
-    const updated = { ...task, completed: !task.completed, completed_at: !task.completed ? new Date().toISOString() : null }
-    await supabase.from('tasks').update({ completed: updated.completed, completed_at: updated.completed_at }).eq('id', task.id)
-    setTasks(tasks.map(t => t.id === task.id ? updated : t))
+  const completeTask = async (task) => {
+    setCompleting(task.id)
+    await new Promise(r => setTimeout(r, 400)) // animation window
+    const updated = { ...task, completed: true, completed_at: new Date().toISOString() }
+    await supabase.from('tasks').update({ completed: true, completed_at: updated.completed_at }).eq('id', task.id)
+    setTasks(prev => prev.map(t => t.id === task.id ? updated : t))
+    setCompleting(null)
+  }
+
+  const uncompleteTask = async (task) => {
+    const updated = { ...task, completed: false, completed_at: null }
+    await supabase.from('tasks').update({ completed: false, completed_at: null }).eq('id', task.id)
+    setTasks(prev => prev.map(t => t.id === task.id ? updated : t))
   }
 
   const rescheduleTask = async (task) => {
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
-    const updated = { ...task, scheduled_for: tomorrow.toISOString() }
-    await supabase.from('tasks').update({ scheduled_for: updated.scheduled_for }).eq('id', task.id)
-    setTasks(tasks.map(t => t.id === task.id ? updated : t))
+    tomorrow.setHours(9, 0, 0, 0)
+    const updated = {
+      ...task,
+      scheduled_for: tomorrow.toISOString(),
+      due_time: task.due_time ? tomorrow.toISOString() : null,
+      rollover_count: (task.rollover_count || 0) + 1
+    }
+    await supabase.from('tasks').update({
+      scheduled_for: updated.scheduled_for,
+      due_time: updated.due_time,
+      rollover_count: updated.rollover_count
+    }).eq('id', task.id)
+    setTasks(prev => prev.map(t => t.id === task.id ? updated : t))
   }
 
   const archiveTask = async (task) => {
     await supabase.from('tasks').update({ archived: true }).eq('id', task.id)
-    setTasks(tasks.filter(t => t.id !== task.id))
+    setTasks(prev => prev.filter(t => t.id !== task.id))
   }
 
   const handleSignOut = async () => {
@@ -110,9 +198,11 @@ export default function Dashboard() {
     router.push('/')
   }
 
-  const pendingTasks = tasks.filter(t => !t.completed)
+  const pendingTasks = sortByPriority(tasks.filter(t => !t.completed))
   const completedTasks = tasks.filter(t => t.completed)
   const firstName = profile?.full_name?.split(' ')[0] || 'there'
+  const topTask = pendingTasks[0] || null
+  const restTasks = pendingTasks.slice(1)
 
   if (loading) return (
     <div className={styles.loadingPage}>
@@ -125,18 +215,15 @@ export default function Dashboard() {
       <Head><title>Dashboard — FocusBuddy</title></Head>
       <div className={styles.appShell}>
 
-        {/* LEFT SIDEBAR — desktop only */}
+        {/* SIDEBAR — desktop */}
         <aside className={styles.sidebar}>
           <div className={styles.sidebarLogo}>
             <span className="brand"><span className="focus">Focus</span><span className="buddy">Buddy</span></span>
           </div>
           <nav className={styles.sidebarNav}>
             {NAV_ITEMS.map(item => (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`${styles.sidebarNavItem} ${activeTab === item.id ? styles.sidebarNavItemActive : ''}`}
-              >
+              <button key={item.id} onClick={() => setActiveTab(item.id)}
+                className={`${styles.sidebarNavItem} ${activeTab === item.id ? styles.sidebarNavItemActive : ''}`}>
                 <span className={styles.navIcon}>{item.icon}</span>
                 <span className={styles.navLabel}>{item.label}</span>
               </button>
@@ -148,76 +235,145 @@ export default function Dashboard() {
           </div>
         </aside>
 
-        {/* MAIN CONTENT */}
+        {/* MAIN */}
         <main className={styles.main}>
 
-          {/* TASKS VIEW */}
+          {/* ── TASKS VIEW ── */}
           {activeTab === 'tasks' && (
             <div className={styles.view}>
-              <div className={styles.header}>
-                <h1 className={styles.greetingText}>
-                  {greeting}, <span className={styles.name}>{firstName}.</span>
-                </h1>
-                <p className={styles.headerSub}>
-                  {pendingTasks.length === 0
-                    ? "You're all caught up. Seriously — well done."
-                    : `You have ${pendingTasks.length} thing${pendingTasks.length !== 1 ? 's' : ''} on your list today.`
-                  }
-                </p>
+              <div className={styles.viewHeader}>
+                <div>
+                  <h1 className={styles.greetingText}>
+                    {greeting}, <span className={styles.name}>{firstName}.</span>
+                  </h1>
+                  <p className={styles.headerSub}>
+                    {pendingTasks.length === 0
+                      ? "You're all caught up. Seriously — well done."
+                      : `${pendingTasks.length} thing${pendingTasks.length !== 1 ? 's' : ''} on your list.`}
+                  </p>
+                </div>
+                <button onClick={() => setShowAddModal(true)} className={styles.addTaskBtn}>
+                  <span>+</span> Add task
+                </button>
               </div>
 
-              <form onSubmit={addTask} className={styles.addForm}>
-                <input
-                  type="text"
-                  placeholder="What do you need to do today?"
-                  value={newTask}
-                  onChange={e => setNewTask(e.target.value)}
-                  className={styles.addInput}
-                />
-                <button type="submit" disabled={adding || !newTask.trim()} className={styles.addBtn}>
-                  {adding ? '...' : '+ Add'}
-                </button>
-              </form>
-
-              <div className={styles.taskSection}>
-                {pendingTasks.length === 0 && completedTasks.length === 0 && (
-                  <div className={styles.emptyState}>
-                    <p>Nothing on your list yet.</p>
-                    <p className={styles.emptySubtext}>Add your first task above — even something small counts.</p>
+              {/* FOCUS CARD — top priority */}
+              {topTask && (
+                <div className={styles.focusCardWrap}>
+                  <div className={styles.focusLabel}>
+                    <span className={styles.focusDot} />
+                    Priority focus
                   </div>
-                )}
-                {pendingTasks.length > 0 && (
-                  <div className={styles.taskGroup}>
-                    <div className={styles.taskGroupLabel}>To do</div>
-                    {pendingTasks.map(task => (
+                  <div className={`${styles.focusCard} ${completing === topTask.id ? styles.focusCardCompleting : ''}`}>
+                    {topTask.rollover_count > 0 && (
+                      <div className={styles.rolloverBadge}>
+                        ↷ Rolled over {topTask.rollover_count}×
+                      </div>
+                    )}
+                    <div className={styles.focusCardBody}>
+                      <button
+                        onClick={() => completeTask(topTask)}
+                        className={styles.focusCheck}
+                        aria-label="Complete task"
+                      />
+                      <div className={styles.focusTaskInfo}>
+                        <span className={styles.focusTaskTitle}>{topTask.title}</span>
+                        {topTask.due_time && (() => {
+                          const fmt = formatDueTime(topTask.due_time)
+                          return (
+                            <span className={`${styles.focusDueTime} ${fmt.urgent ? styles.focusDueUrgent : ''}`}>
+                              {fmt.urgent && <span className={styles.urgentDot} />}
+                              {fmt.label}
+                            </span>
+                          )
+                        })()}
+                        {topTask.consequence_level === 'external' && (
+                          <span className={styles.externalBadge}>External commitment</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className={styles.focusCardActions}>
+                      <button onClick={() => rescheduleTask(topTask)} className={styles.focusAction} title="Push to tomorrow">
+                        Tomorrow
+                      </button>
+                      <button onClick={() => archiveTask(topTask)} className={styles.focusActionDelete} title="Remove">
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* STACK — visual depth cards */}
+                  {restTasks.length > 0 && <div className={styles.stackCard2} />}
+                  {restTasks.length > 1 && <div className={styles.stackCard3} />}
+                </div>
+              )}
+
+              {/* REST OF LIST */}
+              {restTasks.length > 0 && (
+                <div className={styles.taskGroup}>
+                  <div className={styles.taskGroupLabel}>Up next</div>
+                  {restTasks.map(task => {
+                    const dueFmt = task.due_time ? formatDueTime(task.due_time) : null
+                    return (
                       <div key={task.id} className={styles.taskCard}>
-                        <button onClick={() => toggleTask(task)} className={styles.taskCheck} />
-                        <span className={styles.taskTitle}>{task.title}</span>
+                        <button onClick={() => completeTask(task)} className={styles.taskCheck} aria-label="Complete" />
+                        <div className={styles.taskInfo}>
+                          <span className={styles.taskTitle}>{task.title}</span>
+                          <div className={styles.taskMeta}>
+                            {dueFmt && (
+                              <span className={`${styles.taskDueTime} ${dueFmt.urgent ? styles.taskDueUrgent : ''}`}>
+                                {dueFmt.label}
+                              </span>
+                            )}
+                            {task.rollover_count > 0 && (
+                              <span className={styles.taskRollover}>↷ {task.rollover_count}×</span>
+                            )}
+                            {task.consequence_level === 'external' && (
+                              <span className={styles.taskExternal}>External</span>
+                            )}
+                          </div>
+                        </div>
                         <div className={styles.taskActions}>
-                          <button onClick={() => rescheduleTask(task)} className={styles.taskAction} title="Reschedule for tomorrow">↷</button>
+                          <button onClick={() => rescheduleTask(task)} className={styles.taskAction} title="Tomorrow">↷</button>
                           <button onClick={() => archiveTask(task)} className={styles.taskActionDelete} title="Remove">×</button>
                         </div>
                       </div>
-                    ))}
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* EMPTY STATE */}
+              {pendingTasks.length === 0 && completedTasks.length === 0 && (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIcon}>✦</div>
+                  <p className={styles.emptyText}>Nothing on your list.</p>
+                  <p className={styles.emptySubtext}>Add your first task and FocusBuddy will handle the rest.</p>
+                  <button onClick={() => setShowAddModal(true)} className={styles.emptyAddBtn}>+ Add your first task</button>
+                </div>
+              )}
+
+              {/* COMPLETED */}
+              {completedTasks.length > 0 && (
+                <div className={styles.taskGroup} style={{ marginTop: '32px' }}>
+                  <div className={styles.taskGroupLabel}>
+                    Done today · {completedTasks.length} {completedTasks.length === 1 ? 'win' : 'wins'} 🔥
                   </div>
-                )}
-                {completedTasks.length > 0 && (
-                  <div className={styles.taskGroup}>
-                    <div className={styles.taskGroupLabel}>Completed today</div>
-                    {completedTasks.map(task => (
-                      <div key={task.id} className={`${styles.taskCard} ${styles.taskDone}`}>
-                        <button onClick={() => toggleTask(task)} className={`${styles.taskCheck} ${styles.taskCheckDone}`}>✓</button>
+                  {completedTasks.map(task => (
+                    <div key={task.id} className={`${styles.taskCard} ${styles.taskDone}`}>
+                      <button onClick={() => uncompleteTask(task)} className={`${styles.taskCheck} ${styles.taskCheckDone}`}>✓</button>
+                      <div className={styles.taskInfo}>
                         <span className={styles.taskTitleDone}>{task.title}</span>
-                        <button onClick={() => archiveTask(task)} className={styles.taskActionDelete} title="Remove">×</button>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      <button onClick={() => archiveTask(task)} className={styles.taskActionDelete} title="Remove">×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
-          {/* CHECK-IN VIEW */}
+          {/* ── CHECK-IN VIEW ── */}
           {activeTab === 'checkin' && (
             <div className={styles.view}>
               <div className={styles.header}>
@@ -227,12 +383,12 @@ export default function Dashboard() {
               <div className={styles.stubCard}>
                 <div className={styles.stubIcon}>💬</div>
                 <p className={styles.stubText}>Daily check-in coming soon.</p>
-                <p className={styles.stubSubtext}>This is where FocusBuddy will meet you each morning — brief, personal, and task-aware.</p>
+                <p className={styles.stubSubtext}>Morning, midday, and evening sessions — brief, personal, and built around your actual list.</p>
               </div>
             </div>
           )}
 
-          {/* CALENDAR VIEW */}
+          {/* ── CALENDAR VIEW ── */}
           {activeTab === 'calendar' && (
             <div className={styles.view}>
               <div className={styles.header}>
@@ -242,12 +398,12 @@ export default function Dashboard() {
               <div className={styles.stubCard}>
                 <div className={styles.stubIcon}>📅</div>
                 <p className={styles.stubText}>Calendar coming soon.</p>
-                <p className={styles.stubSubtext}>An internal calendar — no Google auth required. Schedule tasks, set reminders, see your week at a glance.</p>
+                <p className={styles.stubSubtext}>Internal calendar — no Google auth required. See your tasks and commitments in time.</p>
               </div>
             </div>
           )}
 
-          {/* JOURNAL VIEW */}
+          {/* ── JOURNAL VIEW ── */}
           {activeTab === 'journal' && (
             <div className={styles.view}>
               <div className={styles.header}>
@@ -257,26 +413,104 @@ export default function Dashboard() {
               <div className={styles.stubCard}>
                 <div className={styles.stubIcon}>📓</div>
                 <p className={styles.stubText}>Journal coming soon.</p>
-                <p className={styles.stubSubtext}>A private space to think out loud — no structure required. Brain dump, reflect, or just write.</p>
+                <p className={styles.stubSubtext}>Brain dump, reflect, think out loud. No structure required.</p>
               </div>
             </div>
           )}
 
         </main>
 
-        {/* BOTTOM NAV — mobile only */}
+        {/* BOTTOM NAV — mobile */}
         <nav className={styles.bottomNav}>
           {NAV_ITEMS.map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`${styles.bottomNavItem} ${activeTab === item.id ? styles.bottomNavItemActive : ''}`}
-            >
+            <button key={item.id} onClick={() => setActiveTab(item.id)}
+              className={`${styles.bottomNavItem} ${activeTab === item.id ? styles.bottomNavItemActive : ''}`}>
               <span className={styles.bottomNavIcon}>{item.icon}</span>
               <span className={styles.bottomNavLabel}>{item.label}</span>
             </button>
           ))}
         </nav>
+
+        {/* ADD TASK MODAL */}
+        {showAddModal && (
+          <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && setShowAddModal(false)}>
+            <div className={styles.modal}>
+              <div className={styles.modalHeader}>
+                <h2 className={styles.modalTitle}>New task</h2>
+                <button onClick={() => setShowAddModal(false)} className={styles.modalClose}>×</button>
+              </div>
+              <form onSubmit={addTask} className={styles.modalForm}>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>What needs to get done?</label>
+                  <input
+                    ref={titleInputRef}
+                    type="text"
+                    placeholder="e.g. Call the insurance company"
+                    value={newTitle}
+                    onChange={e => setNewTitle(e.target.value)}
+                    className={styles.fieldInput}
+                    required
+                  />
+                </div>
+
+                <div className={styles.fieldRow}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Due date</label>
+                    <input
+                      type="date"
+                      value={newDueDate}
+                      onChange={e => setNewDueDate(e.target.value)}
+                      className={styles.fieldInput}
+                    />
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Due time</label>
+                    <input
+                      type="time"
+                      value={newDueTime}
+                      onChange={e => setNewDueTime(e.target.value)}
+                      className={styles.fieldInput}
+                      disabled={!newDueDate}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Type of commitment</label>
+                  <div className={styles.consequenceToggle}>
+                    <button
+                      type="button"
+                      onClick={() => setNewConsequence('self')}
+                      className={`${styles.consequenceBtn} ${newConsequence === 'self' ? styles.consequenceBtnActive : ''}`}
+                    >
+                      Personal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewConsequence('external')}
+                      className={`${styles.consequenceBtn} ${newConsequence === 'external' ? styles.consequenceBtnActive : ''}`}
+                    >
+                      External commitment
+                    </button>
+                  </div>
+                  <p className={styles.fieldHint}>
+                    {newConsequence === 'external'
+                      ? 'Someone else is counting on this — it gets priority.'
+                      : 'This is for you — still important, context matters.'}
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={adding || !newTitle.trim()}
+                  className={styles.modalSubmit}
+                >
+                  {adding ? 'Adding...' : 'Add to my list'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
 
       </div>
     </>
