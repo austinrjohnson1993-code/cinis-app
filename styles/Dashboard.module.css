@@ -1651,6 +1651,86 @@
 .settingsTipsToggle:hover { border-color: rgba(255,77,28,0.25); color: var(--accent); }
 
 /* ════════════════════════════════════════════
+   FINANCE SUB-TABS
+   ════════════════════════════════════════════ */
+
+.financeSubTabs {
+  display: flex; gap: 0; margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255,200,120,0.1);
+}
+.financeSubTab {
+  background: none; border: none; border-bottom: 2px solid transparent;
+  padding: 10px 16px; font-size: 0.88rem; font-weight: 600;
+  color: rgba(240,234,214,0.35); cursor: pointer;
+  font-family: 'Figtree', sans-serif; transition: all 0.15s;
+  margin-bottom: -1px;
+}
+.financeSubTab:hover { color: rgba(240,234,214,0.65); }
+.financeSubTabActive { color: var(--accent) !important; border-bottom-color: var(--accent) !important; }
+
+/* ════════════════════════════════════════════
+   FINANCE — BUDGET TAB
+   ════════════════════════════════════════════ */
+
+.budgetPanel { display: flex; flex-direction: column; gap: 20px; }
+
+.budgetCard {
+  background: rgba(255,200,120,0.03); border: 1px solid rgba(255,200,120,0.08);
+  border-radius: 14px; padding: 4px 16px;
+}
+.budgetRow {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; border-bottom: 1px solid rgba(255,200,120,0.06); gap: 12px;
+}
+.budgetRow:last-child { border-bottom: none; }
+.budgetRowLabel {
+  display: block; font-size: 0.88rem; color: rgba(240,234,214,0.75); font-weight: 500;
+}
+.budgetRowPct { color: rgba(240,234,214,0.35); font-weight: 400; }
+.budgetRowDesc {
+  display: block; font-size: 0.75rem; color: rgba(240,234,214,0.35); margin-top: 2px;
+}
+.budgetRowAmt {
+  font-size: 0.92rem; font-weight: 700; color: #f0ead6; white-space: nowrap; flex-shrink: 0;
+}
+.surplusPositive { color: #4caf50; font-weight: 600; font-size: 0.92rem; }
+.surplusNegative { color: #f44336; font-weight: 600; font-size: 0.92rem; }
+.budgetEmptyNote {
+  font-size: 0.88rem; color: rgba(240,234,214,0.35); text-align: center;
+  padding: 32px 0;
+}
+
+/* ════════════════════════════════════════════
+   FINANCE — LEARN TAB
+   ════════════════════════════════════════════ */
+
+.learnCard {
+  background: rgba(255,255,255,0.04); border-radius: 12px;
+  padding: 16px; margin-bottom: 12px;
+}
+.learnCard:last-child { margin-bottom: 0; }
+.learnCardIcon { font-size: 28px; margin-bottom: 8px; }
+.learnCardTitle {
+  font-size: 0.95rem; font-weight: 700; color: #f0ead6; margin-bottom: 6px;
+}
+.learnCardBody {
+  font-size: 0.875rem; color: rgba(240,234,214,0.85); line-height: 1.6;
+}
+.learnCardTag {
+  font-size: 0.75rem; color: rgba(240,234,214,0.45); margin-top: 10px;
+  font-style: italic; line-height: 1.5;
+}
+
+/* ════════════════════════════════════════════
+   FINANCE — INSIGHTS PLACEHOLDER
+   ════════════════════════════════════════════ */
+
+.insightsPlaceholder {
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding: 60px 24px; text-align: center;
+}
+
+/* ════════════════════════════════════════════
    CALENDAR — DAY VIEW BILLS SECTION
    ════════════════════════════════════════════ */
 

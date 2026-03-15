@@ -343,6 +343,11 @@ export default function Dashboard() {
   const [showTutorial, setShowTutorial] = useState(false)
   const [tutorialStep, setTutorialStep] = useState(0)
 
+  // Finance sub-tabs
+  const [financeSub, setFinanceSub] = useState('bills')
+  const [monthlyIncome, setMonthlyIncome] = useState(0)
+  const [monthlyIncomeInput, setMonthlyIncomeInput] = useState('')
+
   // Settings
   const [settingsName, setSettingsName] = useState('')
   const [settingsSaving, setSettingsSaving] = useState(false)
@@ -463,6 +468,15 @@ export default function Dashboard() {
   useEffect(() => {
     if (typeof localStorage !== 'undefined' && localStorage.getItem('fb_drag_hint_dismissed')) {
       setDragHintDismissed(true)
+    }
+  }, [])
+
+  // Finance: load monthly income from localStorage
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') {
+      const saved = parseFloat(localStorage.getItem('fb_monthly_income') || '0') || 0
+      setMonthlyIncome(saved)
+      setMonthlyIncomeInput(saved > 0 ? String(saved) : '')
     }
   }, [])
 
@@ -2090,79 +2104,231 @@ export default function Dashboard() {
           {/* ── FINANCE ── */}
           {activeTab === 'finance' && (
             <div className={styles.view}>
-              <div className={styles.viewHeader}>
-                <div>
-                  <h1 className={styles.greetingText}>Monthly expenses</h1>
-                  <p className={styles.financeTotal}>{fmtMoney(monthlyTotal)}<span className={styles.financeTotalSub}>/mo</span></p>
-                </div>
-                <button onClick={() => setShowAddBillModal(true)} className={styles.addTaskBtn}>+ Add bill</button>
+
+              {/* Sub-tab nav */}
+              <div className={styles.financeSubTabs}>
+                {[['bills','Bills'],['budget','Budget'],['learn','Learn'],['insights','Insights']].map(([id, label]) => (
+                  <button key={id} onClick={() => setFinanceSub(id)}
+                    className={`${styles.financeSubTab} ${financeSub === id ? styles.financeSubTabActive : ''}`}>
+                    {label}
+                  </button>
+                ))}
               </div>
 
-              {bills.length === 0 ? (
-                <div className={styles.emptyState}>
-                  <div className={styles.emptyIcon}>💳</div>
-                  <p className={styles.emptyText}>No bills tracked yet.</p>
-                  <p className={styles.emptySubtext}>Add your recurring expenses to track your monthly burn.</p>
-                  <button onClick={() => setShowAddBillModal(true)} className={styles.emptyAddBtn}>+ Add your first bill</button>
-                </div>
-              ) : (
+              {/* ── BILLS (existing content, untouched) ── */}
+              {financeSub === 'bills' && (
                 <>
-                  {/* Bills by category */}
-                  {Object.entries(billsByCategory).map(([cat, catBills]) => (
-                    <div key={cat} className={styles.financeCatGroup}>
-                      <p className={styles.financeCatLabel}>{cat}</p>
-                      {catBills.map(bill => (
-                        <div key={bill.id} className={styles.billCard}>
-                          <div className={styles.billInfo}>
-                            <span className={styles.billName}>{bill.name}</span>
-                            <div className={styles.billMeta}>
-                              {bill.due_day && (
-                                <span className={`${styles.billDue} ${isDueSoon(bill.due_day) ? styles.billDueSoon : ''}`}>
-                                  {isDueSoon(bill.due_day) ? '⚡ ' : ''}Due {bill.due_day}{bill.due_day === 1 ? 'st' : bill.due_day === 2 ? 'nd' : bill.due_day === 3 ? 'rd' : 'th'}
-                                </span>
-                              )}
-                              <span className={styles.billFreq}>{bill.frequency}</span>
+                  <div className={styles.viewHeader}>
+                    <div>
+                      <h1 className={styles.greetingText}>Monthly expenses</h1>
+                      <p className={styles.financeTotal}>{fmtMoney(monthlyTotal)}<span className={styles.financeTotalSub}>/mo</span></p>
+                    </div>
+                    <button onClick={() => setShowAddBillModal(true)} className={styles.addTaskBtn}>+ Add bill</button>
+                  </div>
+
+                  {bills.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      <div className={styles.emptyIcon}>💳</div>
+                      <p className={styles.emptyText}>No bills tracked yet.</p>
+                      <p className={styles.emptySubtext}>Add your recurring expenses to track your monthly burn.</p>
+                      <button onClick={() => setShowAddBillModal(true)} className={styles.emptyAddBtn}>+ Add your first bill</button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Bills by category */}
+                      {Object.entries(billsByCategory).map(([cat, catBills]) => (
+                        <div key={cat} className={styles.financeCatGroup}>
+                          <p className={styles.financeCatLabel}>{cat}</p>
+                          {catBills.map(bill => (
+                            <div key={bill.id} className={styles.billCard}>
+                              <div className={styles.billInfo}>
+                                <span className={styles.billName}>{bill.name}</span>
+                                <div className={styles.billMeta}>
+                                  {bill.due_day && (
+                                    <span className={`${styles.billDue} ${isDueSoon(bill.due_day) ? styles.billDueSoon : ''}`}>
+                                      {isDueSoon(bill.due_day) ? '⚡ ' : ''}Due {bill.due_day}{bill.due_day === 1 ? 'st' : bill.due_day === 2 ? 'nd' : bill.due_day === 3 ? 'rd' : 'th'}
+                                    </span>
+                                  )}
+                                  <span className={styles.billFreq}>{bill.frequency}</span>
+                                </div>
+                              </div>
+                              <div className={styles.billRight}>
+                                <span className={styles.billAmount}>{fmtMoney(bill.amount)}</span>
+                                <button onClick={() => deleteBill(bill.id)} className={styles.billDelete}>×</button>
+                              </div>
                             </div>
-                          </div>
-                          <div className={styles.billRight}>
-                            <span className={styles.billAmount}>{fmtMoney(bill.amount)}</span>
-                            <button onClick={() => deleteBill(bill.id)} className={styles.billDelete}>×</button>
-                          </div>
+                          ))}
                         </div>
                       ))}
-                    </div>
-                  ))}
 
-                  {/* Category breakdown bars */}
-                  {monthlyTotal > 0 && (
-                    <div className={styles.financeBreakdown}>
-                      <p className={styles.financeBreakdownLabel}>Breakdown</p>
-                      {Object.entries(billsByCategory).map(([cat, catBills]) => {
-                        const catTotal = catBills.reduce((s, b) => s + parseFloat(b.amount), 0)
-                        const pct = Math.round((catTotal / monthlyTotal) * 100)
-                        return (
-                          <div key={cat} className={styles.financeBar}>
-                            <div className={styles.financeBarMeta}>
-                              <span className={styles.financeBarCat}>{cat}</span>
-                              <span className={styles.financeBarAmt}>{fmtMoney(catTotal)}</span>
-                            </div>
-                            <div className={styles.financeBarTrack}>
-                              <div className={styles.financeBarFill} style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
+                      {/* Category breakdown bars */}
+                      {monthlyTotal > 0 && (
+                        <div className={styles.financeBreakdown}>
+                          <p className={styles.financeBreakdownLabel}>Breakdown</p>
+                          {Object.entries(billsByCategory).map(([cat, catBills]) => {
+                            const catTotal = catBills.reduce((s, b) => s + parseFloat(b.amount), 0)
+                            const pct = Math.round((catTotal / monthlyTotal) * 100)
+                            return (
+                              <div key={cat} className={styles.financeBar}>
+                                <div className={styles.financeBarMeta}>
+                                  <span className={styles.financeBarCat}>{cat}</span>
+                                  <span className={styles.financeBarAmt}>{fmtMoney(catTotal)}</span>
+                                </div>
+                                <div className={styles.financeBarTrack}>
+                                  <div className={styles.financeBarFill} style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
 
-                  {/* Bottom insight */}
-                  {largestBill && (
-                    <div className={styles.financeInsight}>
-                      Your largest expense is <strong>{largestBill.name}</strong> at <strong>{fmtMoney(largestBill.amount)}/mo</strong>.
-                    </div>
+                      {/* Bottom insight */}
+                      {largestBill && (
+                        <div className={styles.financeInsight}>
+                          Your largest expense is <strong>{largestBill.name}</strong> at <strong>{fmtMoney(largestBill.amount)}/mo</strong>.
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               )}
+
+              {/* ── BUDGET ── */}
+              {financeSub === 'budget' && (
+                <div className={styles.budgetPanel}>
+                  {/* Income input */}
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Monthly take-home income</label>
+                    <div className={styles.quickRow}>
+                      <input
+                        type="number" placeholder="0" min="0" step="1"
+                        value={monthlyIncomeInput}
+                        onChange={e => setMonthlyIncomeInput(e.target.value)}
+                        className={styles.fieldInput}
+                        style={{ maxWidth: '200px' }}
+                      />
+                      <button
+                        className={styles.addTaskBtn}
+                        onClick={() => {
+                          const val = parseFloat(monthlyIncomeInput) || 0
+                          setMonthlyIncome(val)
+                          if (typeof localStorage !== 'undefined') localStorage.setItem('fb_monthly_income', String(val))
+                          showToast('Income saved')
+                        }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+
+                  {monthlyIncome > 0 ? (
+                    <>
+                      {/* 50/30/20 breakdown */}
+                      <div className={styles.budgetCard}>
+                        <p className={styles.financeBreakdownLabel}>50 / 30 / 20 breakdown</p>
+                        {[
+                          { label: 'Needs', pct: 50, desc: 'Rent, groceries, bills' },
+                          { label: 'Wants', pct: 30, desc: 'Dining, subscriptions, fun' },
+                          { label: 'Savings', pct: 20, desc: 'Emergency fund, investments' },
+                        ].map(({ label, pct, desc }) => (
+                          <div key={label} className={styles.budgetRow}>
+                            <div>
+                              <span className={styles.budgetRowLabel}>{label} <span className={styles.budgetRowPct}>({pct}%)</span></span>
+                              <span className={styles.budgetRowDesc}>{desc}</span>
+                            </div>
+                            <span className={styles.budgetRowAmt}>{fmtMoney(monthlyIncome * pct / 100)}</span>
+                          </div>
+                        ))}
+                        <div className={styles.budgetRow}>
+                          <div>
+                            <span className={styles.budgetRowLabel}>Your fixed bills</span>
+                            <span className={styles.budgetRowDesc}>Tracked in Bills tab</span>
+                          </div>
+                          <span className={styles.budgetRowAmt}>{fmtMoney(monthlyTotal)}<span className={styles.financeTotalSub}>/mo</span></span>
+                        </div>
+                      </div>
+
+                      {/* Surplus / Deficit */}
+                      {(() => {
+                        const diff = monthlyIncome - monthlyTotal
+                        return (
+                          <div className={styles.budgetCard}>
+                            <div className={styles.budgetRow} style={{ borderBottom: 'none' }}>
+                              <span className={styles.budgetRowLabel}>{diff >= 0 ? 'Surplus' : 'Deficit'} after fixed bills</span>
+                              <span className={diff >= 0 ? styles.surplusPositive : styles.surplusNegative}>
+                                {diff >= 0 ? '+' : ''}{fmtMoney(diff)}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      })()}
+                    </>
+                  ) : (
+                    <p className={styles.budgetEmptyNote}>Enter your monthly income above to see your breakdown.</p>
+                  )}
+                </div>
+              )}
+
+              {/* ── LEARN ── */}
+              {financeSub === 'learn' && (
+                <div>
+                  {[
+                    {
+                      icon: '💰', title: 'The 50/30/20 Rule',
+                      body: 'Split your take-home pay: 50% to needs (rent, groceries, bills), 30% to wants (dining, subscriptions, fun), 20% to savings or debt payoff. It\'s not a strict rule — it\'s a starting point.',
+                      tag: 'Most people have no idea where their money goes. This gives it somewhere to go.',
+                    },
+                    {
+                      icon: '🔥', title: 'The Debt Avalanche',
+                      body: 'List your debts by interest rate, highest first. Pay minimums on everything, then throw every extra dollar at the highest-rate debt. Once it\'s gone, roll that payment to the next one.',
+                      tag: 'This method saves the most money in interest over time.',
+                    },
+                    {
+                      icon: '⛄', title: 'The Emergency Fund',
+                      body: "Keep 3-6 months of expenses in a separate, boring savings account you don't touch. Not for opportunities — only for actual emergencies.",
+                      tag: 'Without one, any surprise expense becomes debt.',
+                    },
+                    {
+                      icon: '📈', title: 'Compound Interest',
+                      body: 'When your money earns interest, and that interest earns interest, growth accelerates over time. Starting at 25 vs 35 can mean hundreds of thousands of dollars by retirement.',
+                      tag: 'Time in the market beats timing the market.',
+                    },
+                    {
+                      icon: '🧾', title: 'Fixed vs Variable Expenses',
+                      body: 'Fixed expenses are the same every month — rent, subscriptions, loan payments. Variable expenses change — food, gas, entertainment. Cutting fixed costs has a bigger long-term impact.',
+                      tag: 'Knowing the difference shows you where you actually have room to move.',
+                    },
+                    {
+                      icon: '🏦', title: 'Pay Yourself First',
+                      body: "Before paying any bill or buying anything, transfer a set amount to savings the moment your paycheck lands. Treat saving like a bill you owe yourself.",
+                      tag: "If you wait until the end of the month to save what's left, there's never anything left.",
+                    },
+                  ].map(({ icon, title, body, tag }) => (
+                    <div key={title} className={styles.learnCard}>
+                      <div className={styles.learnCardIcon}>{icon}</div>
+                      <div className={styles.learnCardTitle}>{title}</div>
+                      <div className={styles.learnCardBody}>{body}</div>
+                      <div className={styles.learnCardTag}>Why it matters: {tag}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ── INSIGHTS ── */}
+              {financeSub === 'insights' && (
+                <div className={styles.insightsPlaceholder}>
+                  <span style={{ fontSize: '2.5rem' }}>🤖</span>
+                  <p className={styles.greetingText} style={{ fontSize: '1.15rem' }}>Financial Insights</p>
+                  <p className={styles.headerSub} style={{ maxWidth: '360px', textAlign: 'center' }}>
+                    Once you've added your bills and income, FocusBuddy will analyze your spending and give you personalized recommendations — what to cut, what to protect, and where you have room to breathe.
+                  </p>
+                  <button className={styles.addTaskBtn} onClick={() => setFinanceSub('budget')}>
+                    Set up my budget →
+                  </button>
+                </div>
+              )}
+
             </div>
           )}
 
