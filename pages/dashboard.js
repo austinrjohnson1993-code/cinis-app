@@ -186,6 +186,42 @@ function getTaskDateLabel(task) {
   return `${days[date.getDay()].slice(0,3)} ${months[date.getMonth()]} ${date.getDate()}`
 }
 
+// Custom hook for live countdowns — only ticks for today's tasks
+function useCountdown(targetTime) {
+  const [timeLeft, setTimeLeft] = useState('')
+  useEffect(() => {
+    if (!targetTime) { setTimeLeft(''); return }
+    const update = () => {
+      const now = new Date()
+      const target = new Date(targetTime)
+      if (target.toDateString() !== now.toDateString()) { setTimeLeft(''); return }
+      const diff = target - now
+      if (diff <= 0) { setTimeLeft('Now'); return }
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      if (hours > 0) setTimeLeft(`in ${hours}h ${mins}m`)
+      else setTimeLeft(`in ${mins}m`)
+    }
+    update()
+    const interval = setInterval(update, 30000)
+    return () => clearInterval(interval)
+  }, [targetTime])
+  return timeLeft
+}
+
+// Compute countdown string inline (for use inside map — not a hook)
+function getCountdownDisplay(due_time, now) {
+  if (!due_time) return null
+  const target = new Date(due_time)
+  if (target.toDateString() !== now.toDateString()) return null
+  const diff = target - now
+  if (diff <= 0) return 'Due Now'
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  if (hours > 0) return `Due in ${hours}h ${mins}m`
+  return `Due in ${mins}m`
+}
+
 const RECURRENCE_OPTIONS = [
   { value: 'none', label: 'Once' },
   { value: 'daily', label: 'Daily' },
@@ -265,6 +301,7 @@ export default function Dashboard() {
     return new Date(now.getFullYear(), now.getMonth(), 1)
   })
   const [calDay, setCalDay] = useState(null)
+  const [dragOverHour, setDragOverHour] = useState(null)
 
   // Journal
   const [journalInput, setJournalInput] = useState('')
@@ -1106,6 +1143,23 @@ export default function Dashboard() {
     setToast(msg); setTimeout(() => setToast(null), 2500)
   }
 
+  const handleDropOnTimeSlot = async (e, hour) => {
+    e.preventDefault()
+    setDragOverHour(null)
+    const taskId = e.dataTransfer.getData('taskId')
+    if (!taskId || !calDay) return
+    const label = hour === 0 ? '12:00 AM' : hour === 12 ? '12:00 PM' : hour < 12 ? `${hour}:00 AM` : `${hour - 12}:00 PM`
+    const iso = new Date(calDay.getFullYear(), calDay.getMonth(), calDay.getDate(), hour, 0, 0, 0).toISOString()
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, due_time: iso, scheduled_for: iso } : t))
+    const { error } = await supabase.from('tasks').update({ due_time: iso, scheduled_for: iso }).eq('id', taskId)
+    if (error) {
+      console.error('[calDrop] update error:', error)
+      showToast('Failed to move task')
+    } else {
+      showToast(`Task moved to ${label}`)
+    }
+  }
+
   const switchTab = (id) => {
     setActiveTab(id); setShowMoreDrawer(false)
   }
@@ -1703,10 +1757,15 @@ export default function Dashboard() {
                   <div className={styles.calTimeline}>
                     {unscheduled.length > 0 && (
                       <div className={styles.calUnscheduledBlock}>
-                        <div className={styles.calSlotLabel}>Unscheduled</div>
+                        <div className={styles.calSlotLabel}>Unscheduled — drag to a time slot</div>
                         <div className={styles.calSlotTasks}>
                           {unscheduled.map(t => (
-                            <div key={t.id} className={`${styles.calTaskChip} ${t.completed ? styles.calTaskChipDone : ''} ${t.consequence_level === 'external' ? styles.calTaskChipExt : ''}`}>
+                            <div
+                              key={t.id}
+                              draggable={true}
+                              onDragStart={e => e.dataTransfer.setData('taskId', t.id)}
+                              className={`${styles.calTaskChip} ${t.completed ? styles.calTaskChipDone : ''} ${t.consequence_level === 'external' ? styles.calTaskChipExt : ''}`}
+                            >
                               <button onClick={() => t.completed ? uncompleteTask(t) : completeTask(t)} className={styles.calChipCheck}>{t.completed ? '✓' : ''}</button>
                               <div className={styles.calChipBody} onClick={() => setDetailTask(t)}>
                                 <span className={styles.calChipTitle}>{t.title}</span>
@@ -1724,7 +1783,13 @@ export default function Dashboard() {
                       const slotTasks = tasksByHour[h] || []
                       const label = h === 0 ? '12am' : h === 12 ? '12pm' : h < 12 ? `${h}am` : `${h - 12}pm`
                       return (
-                        <div key={h} className={`${styles.calHourSlot} ${slotTasks.length > 0 ? styles.calHourSlotFilled : ''}`}>
+                        <div
+                          key={h}
+                          className={`${styles.calHourSlot} ${slotTasks.length > 0 ? styles.calHourSlotFilled : ''} ${dragOverHour === h ? styles.timeSlotDragOver : ''}`}
+                          onDragOver={e => { e.preventDefault(); setDragOverHour(h) }}
+                          onDragLeave={() => setDragOverHour(null)}
+                          onDrop={e => handleDropOnTimeSlot(e, h)}
+                        >
                           <div className={styles.calHourLabel}>{label}</div>
                           <div className={styles.calHourLine} />
                           <div className={styles.calHourTasks}>
