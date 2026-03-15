@@ -137,7 +137,7 @@ const SCORING = [
 const PERSONA_DEFS = {
   drill_sergeant:   { label: 'The Drill Sergeant',   desc: 'Blunt, direct, zero fluff. Gets you moving.' },
   coach:            { label: 'The Coach',             desc: 'Warm, strategic, keeps you moving forward.' },
-  thinking_partner: { label: 'The Thinking Partner', desc: 'Collaborative, asks questions, helps you decide.' },
+  thinking_partner: { label: 'The Thinking Partner', desc: 'Collaborative, helps you think it through.' },
   hype_person:      { label: 'The Hype Person',       desc: 'Energetic, celebratory, makes wins feel huge.' },
   strategist:       { label: 'The Strategist',        desc: 'Logical, pragmatic, systems-focused.' },
 }
@@ -201,8 +201,9 @@ export default function Onboarding() {
       setAnimKey(k => k + 1)
       setCurrentQ(q => q + 1)
     } else {
-      const blend = computePersonas(newAnswers)
-      setPersonaBlend(blend.length ? blend : ['coach'])
+      const keys = computePersonas(newAnswers)
+      const blend = (keys.length ? keys : ['coach']).map(k => PERSONA_DEFS[k].label)
+      setPersonaBlend(blend)
       setPhase('analyzing')
       setTimeout(() => setPhase('reveal'), 1500)
     }
@@ -210,14 +211,6 @@ export default function Onboarding() {
 
   const handleConfirm = async () => {
     setPhase('saving')
-    const weightValues = [60, 25, 15]
-    const weights = Object.fromEntries(personaBlend.map((p, i) => [p, weightValues[i] || 10]))
-    const coaching_blend = {
-      primary: personaBlend[0],
-      secondary: personaBlend[1] || null,
-      tertiary: personaBlend[2] || null,
-      weights,
-    }
     await supabase.from('profiles').upsert({
       id: user.id,
       email: user.email,
@@ -226,7 +219,6 @@ export default function Onboarding() {
       persona_blend: personaBlend,
       persona_voice: personaVoice,
       persona_set: true,
-      coaching_blend,
       checkin_times: checkinTimes,
       onboarding_complete: true,
       created_at: new Date().toISOString(),
@@ -280,7 +272,7 @@ export default function Onboarding() {
               </div>
 
               <button onClick={() => setPhase('questions')} className={styles.startBtn}>
-                Let's go →
+                Next →
               </button>
             </div>
           </div>
@@ -292,7 +284,7 @@ export default function Onboarding() {
   // ── Questions ─────────────────────────────────────────────────────────────
   if (phase === 'questions') {
     const q = QUESTIONS[currentQ]
-    const progress = (currentQ / QUESTIONS.length) * 100
+    const progress = ((currentQ + 1) / QUESTIONS.length) * 100
 
     return (
       <>
@@ -333,8 +325,12 @@ export default function Onboarding() {
         <Head><title>Getting Started — FocusBuddy</title></Head>
         <div className={styles.page}>
           <div className={styles.analyzeScreen}>
-            <div className={styles.analyzeSpinner} />
-            <p className={styles.analyzeText}>Analyzing your style...</p>
+            <p className={styles.analyzeText}>
+              Analyzing your style
+              <span className={styles.analyzeDots}>
+                <span /><span /><span />
+              </span>
+            </p>
           </div>
         </div>
       </>
@@ -343,8 +339,9 @@ export default function Onboarding() {
 
   // ── Reveal ────────────────────────────────────────────────────────────────
   if (phase === 'reveal') {
-    const primary = PERSONA_DEFS[personaBlend[0]]
-    const secondary = personaBlend[1] ? PERSONA_DEFS[personaBlend[1]] : null
+    const primaryLabel = personaBlend[0]
+    const secondaryLabel = personaBlend[1] || null
+    const primaryDef = Object.values(PERSONA_DEFS).find(d => d.label === primaryLabel)
 
     return (
       <>
@@ -353,17 +350,17 @@ export default function Onboarding() {
           <div className={styles.revealContainer}>
             <div className={styles.revealCard}>
               <p className={styles.revealLabel}>Your coaching style</p>
-              <h1 className={styles.revealPersona}>{primary?.label}</h1>
-              <p className={styles.revealDesc}>{primary?.desc}</p>
-              {secondary && (
+              <h1 className={styles.revealPersona}>{primaryLabel}</h1>
+              <p className={styles.revealDesc}>{primaryDef?.desc}</p>
+              {secondaryLabel && (
                 <p className={styles.revealSecondary}>
-                  with <strong>{secondary.label}</strong> energy
+                  with <strong>{secondaryLabel}</strong> energy
                 </p>
               )}
             </div>
 
             <div className={styles.voicePrefBlock}>
-              <p className={styles.voicePrefLabel}>Your coach's voice</p>
+              <p className={styles.voicePrefLabel}>Voice preference</p>
               <div className={styles.voicePrefRow}>
                 <button
                   type="button"
@@ -371,7 +368,6 @@ export default function Onboarding() {
                   className={`${styles.voicePrefBtn} ${personaVoice === 'female' ? styles.voicePrefBtnActive : ''}`}
                 >
                   Female
-                  <span className={styles.voicePrefHint}>Warmer, more empathetic</span>
                 </button>
                 <button
                   type="button"
@@ -379,13 +375,12 @@ export default function Onboarding() {
                   className={`${styles.voicePrefBtn} ${personaVoice === 'male' ? styles.voicePrefBtnActive : ''}`}
                 >
                   Male
-                  <span className={styles.voicePrefHint}>More direct, action-oriented</span>
                 </button>
               </div>
             </div>
 
             <button onClick={handleConfirm} className={styles.startBtn}>
-              This is me — let's go →
+              Let's go →
             </button>
           </div>
         </div>
