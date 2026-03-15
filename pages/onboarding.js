@@ -160,6 +160,19 @@ function computePersonas(answers) {
     .map(([key]) => key)
 }
 
+// ── Mental health context options ─────────────────────────────────────────────
+
+const MH_OPTIONS = [
+  { id: 'adhd_diagnosed',   emoji: '🧠', label: 'ADHD — Diagnosed',              desc: 'I have a formal ADHD diagnosis.' },
+  { id: 'adhd_suspected',   emoji: '🔍', label: 'ADHD — Suspected',              desc: "I haven't been diagnosed but relate strongly to ADHD." },
+  { id: 'ocd',              emoji: '🌀', label: 'OCD',                            desc: 'I have OCD and want better systems around it.' },
+  { id: 'anxiety',          emoji: '😟', label: 'Anxiety',                        desc: 'Anxiety gets in the way of starting and finishing things.' },
+  { id: 'depression',       emoji: '😔', label: 'Depression',                     desc: 'Low energy and motivation make it hard to get things done.' },
+  { id: 'multiple',         emoji: '🧩', label: 'Multiple things',               desc: "A mix of the above — it's complicated." },
+  { id: 'no_diagnosis',     emoji: '📋', label: 'No diagnosis — just disorganized', desc: "I don't have a diagnosis but struggle to stay on top of things." },
+  { id: 'well_organized',   emoji: '✅', label: 'Well organized — want more',    desc: "I'm already organized but want a smarter system." },
+]
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const RANK_ITEMS_DEFAULT = ['Deep focus work', 'Quick wins', 'External commitments', 'Self-care / personal tasks']
@@ -167,7 +180,8 @@ const RANK_ITEMS_DEFAULT = ['Deep focus work', 'Quick wins', 'External commitmen
 export default function Onboarding() {
   const router = useRouter()
   const [user, setUser] = useState(null)
-  const [phase, setPhase] = useState('intro') // intro | questions | rankq | analyzing | reveal | saving
+  const [phase, setPhase] = useState('context') // context | intro | questions | rankq | analyzing | reveal | saving
+  const [mentalHealthContext, setMentalHealthContext] = useState(null)
   const [name, setName] = useState('')
   const [checkinTimes, setCheckinTimes] = useState(['morning', 'evening'])
   const [currentQ, setCurrentQ] = useState(0)
@@ -245,6 +259,7 @@ export default function Onboarding() {
       created_at: new Date().toISOString(),
     }
     // Save ranked_priorities gracefully — column may not exist yet
+    if (mentalHealthContext) upsertData.mental_health_context = mentalHealthContext
     try {
       await supabase.from('profiles').upsert({ ...upsertData, ranked_priorities: rankItems })
     } catch {
@@ -254,6 +269,47 @@ export default function Onboarding() {
   }
 
   if (!user) return null
+
+  // ── Context (step 0) ──────────────────────────────────────────────────────
+  if (phase === 'context') {
+    return (
+      <>
+        <Head><title>Getting Started — FocusBuddy</title></Head>
+        <div className={styles.page}>
+          <div className={styles.introContainer}>
+            <div className={styles.introLogo}>
+              <span className="brand"><span className="focus">Focus</span><span className="buddy">Buddy</span></span>
+            </div>
+            <h1 className={styles.introTitle}>What brings you here?</h1>
+            <p className={styles.introSub}>This helps FocusBuddy understand how to support you. You can always update this later.</p>
+
+            <div className={styles.mhGrid}>
+              {MH_OPTIONS.map(opt => {
+                const selected = mentalHealthContext === opt.id
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => setMentalHealthContext(selected ? null : opt.id)}
+                    className={`${styles.mhCard} ${selected ? styles.mhCardSelected : ''}`}
+                  >
+                    <div className={styles.mhCardEmoji}>{opt.emoji}</div>
+                    <div className={styles.mhCardLabel}>{opt.label}</div>
+                    <div className={styles.mhCardDesc}>{opt.desc}</div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {mentalHealthContext && (
+              <button onClick={() => setPhase('intro')} className={styles.startBtn} style={{ marginTop: '28px' }}>
+                Continue →
+              </button>
+            )}
+          </div>
+        </div>
+      </>
+    )
+  }
 
   // ── Intro ─────────────────────────────────────────────────────────────────
   if (phase === 'intro') {
