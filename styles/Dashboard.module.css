@@ -1700,6 +1700,32 @@
 }
 .settingsTipsToggle:hover { border-color: rgba(255,77,28,0.25); color: var(--accent); }
 
+/* ── Chore Cadence ── */
+.chorePresetCard {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,255,255,0.04); border-radius: 12px; padding: 14px 16px;
+  margin-bottom: 10px; border: 2px solid transparent;
+}
+.chorePresetCardActive { border-color: var(--accent); }
+.chorePresetName { font-weight: 600; font-size: 14px; margin-bottom: 4px; color: #f0ead6; }
+.chorePresetDesc { font-size: 12px; opacity: 0.5; line-height: 1.4; }
+.choreActiveBadge {
+  font-size: 10px; background: var(--accent); color: #fff;
+  border-radius: 10px; padding: 2px 8px; margin-left: 8px; vertical-align: middle;
+}
+.choreSetupBtn {
+  font-size: 12px; padding: 6px 14px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.15); background: none;
+  color: rgba(240,234,214,0.75); cursor: pointer; white-space: nowrap; font-family: 'Figtree', sans-serif;
+}
+.choreSetupBtn:hover { border-color: var(--accent); color: var(--accent); }
+.choreRemoveBtn {
+  font-size: 12px; padding: 6px 14px; border-radius: 20px;
+  border: 1px solid rgba(255,0,0,0.3); background: none;
+  color: #f44336; cursor: pointer; white-space: nowrap; font-family: 'Figtree', sans-serif;
+}
+.choreRemoveBtn:hover { border-color: #f44336; background: rgba(244,67,54,0.08); }
+
 /* ════════════════════════════════════════════
    FINANCE SUB-TABS
    ════════════════════════════════════════════ */

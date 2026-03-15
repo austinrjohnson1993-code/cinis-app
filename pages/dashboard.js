@@ -9,6 +9,7 @@ import SortableTaskCard from '../components/SortableTaskCard'
 import { applyAccentColor, DEFAULT_ACCENTS } from '../lib/accentColor'
 import { saveTaskOrder } from '../lib/taskOrder'
 import { isDueSoon as billIsDueSoon, formatBillAmount, getBillCategory, getNextDueDate } from '../lib/billUtils'
+import { CHORE_PRESETS } from '../lib/chores'
 
 const THEMES = [
   { id: 'orange-bronze', name: 'Classic', accent: '#ff4d1c', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#ff4d1c' },
@@ -2276,6 +2277,44 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Chore Cadence */}
+              <div className={styles.settingsSection}>
+                <p className={styles.settingsSectionLabel}>Chore Cadence</p>
+                {CHORE_PRESETS.map(preset => {
+                  const isActive = profile?.chore_preset === preset.id
+                  return (
+                    <div key={preset.id} className={`${styles.chorePresetCard} ${isActive ? styles.chorePresetCardActive : ''}`}>
+                      <div>
+                        <div className={styles.chorePresetName}>
+                          {preset.name}
+                          {isActive && <span className={styles.choreActiveBadge}>Active</span>}
+                        </div>
+                        <div className={styles.chorePresetDesc}>{preset.description}</div>
+                      </div>
+                      {isActive ? (
+                        <button className={styles.choreRemoveBtn} onClick={async () => {
+                          await fetch('/api/chores', { method: 'DELETE' })
+                          setProfile(prev => ({ ...prev, chore_preset: null }))
+                          fetchTasks(user.id)
+                          showToast('Chore routine removed')
+                        }}>Remove</button>
+                      ) : (
+                        <button className={styles.choreSetupBtn} onClick={async () => {
+                          await fetch('/api/chores', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ preset: preset.id }),
+                          })
+                          setProfile(prev => ({ ...prev, chore_preset: preset.id }))
+                          fetchTasks(user.id)
+                          showToast('Chore routine added to your tasks')
+                        }}>Set up</button>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
 
               {/* How to get the most out of FocusBuddy */}
