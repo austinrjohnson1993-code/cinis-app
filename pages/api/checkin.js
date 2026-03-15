@@ -32,42 +32,33 @@ function topTask(pending) {
     || pending[0]
 }
 
-function buildContextPrompt(checkInType, profile, pending, completed) {
+function buildContextPrompt(checkInType, profile, pending, completed, isFirstCheckin) {
   const name = profile.full_name?.split(' ')[0] || 'there'
   const top = topTask(pending)
-  const topCompleted = completed[0] || null
+  const otherPending = pending.filter(t => t !== top).slice(0, 3)
+  const rollovers = pending.filter(t => (t.rollover_count || 0) > 0)
+  const firstFlag = isFirstCheckin ? '\nThis is their very first check-in. Use the "Alright, first time working together." opener.' : ''
 
   if (checkInType === 'morning') {
-    const taskLine = top
-      ? `Their most important task right now: ${fmtTask(top)}.`
-      : `They have no tasks on their list yet today.`
-    return `Morning check-in for ${name}. ${taskLine}
-
-Write exactly 2-3 sentences. Sentence 1: greet ${name} by name, acknowledge the morning. Sentence 2: name that specific task and why it matters (due time if it has one, or that it's external). Sentence 3 (optional): one short question — "What's in the way?" or "Ready?" or similar. Do not summarize their whole list. Do not ask how they're feeling. Reference the task by name. End with a question OR a statement, not both.`
+    return `It's morning. User: ${name}.
+Top priority task: ${top ? `"${top.title}"${top.due_time ? ` due ${new Date(top.due_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}${top.consequence_level === 'external' ? ' [external commitment]' : ''}` : 'none'}.
+Other tasks today: ${otherPending.length ? otherPending.map(t => `"${t.title}"`).join(', ') : 'none'}.
+Rolled over: ${rollovers.length ? `${rollovers.length} task${rollovers.length !== 1 ? 's' : ''} (${rollovers.map(t => `"${t.title}"`).join(', ')})` : 'none'}.${firstFlag}
+Write the opening morning check-in. 2-3 sentences max. Name the top task specifically.`
   }
 
   if (checkInType === 'midday') {
-    const doneLine = topCompleted
-      ? `They completed "${topCompleted.title}" ${completed.length > 1 ? `and ${completed.length - 1} other${completed.length - 1 !== 1 ? 's' : ''}` : ''}.`
-      : `They haven't completed anything yet.`
-    const nextLine = top
-      ? `Most important thing still open: ${fmtTask(top)}.`
-      : `Nothing pending.`
-    return `Midday check-in for ${name}. ${doneLine} ${nextLine}
-
-Write exactly 2-3 sentences. If something got done: sentence 1 acknowledges it by name specifically. If nothing got done: sentence 1 acknowledges that honestly, no shame. Sentence 2: name the most important open task specifically and what doing it in the afternoon looks like. No lists. No summaries. Reference tasks by name. End with a question OR a statement, not both.`
+    return `It's midday. User: ${name}.
+Completed so far: ${completed.length ? completed.map(t => `"${t.title}"`).join(', ') : 'nothing yet'}.
+Still pending: ${pending.length ? pending.map(t => `"${t.title}"${t.due_time ? ` (due ${new Date(t.due_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })})` : ''}`).join(', ') : 'nothing'}.${firstFlag}
+Write the midday check-in. 2 sentences. Acknowledge what's done by name, name what's next.`
   }
 
   // evening
-  const winLine = topCompleted
-    ? `They completed "${topCompleted.title}" today${completed.length > 1 ? ` (plus ${completed.length - 1} more)` : ''}.`
-    : `They didn't complete any tasks today.`
-  const rollLine = pending.length > 0
-    ? `Rolling to tomorrow: ${fmtTask(pending[0])}${pending.length > 1 ? ` and ${pending.length - 1} other${pending.length - 1 !== 1 ? 's' : ''}` : ''}.`
-    : `Nothing rolls to tomorrow.`
-  return `Evening check-in for ${name}. ${winLine} ${rollLine}
-
-Write exactly 2-3 sentences. Sentence 1: name one specific win (or acknowledge the day honestly if nothing done — no toxic positivity). Sentence 2: name what rolls to tomorrow specifically. Sentence 3: one closing line that makes them feel good about showing up tomorrow — specific, not generic. No motivational poster language. End with a statement, not a question.`
+  return `It's evening. User: ${name}.
+Completed today: ${completed.length ? completed.map(t => `"${t.title}"`).join(', ') : 'nothing completed'}.
+Rolling to tomorrow: ${pending.length ? pending.map(t => `"${t.title}"`).join(', ') : 'nothing'}.${firstFlag}
+Write the evening check-in. 2-3 sentences. One specific win or honest acknowledgment, what rolls over, one closing line.`
 }
 
 export default async function handler(req, res) {
@@ -102,8 +93,14 @@ export default async function handler(req, res) {
   const pending = (tasks || []).filter(t => !t.completed)
   const completed = (tasks || []).filter(t => t.completed)
   const type = checkInType || 'morning'
+  const isFirstCheckin = !profile.last_checkin_at
 
-  const contextPrompt = buildContextPrompt(type, profile, pending, completed)
+  const contextPrompt = buildContextPrompt(type, profile, pending, completed, isFirstCheckin)
+
+  // Mark that a check-in has happened so subsequent opens don't use the first-time opener
+  if (isFirstCheckin) {
+    supabaseAdmin.from('profiles').update({ last_checkin_at: new Date().toISOString() }).eq('id', profile.id)
+  }
 
   try {
     const reply = await coachingMessage(
