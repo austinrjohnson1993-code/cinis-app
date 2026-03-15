@@ -134,6 +134,22 @@ const RECURRENCE_OPTIONS = [
   { value: 'weekly', label: 'Weekly' },
 ]
 
+const PERSONAS_LIST = [
+  { key: 'drill_sergeant', label: 'The Drill Sergeant', desc: 'Blunt, direct, zero fluff. Gets you moving.' },
+  { key: 'coach', label: 'The Coach', desc: 'Warm, strategic, keeps you moving forward.' },
+  { key: 'thinking_partner', label: 'The Thinking Partner', desc: 'Collaborative, asks questions, helps you decide.' },
+  { key: 'hype_person', label: 'The Hype Person', desc: 'Energetic, celebratory, makes wins feel huge.' },
+  { key: 'strategist', label: 'The Strategist', desc: 'Logical, pragmatic, systems-focused.' },
+]
+const PERSONA_BADGE = ['Primary', 'Supporting', 'Accent']
+
+function getCheckinType() {
+  const h = new Date().getHours()
+  if (h >= 5 && h < 11) return 'morning'
+  if (h >= 11 && h < 16) return 'midday'
+  return 'evening'
+}
+
 export default function Dashboard() {
   const router = useRouter()
   const [user, setUser] = useState(null)
@@ -148,6 +164,19 @@ export default function Dashboard() {
   const [detailNoteEdit, setDetailNoteEdit] = useState('')
   const [detailNoteEditing, setDetailNoteEditing] = useState(false)
   const [toast, setToast] = useState(null)
+
+  // Check-in
+  const [checkinMessages, setCheckinMessages] = useState([])
+  const [checkinInput, setCheckinInput] = useState('')
+  const [checkinLoading, setCheckinLoading] = useState(false)
+  const [checkinInitialized, setCheckinInitialized] = useState(false)
+  const checkinEndRef = useRef(null)
+
+  // Persona settings modal
+  const [showPersonaModal, setShowPersonaModal] = useState(false)
+  const [personaSelection, setPersonaSelection] = useState([])
+  const [personaVoice, setPersonaVoice] = useState('female')
+  const [personaSaving, setPersonaSaving] = useState(false)
 
   // Add task form
   const [newTitle, setNewTitle] = useState('')
@@ -200,6 +229,28 @@ export default function Dashboard() {
       setDetailNoteEditing(false)
     }
   }, [detailTask?.id])
+
+  useEffect(() => {
+    if (activeTab === 'checkin' && !checkinInitialized && user) {
+      setCheckinInitialized(true)
+      setCheckinLoading(true)
+      fetch('/api/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, checkInType: getCheckinType() })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.message) setCheckinMessages([{ role: 'assistant', content: data.message }])
+        })
+        .catch(() => setCheckinMessages([{ role: 'assistant', content: "Hey — how are you doing today?" }]))
+        .finally(() => setCheckinLoading(false))
+    }
+  }, [activeTab, user])
+
+  useEffect(() => {
+    checkinEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [checkinMessages, checkinLoading])
 
   const fetchProfile = async (userId) => {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
@@ -338,6 +389,54 @@ export default function Dashboard() {
     }).eq('id', task.id)
   }
 
+  const sendCheckinMessage = async (e) => {
+    e.preventDefault()
+    if (!checkinInput.trim() || checkinLoading) return
+
+    const userMsg = { role: 'user', content: checkinInput.trim() }
+    const updated = [...checkinMessages, userMsg]
+    setCheckinMessages(updated)
+    setCheckinInput('')
+    setCheckinLoading(true)
+
+    try {
+      const res = await fetch('/api/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, checkInType: getCheckinType(), messages: updated })
+      })
+      const data = await res.json()
+      if (data.message) setCheckinMessages(prev => [...prev, { role: 'assistant', content: data.message }])
+    } catch {
+      setCheckinMessages(prev => [...prev, { role: 'assistant', content: "I'm here. Keep going." }])
+    }
+    setCheckinLoading(false)
+  }
+
+  const openPersonaModal = () => {
+    setPersonaSelection(profile?.persona_blend || [])
+    setPersonaVoice(profile?.persona_voice || 'female')
+    setShowPersonaModal(true)
+  }
+
+  const savePersona = async () => {
+    if (!personaSelection.length || !user) return
+    setPersonaSaving(true)
+    const updates = { persona_blend: personaSelection, persona_voice: personaVoice, persona_set: true }
+    await supabase.from('profiles').update(updates).eq('id', user.id)
+    setPersonaSaving(false)
+    setShowPersonaModal(false)
+    setToast('Persona updated')
+    setTimeout(() => setToast(null), 2500)
+  }
+
+  const togglePersonaSelection = (key) => {
+    setPersonaSelection(prev => {
+      if (prev.includes(key)) return prev.length > 1 ? prev.filter(k => k !== key) : prev
+      return prev.length < 3 ? [...prev, key] : prev
+    })
+  }
+
   const saveDetailNote = async () => {
     const notes = detailNoteEdit.trim() || null
     const updated = { ...detailTask, notes }
@@ -432,6 +531,7 @@ export default function Dashboard() {
           </nav>
           <div className={styles.sidebarFooter}>
             <span className={styles.sidebarEmail}>{user?.email}</span>
+            <button onClick={openPersonaModal} className={styles.personaSettingsBtn}>My persona</button>
             <button onClick={handleSignOut} className={styles.signOutBtn}>Sign out</button>
             <button onClick={handleRunRollover} className={styles.rolloverDevBtn}>Run rollover</button>
           </div>
@@ -595,19 +695,54 @@ export default function Dashboard() {
           )}
 
           {/* CHECK-IN */}
-          {activeTab === 'checkin' && (
-            <div className={styles.view}>
-              <div className={styles.header}>
-                <h1 className={styles.greetingText}>Check-in</h1>
-                <p className={styles.headerSub}>Your daily coaching conversation.</p>
+          {activeTab === 'checkin' && (() => {
+            const type = getCheckinType()
+            const typeLabel = type === 'morning' ? 'Morning check-in'
+              : type === 'midday' ? 'Midday check-in' : 'Evening check-in'
+            return (
+              <div className={styles.checkinWrap}>
+                <div className={styles.checkinHeader}>
+                  <div className={styles.checkinTypeTag}>{typeLabel}</div>
+                  <button onClick={() => setActiveTab('tasks')} className={styles.checkinSkipBtn}>
+                    Skip to tasks
+                  </button>
+                </div>
+
+                <div className={styles.checkinMessages}>
+                  <div className={styles.checkinSpacer} />
+                  {checkinMessages.map((msg, i) => (
+                    <div key={i} className={msg.role === 'assistant' ? styles.checkinBubbleAI : styles.checkinBubbleUser}>
+                      {msg.content}
+                    </div>
+                  ))}
+                  {checkinLoading && (
+                    <div className={styles.checkinBubbleAI}>
+                      <span className={styles.checkinTyping}>···</span>
+                    </div>
+                  )}
+                  <div ref={checkinEndRef} />
+                </div>
+
+                <form onSubmit={sendCheckinMessage} className={styles.checkinForm}>
+                  <input
+                    type="text"
+                    placeholder="Reply..."
+                    value={checkinInput}
+                    onChange={e => setCheckinInput(e.target.value)}
+                    className={styles.checkinInput}
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    disabled={checkinLoading || !checkinInput.trim()}
+                    className={styles.checkinSendBtn}
+                  >
+                    →
+                  </button>
+                </form>
               </div>
-              <div className={styles.stubCard}>
-                <div className={styles.stubIcon}>💬</div>
-                <p className={styles.stubText}>Daily check-in coming soon.</p>
-                <p className={styles.stubSubtext}>Morning, midday, and evening sessions — brief, personal, and built around your actual list.</p>
-              </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* CALENDAR */}
           {activeTab === 'calendar' && (() => {
@@ -1028,6 +1163,58 @@ export default function Dashboard() {
                   Push to tomorrow
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* PERSONA SETTINGS MODAL */}
+        {showPersonaModal && (
+          <div className={styles.modalOverlay} onClick={e => e.target === e.currentTarget && setShowPersonaModal(false)}>
+            <div className={styles.modal} style={{ maxWidth: '600px' }}>
+              <div className={styles.modalHeader}>
+                <h2 className={styles.modalTitle}>My persona</h2>
+                <button onClick={() => setShowPersonaModal(false)} className={styles.modalClose}>×</button>
+              </div>
+              <p className={styles.personaModalSub}>Pick up to 3. Your first choice is your dominant style.</p>
+
+              <div className={styles.personaModalGrid}>
+                {PERSONAS_LIST.map(({ key, label, desc }) => {
+                  const idx = personaSelection.indexOf(key)
+                  const selected = idx !== -1
+                  return (
+                    <div key={key}
+                      className={`${styles.personaCard} ${selected ? styles.personaCardSelected : ''}`}
+                      onClick={() => togglePersonaSelection(key)}>
+                      {selected && (
+                        <span className={styles.personaBadge}>{PERSONA_BADGE[idx] || 'Accent'}</span>
+                      )}
+                      <p className={styles.personaCardLabel}>{label}</p>
+                      <p className={styles.personaCardDesc}>{desc}</p>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className={styles.personaVoiceBlock}>
+                <p className={styles.personaVoiceTitle}>Your coach's voice</p>
+                <div className={styles.personaVoiceRow}>
+                  {[['female', 'Female', 'Warmer, more empathetic'], ['male', 'Male', 'More direct, action-oriented']].map(([val, label, hint]) => (
+                    <button key={val}
+                      className={`${styles.personaVoiceBtn} ${personaVoice === val ? styles.personaVoiceBtnActive : ''}`}
+                      onClick={() => setPersonaVoice(val)}>
+                      {label}
+                      <span className={styles.personaVoiceHint}>{hint}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                className={styles.modalSubmit}
+                onClick={savePersona}
+                disabled={personaSelection.length === 0 || personaSaving}>
+                {personaSaving ? 'Saving...' : 'Save persona'}
+              </button>
             </div>
           </div>
         )}

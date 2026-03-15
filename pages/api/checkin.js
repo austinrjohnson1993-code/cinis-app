@@ -1,81 +1,96 @@
-import { coachingMessage } from '../../lib/anthropic';
+import { createClient } from '@supabase/supabase-js'
+import { coachingMessage } from '../../lib/anthropic'
+import { buildPersonaPrompt } from '../../lib/persona'
 
-const BASE_SYSTEM_PROMPT = `You are FocusBuddy — a warm, direct coaching companion for people with ADHD and executive function challenges.
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  )
+}
 
-Your job right now is the daily check-in. You're meeting the user at the start of their day.
+function fmtTask(t) {
+  let s = `"${t.title}"`
+  if (t.due_time) {
+    s += ` (due ${new Date(t.due_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })})`
+  }
+  if ((t.rollover_count || 0) > 0) s += ` [rolled over ${t.rollover_count}×]`
+  return s
+}
 
-Rules:
-- Always acknowledge their emotional state FIRST before anything task-related
-- Keep responses short — 2-4 sentences max
-- Never show them a list of tasks unprompted
-- No clinical language, no toxic positivity, no pressure
-- Warm and direct — like a friend who gets it, not a therapist
-- If they seem overwhelmed, help them find ONE thing, not everything
-- Celebrate small wins explicitly when they happen
-- Do not use markdown formatting — no bullet points, no bold, no headers
+function fmtList(tasks) {
+  if (!tasks.length) return 'none'
+  return tasks.map(fmtTask).join(', ')
+}
 
-The goal: make them feel met, then find one small forward motion together.`;
+function buildContextPrompt(checkInType, profile, pending, completed) {
+  const name = profile.full_name?.split(' ')[0] || 'there'
+  const rollovers = pending.filter(t => (t.rollover_count || 0) > 0)
 
-const STYLE_DESCRIPTIONS = {
-  supportive: 'Lead with warmth and validation. Be a safe landing space first.',
-  direct: 'Be concise and action-oriented. Skip pleasantries, get to the point.',
-  motivational: 'Light energy, forward momentum. Remind them of their own capacity.',
-  structured: 'Offer gentle structure. Help them think in ordered steps.',
-  curious: 'Ask good questions. Help them discover their own answers.',
-};
-
-function buildPersonaVoice(coachingBlend) {
-  if (!coachingBlend) return '';
-
-  const lines = [];
-
-  if (typeof coachingBlend === 'string') {
-    const desc = STYLE_DESCRIPTIONS[coachingBlend.toLowerCase()];
-    if (desc) lines.push(desc);
-    else lines.push(`Coaching style: ${coachingBlend}`);
-  } else if (typeof coachingBlend === 'object') {
-    Object.entries(coachingBlend)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 2)
-      .forEach(([style, weight]) => {
-        if (weight > 10 && STYLE_DESCRIPTIONS[style]) {
-          lines.push(STYLE_DESCRIPTIONS[style]);
-        }
-      });
+  if (checkInType === 'morning') {
+    const rolloverNote = rollovers.length > 0
+      ? ` Note: ${rollovers.length} task${rollovers.length !== 1 ? 's have' : ' has'} rolled over from earlier: ${fmtList(rollovers)}.`
+      : ''
+    return `It's morning. ${name} has ${pending.length} task${pending.length !== 1 ? 's' : ''} on their list: ${fmtList(pending)}.${rolloverNote} Start with a brief personal greeting using their name. Ask how they're feeling and what's on their mind. Then gently surface the top 1–2 priority tasks. Keep it under 3 sentences. Sound human, not like a notification.`
   }
 
-  return lines.length > 0 ? `\nPersona guidance:\n${lines.join('\n')}\n` : '';
+  if (checkInType === 'midday') {
+    const nothingDone = completed.length === 0
+      ? `They haven't completed anything yet — be gentle but direct per your persona.`
+      : `Acknowledge what they've knocked out.`
+    return `It's midday. ${name} has completed ${completed.length} task${completed.length !== 1 ? 's' : ''}: ${fmtList(completed)}. Still pending: ${fmtList(pending)}. ${nothingDone} Surface what's most important for the afternoon. Keep it under 3 sentences.`
+  }
+
+  // evening
+  const rolloverNote = rollovers.length > 0
+    ? ` ${rollovers.length} task${rollovers.length !== 1 ? 's have' : ' has'} been rolling over — note that gently.`
+    : ''
+  return `It's evening. The day is wrapping up for ${name}. Completed: ${fmtList(completed)}. Still pending (will roll to tomorrow): ${fmtList(pending)}.${rolloverNote} Lead with wins first, always — even on a hard day. Close with something brief that makes them feel good about showing up tomorrow. Keep it under 4 sentences.`
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  const { userId, checkInType, messages } = req.body
+  if (!userId) return res.status(400).json({ error: 'userId required' })
+
+  const supabaseAdmin = getAdminClient()
+
+  const { data: profile, error: profileErr } = await supabaseAdmin
+    .from('profiles').select('*').eq('id', userId).single()
+  if (profileErr || !profile) return res.status(404).json({ error: 'Profile not found' })
+
+  const systemPrompt = buildPersonaPrompt(profile)
+
+  // Continuing conversation — just pass through with persona
+  if (messages && messages.length > 0) {
+    try {
+      const reply = await coachingMessage(messages, systemPrompt)
+      return res.status(200).json({ message: reply })
+    } catch (err) {
+      console.error('[checkin] continuation error:', err.message)
+      return res.status(500).json({ error: 'Failed to get response' })
+    }
   }
 
-  const { messages, userName, taskCount, taskTitles, coachingBlend, aiContext } = req.body;
+  // Opening message — fetch tasks and build context
+  const { data: tasks = [] } = await supabaseAdmin
+    .from('tasks').select('*').eq('user_id', userId).eq('archived', false)
 
-  if (!messages || !Array.isArray(messages)) {
-    return res.status(400).json({ error: 'Messages array required' });
-  }
+  const pending = (tasks || []).filter(t => !t.completed)
+  const completed = (tasks || []).filter(t => t.completed)
+  const type = checkInType || 'morning'
+
+  const contextPrompt = buildContextPrompt(type, profile, pending, completed)
 
   try {
-    const personaVoice = buildPersonaVoice(coachingBlend);
-
-    const taskContext = taskTitles && taskTitles.length > 0
-      ? `\nTheir tasks today:\n${taskTitles.map(t => `- ${t}`).join('\n')}`
-      : '';
-
-    const userContext = aiContext ? `\nAbout this user: ${aiContext}` : '';
-
-    const contextualSystem = `${BASE_SYSTEM_PROMPT}
-${personaVoice}
-User's name: ${userName || 'there'}
-Tasks on their list today: ${taskCount || 0}${taskContext}${userContext}`;
-
-    const reply = await coachingMessage(messages, contextualSystem);
-    return res.status(200).json({ message: reply });
-  } catch (error) {
-    console.error('Anthropic API error:', error);
-    return res.status(500).json({ error: 'Something went wrong', detail: error.message });
+    const reply = await coachingMessage(
+      [{ role: 'user', content: contextPrompt }],
+      systemPrompt
+    )
+    return res.status(200).json({ message: reply })
+  } catch (err) {
+    console.error('[checkin] opening error:', err.message)
+    return res.status(500).json({ error: 'Failed to generate check-in' })
   }
 }

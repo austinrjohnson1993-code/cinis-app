@@ -366,6 +366,66 @@
 
 .nextBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* ── Voice preference ── */
+
+.voicePrefBlock {
+  margin-bottom: 36px;
+}
+
+.voicePrefLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(240,234,214,0.35);
+  margin-bottom: 12px;
+}
+
+.voicePrefRow {
+  display: flex;
+  gap: 12px;
+}
+
+.voicePrefBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  background: #221608;
+  border: 1px solid rgba(255,200,120,0.08);
+  border-radius: 14px;
+  padding: 16px 18px;
+  color: rgba(240,234,214,0.5);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.voicePrefBtn:hover {
+  border-color: rgba(255,200,120,0.16);
+  color: rgba(240,234,214,0.75);
+}
+
+.voicePrefBtnActive {
+  background: rgba(255,77,28,0.08) !important;
+  border-color: rgba(255,77,28,0.4) !important;
+  color: #f0ead6 !important;
+}
+
+.voicePrefHint {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: rgba(240,234,214,0.35);
+}
+
+.voicePrefBtnActive .voicePrefHint {
+  color: rgba(240,234,214,0.5);
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 640px) {

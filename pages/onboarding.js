@@ -7,30 +7,32 @@ import styles from '../styles/Onboarding.module.css'
 const PERSONAS = {
   drill_sergeant: {
     label: 'The Drill Sergeant',
-    description: 'Blunt, direct, zero fluff. High accountability, no excuses.',
+    description: 'Blunt, direct, zero fluff. Gets you moving.',
     example: '"HEY. You\'ve rescheduled this three times. What\'s the actual problem?"'
   },
   coach: {
     label: 'The Coach',
-    description: 'Warm, strategic, keeps you moving. Believes in you without letting you off the hook.',
+    description: 'Warm, strategic, keeps you moving forward.',
     example: '"You\'ve got momentum today. Let\'s use it — what\'s the one thing that moves the needle?"'
   },
   thinking_partner: {
     label: 'The Thinking Partner',
-    description: 'Collaborative, asks questions, helps you figure it out yourself.',
+    description: 'Collaborative, asks questions, helps you decide.',
     example: '"You\'ve moved this task three times. What\'s actually in the way?"'
   },
   hype_person: {
     label: 'The Hype Person',
-    description: 'Energetic, celebratory, motivational. Makes wins feel huge.',
+    description: 'Energetic, celebratory, makes wins feel huge.',
     example: '"Wake UP! You knocked out two things before noon. You\'re unstoppable today!"'
   },
   strategist: {
     label: 'The Strategist',
-    description: 'Logical, pragmatic, systems-focused. Gives you the optimal path.',
+    description: 'Logical, pragmatic, systems-focused.',
     example: '"You have 4 open tasks. Based on dependencies and deadlines, here\'s the sequence."'
   }
 }
+
+const BADGE_LABELS = ['Primary', 'Supporting', 'Accent']
 
 export default function Onboarding() {
   const router = useRouter()
@@ -41,6 +43,7 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
   const [selectedPersonas, setSelectedPersonas] = useState([])
+  const [personaVoice, setPersonaVoice] = useState('female')
   const [saving, setSaving] = useState(false)
   const messagesEndRef = useRef(null)
 
@@ -239,6 +242,9 @@ export default function Onboarding() {
         checkin_times: ['morning', 'evening'],
         onboarded: true,
         coaching_blend,
+        persona_blend: selectedPersonas,
+        persona_voice: personaVoice,
+        persona_set: true,
         communication_style: profileData.communication_style,
         work_schedule: profileData.work_schedule,
         sleep_habits: profileData.sleep_habits,
@@ -325,11 +331,10 @@ export default function Onboarding() {
         <div className={styles.page}>
           <div className={styles.personaContainer}>
             <div className={styles.personaHeader}>
-              <h1 className={styles.personaTitle}>Your coaching style.</h1>
+              <h1 className={styles.personaTitle}>How do you want to be coached?</h1>
               <p className={styles.personaSub}>
-                Based on our conversation, here's what I think will work for you. Adjust it however you want — you can always change this later.
+                Pick up to 3. Your first choice is your dominant style.
               </p>
-              <p className={styles.personaInstructions}>Pick up to 3. The first one you select is your dominant style.</p>
             </div>
 
             <div className={styles.personaGrid}>
@@ -366,7 +371,7 @@ export default function Onboarding() {
                         fontSize: '0.72rem',
                         fontWeight: '700'
                       }}>
-                        {isPrimary ? 'Primary' : isSecondary ? 'Secondary' : 'Tertiary'}
+                        {BADGE_LABELS[position] || 'Accent'}
                       </div>
                     )}
                     <p style={{ color: '#f0ead6', WebkitTextFillColor: '#f0ead6', fontWeight: '700', fontSize: '1rem', marginBottom: '8px' }}>
@@ -381,6 +386,28 @@ export default function Onboarding() {
                   </div>
                 )
               })}
+            </div>
+
+            <div className={styles.voicePrefBlock}>
+              <p className={styles.voicePrefLabel}>Your coach's voice</p>
+              <div className={styles.voicePrefRow}>
+                <button
+                  type="button"
+                  onClick={() => setPersonaVoice('female')}
+                  className={`${styles.voicePrefBtn} ${personaVoice === 'female' ? styles.voicePrefBtnActive : ''}`}
+                >
+                  Female
+                  <span className={styles.voicePrefHint}>Warmer, more empathetic</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPersonaVoice('male')}
+                  className={`${styles.voicePrefBtn} ${personaVoice === 'male' ? styles.voicePrefBtnActive : ''}`}
+                >
+                  Male
+                  <span className={styles.voicePrefHint}>More direct, action-oriented</span>
+                </button>
+              </div>
             </div>
 
             <button
