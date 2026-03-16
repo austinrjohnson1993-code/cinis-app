@@ -38,11 +38,21 @@ function applyTheme(theme) {
   root.style.setProperty('--cream', theme.textColor || '#f0ead6')
   if (theme.id === 'paper') {
     root.setAttribute('data-theme', 'paper')
+    root.style.setProperty('--bg-color', '#f5f0e8')
+    root.style.setProperty('--card-bg', '#eeebe0')
+    root.style.setProperty('--text-color', '#1a1a1a')
+    root.style.setProperty('--text-muted', '#555555')
+    root.style.setProperty('--border-color', '#d4cfc4')
   } else {
     root.removeAttribute('data-theme')
+    root.style.setProperty('--bg-color', '#110d06')
+    root.style.setProperty('--card-bg', 'rgba(255,200,120,0.04)')
+    root.style.setProperty('--text-color', '#f0ead6')
+    root.style.setProperty('--text-muted', 'rgba(240,234,214,0.5)')
+    root.style.setProperty('--border-color', 'rgba(255,200,120,0.12)')
   }
   // also set --accent-rgb so rgba(var(--accent-rgb), opacity) works with this theme
-  applyAccentColor(theme.accent)
+  applyAccentColor(theme.accent, theme.id)
 }
 
 const NAV_ITEMS = [
@@ -295,6 +305,19 @@ function getCheckinType() {
   return 'evening'
 }
 
+function sanitizeInsight(raw) {
+  if (!raw) return ''
+  // Strip markdown header lines (# ...)
+  const lines = raw.split('\n').filter(l => !l.trim().startsWith('#'))
+  // Strip remaining markdown bold/italic
+  const text = lines.join(' ').replace(/\*\*?([^*]+)\*\*?/g, '$1').replace(/_([^_]+)_/g, '$1').trim()
+  if (!text) return ''
+  // Truncate to 2 sentences
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text]
+  if (sentences.length <= 2) return text
+  return sentences.slice(0, 2).join(' ') + '...'
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -404,6 +427,7 @@ export default function Dashboard() {
 
   // Progress time band
   const [progressBand, setProgressBand] = useState('week')
+  const [progressTodayError, setProgressTodayError] = useState(false)
 
   // Guide modal
   const [showGuideModal, setShowGuideModal] = useState(false)
@@ -2304,29 +2328,35 @@ export default function Dashboard() {
               </div>
 
               {progressBand === 'today' && (() => {
-                const todayTasks = tasks.filter(t => t.completed && t.completed_at && new Date(t.completed_at).toDateString() === new Date().toDateString())
-                const todayJournalCount = journalEntries.filter(e => new Date(e.created_at).toDateString() === new Date().toDateString()).length
-                return (
-                  <div>
-                    <div className={styles.progressStats}>
-                      <div className={styles.progressStat}><span className={styles.progressStatNum}>{todayTasks.length}</span><span className={styles.progressStatLabel}>Done today</span></div>
-                      <div className={styles.progressStat}><span className={styles.progressStatNum}>{pendingTasks.length}</span><span className={styles.progressStatLabel}>Still pending</span></div>
-                      <div className={styles.progressStat}><span className={styles.progressStatNum}>{todayJournalCount}</span><span className={styles.progressStatLabel}>Journal entries</span></div>
-                    </div>
-                    {todayTasks.length > 0 ? (
-                      <div className={styles.progressWins}>
-                        <p className={styles.progressWinsLabel}>Today's wins</p>
-                        {todayTasks.map(t => (
-                          <div key={t.id} className={styles.progressWinItem}>
-                            <span className={styles.progressWinDot}>✓</span>
-                            <span className={styles.progressWinTitle}>{t.title}</span>
-                            <span className={styles.progressWinTime}>{new Date(t.completed_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
-                          </div>
-                        ))}
+                if (progressTodayError) return <p style={{color:'rgba(240,234,214,0.5)', padding:'24px 0'}}>Couldn't load today's stats. Try refreshing.</p>
+                try {
+                  const todayTasks = tasks.filter(t => t.completed && t.completed_at && new Date(t.completed_at).toDateString() === new Date().toDateString())
+                  const journalCount = (journalEntries || []).filter(e => new Date(e.created_at).toDateString() === new Date().toDateString()).length
+                  return (
+                    <div>
+                      <div className={styles.progressStats}>
+                        <div className={styles.progressStat}><span className={styles.progressStatNum}>{todayTasks.length}</span><span className={styles.progressStatLabel}>Done today</span></div>
+                        <div className={styles.progressStat}><span className={styles.progressStatNum}>{pendingTasks.length}</span><span className={styles.progressStatLabel}>Still pending</span></div>
+                        <div className={styles.progressStat}><span className={styles.progressStatNum}>{journalCount}</span><span className={styles.progressStatLabel}>Journal entries</span></div>
                       </div>
-                    ) : <div className={styles.progressEmpty}><p className={styles.emptyText}>Nothing completed yet today.</p><p className={styles.emptySubtext}>Complete a task to see it here.</p></div>}
-                  </div>
-                )
+                      {todayTasks.length > 0 ? (
+                        <div className={styles.progressWins}>
+                          <p className={styles.progressWinsLabel}>Today's wins</p>
+                          {todayTasks.map(t => (
+                            <div key={t.id} className={styles.progressWinItem}>
+                              <span className={styles.progressWinDot}>✓</span>
+                              <span className={styles.progressWinTitle}>{t.title}</span>
+                              <span className={styles.progressWinTime}>{new Date(t.completed_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : <div className={styles.progressEmpty}><p className={styles.emptyText}>Nothing completed yet today.</p><p className={styles.emptySubtext}>Complete a task to see it here.</p></div>}
+                    </div>
+                  )
+                } catch (e) {
+                  setProgressTodayError(true)
+                  return <p style={{color:'rgba(240,234,214,0.5)', padding:'24px 0'}}>Couldn't load today's stats. Try refreshing.</p>
+                }
               })()}
 
               {progressBand === 'week' && (
