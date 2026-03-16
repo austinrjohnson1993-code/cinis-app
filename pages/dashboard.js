@@ -2735,7 +2735,7 @@ export default function Dashboard() {
                         : <p>Add your income above to see this calculation.</p>
                       )}
                       {learnReferral === 'debt-avalanche' && (() => {
-                        const debts = bills.filter(b => b.bill_type === 'loan' || b.bill_type === 'debt').filter(b => b.interest_rate > 0).sort((a, b) => b.interest_rate - a.interest_rate)
+                        const debts = bills.filter(b => b.bill_type === 'loan' || b.bill_type === 'credit_card').filter(b => b.interest_rate > 0).sort((a, b) => b.interest_rate - a.interest_rate)
                         if (debts.length === 0) return <p>Add interest rates to your loans and debts in the Bills tab to see your payoff order.</p>
                         return <p>Debt Avalanche order: {debts.map(d => d.name).join(' → ')}. Pay minimums on all, attack <strong>{debts[0].name}</strong> first.</p>
                       })()}
@@ -3208,7 +3208,7 @@ export default function Dashboard() {
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Type</label>
                   <div className={styles.toggleRow}>
-                    {[['bill','Bill'],['loan','Loan'],['debt','Debt']].map(([val, lbl]) => (
+                    {[['bill','Bill'],['loan','Loan'],['credit_card','Credit Card']].map(([val, lbl]) => (
                       <button key={val} type="button" onClick={() => setBillType(val)}
                         className={`${styles.toggleBtn} ${billType === val ? styles.toggleBtnActive : ''}`}>
                         {lbl}
@@ -3216,7 +3216,7 @@ export default function Dashboard() {
                     ))}
                   </div>
                 </div>
-                {(billType === 'loan' || billType === 'debt') && (
+                {(billType === 'loan' || billType === 'credit_card') && (
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>APR % <span className={styles.fieldLabelOptional}>(optional)</span></label>
                     <input type="number" placeholder="0.00" min="0" step="0.01" max="100"

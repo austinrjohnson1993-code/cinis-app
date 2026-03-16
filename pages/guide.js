@@ -1,7 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import styles from '../styles/Guide.module.css'
+import { applyAccentColor } from '../lib/accentColor'
+
+// Map theme IDs (stored in localStorage) to their accent hex values
+const THEME_ACCENT_MAP = {
+  'orange-bronze':   '#ff4d1c',
+  'teal-ocean':      '#2dd4bf',
+  'purple-cosmos':   '#8b5cf6',
+  'blue-arctic':     '#3b82f6',
+  'green-forest':    '#22c55e',
+  'rose-sunset':     '#f43f5e',
+  'amber-desert':    '#f59e0b',
+  'cyan-electric':   '#06b6d4',
+  'indigo-night':    '#6366f1',
+  'drill-sergeant':  '#ef4444',
+  'midnight':        '#ffffff',
+  'paper':           '#000000',
+}
 
 const SECTIONS = [
   {
@@ -54,6 +71,17 @@ const SECTIONS = [
 export default function Guide() {
   const router = useRouter()
   const [openIndex, setOpenIndex] = useState(0)
+
+  // Restore user's saved theme accent on mount so guide matches the app
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('fb_accent_color')
+      if (saved) {
+        const accent = THEME_ACCENT_MAP[saved] || (saved.startsWith('#') ? saved : null)
+        if (accent) applyAccentColor(accent)
+      }
+    } catch {}
+  }, [])
 
   const toggle = (i) => setOpenIndex(prev => prev === i ? null : i)
 
