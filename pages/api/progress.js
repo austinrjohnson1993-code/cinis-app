@@ -43,16 +43,21 @@ export default async function handler(req, res) {
   // ── daily ─────────────────────────────────────────────────────────────────
   if (type === 'daily') {
     const todayStart = new Date()
-    todayStart.setUTCHours(0, 0, 0, 0)
+    todayStart.setHours(0, 0, 0, 0)
 
-    const [{ data: tasks, error: tasksErr }, { data: profile }] = await Promise.all([
+    const [{ data: tasks, error: tasksErr }, { data: profile }, { count: journalCount }] = await Promise.all([
       supabaseAdmin
         .from('tasks')
         .select('title, completed_at')
         .eq('user_id', userId)
         .eq('completed', true)
         .gte('completed_at', todayStart.toISOString()),
-      supabaseAdmin.from('profiles').select('persona_blend').eq('id', userId).single()
+      supabaseAdmin.from('profiles').select('persona_blend').eq('id', userId).single(),
+      supabaseAdmin
+        .from('journal_entries')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .gte('created_at', todayStart.toISOString())
     ])
 
     if (tasksErr) return res.status(500).json({ error: 'Failed to fetch tasks' })
@@ -63,7 +68,7 @@ export default async function handler(req, res) {
     const prompt = `In one sentence, persona-voiced, give an encouraging observation about their day so far. Persona: ${persona}. Tasks done today: ${titles}. Be specific.`
     const insight = (await callHaiku(prompt)) ?? "You're making moves — keep going."
 
-    return res.status(200).json({ type: 'daily', insight })
+    return res.status(200).json({ type: 'daily', insight, tasksCompleted: tasks?.length ?? 0, journalCount: journalCount ?? 0 })
   }
 
   // ── monthly ───────────────────────────────────────────────────────────────

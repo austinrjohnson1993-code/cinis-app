@@ -154,7 +154,7 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
 
     const updates = {
       scheduled_for,
-      rollover_count: (task?.rollover_count || 0) + 1,
+      // rollover_count intentionally NOT incremented here — only the nightly cron owns that counter
       ...(due_time ? { due_time } : {})
     }
     console.log(`[checkin:tool] reschedule_task updating "${task?.title}" (${task_id})`, updates)
@@ -510,11 +510,9 @@ export default async function handler(req, res) {
 
     await Promise.all(pending.map(async task => {
       try {
-        const { data: fresh } = await supabaseAdmin
-          .from('tasks').select('rollover_count').eq('id', task.id).single()
+        // Only update scheduled_for — rollover_count is owned by the nightly cron, not user-triggered rescheduling
         const { error: rollErr } = await supabaseAdmin.from('tasks').update({
           scheduled_for: tomorrowISO,
-          rollover_count: (fresh?.rollover_count || 0) + 1
         }).eq('id', task.id)
         if (rollErr) console.error('[checkin] evening rollover error:', JSON.stringify(rollErr), 'task_id:', task.id)
         else console.log(`[checkin:tool:success] evening rollover executed for task ${task.id}`)

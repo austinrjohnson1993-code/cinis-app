@@ -42,9 +42,21 @@ export default async function handler(req, res) {
   // POST { userId, ...billFields } — create bill
   if (req.method === 'POST') {
     console.log('[bills] POST body:', JSON.stringify(req.body))
-    const { userId, ...body } = req.body
+    const { userId, ...raw } = req.body
     if (!userId) return res.status(400).json({ error: 'userId required' })
     console.log('[bills] POST userId:', userId)
+
+    // Normalize camelCase keys from frontend to snake_case
+    const body = {
+      ...raw,
+      ...(raw.dueDay !== undefined      && { due_day: raw.dueDay }),
+      ...(raw.billType !== undefined     && { bill_type: raw.billType }),
+      ...(raw.interestRate !== undefined && { interest_rate: raw.interestRate }),
+      ...(raw.autoTask !== undefined     && { auto_task: raw.autoTask }),
+      ...(raw.remindDays !== undefined   && { remind_days: raw.remindDays }),
+      ...(raw.isVariable !== undefined   && { is_variable: raw.isVariable }),
+    }
+
     if (!body.name) return res.status(400).json({ error: 'name required' })
 
     if (body.frequency && !VALID_FREQUENCIES.includes(body.frequency)) {
@@ -63,6 +75,8 @@ export default async function handler(req, res) {
     }
     if (!insert.bill_type) insert.bill_type = 'bill'
 
+    console.log('[bills:POST] inserting:', JSON.stringify(insert))
+
     const { data: bill, error } = await supabaseAdmin
       .from('bills')
       .insert(insert)
@@ -71,7 +85,7 @@ export default async function handler(req, res) {
 
     if (error) {
       console.error('[bills:POST] insert error:', JSON.stringify(error))
-      return res.status(500).json({ error: 'Failed to create bill' })
+      return res.status(400).json({ error: error.message, details: error.details, hint: error.hint })
     }
 
     console.log(`[bills:POST] Created bill "${bill.name}" for ${userId}`)
