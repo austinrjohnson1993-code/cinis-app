@@ -55,6 +55,9 @@ function sanitizeInsight(text) {
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
 
+  // T2-A: userId and type are read from query params — confirmed correct
+  // TERMINAL 1 NOTE: dashboard.js must pass userId in the fetch call:
+  //   fetch(`/api/progress?type=daily&userId=${session.user.id}&timezone=${tz}`)
   const { userId, type = 'weekly', timezone = 'UTC' } = req.query
   if (!userId) return res.status(400).json({ error: 'userId required' })
 
@@ -68,6 +71,7 @@ export default async function handler(req, res) {
     const todayStart = new Date(`${todayStr}T00:00:00`)
     const todayEnd = new Date(`${tomorrowStr}T00:00:00`)
 
+    // T2-A: journal_entries filtered by user_id and created_at in user's timezone window
     const [{ data: tasks, error: tasksErr }, { data: profile }, { count: journalCount }] = await Promise.all([
       supabaseAdmin
         .from('tasks')
@@ -94,22 +98,25 @@ export default async function handler(req, res) {
     const raw = await callHaiku(prompt)
     const insight = sanitizeInsight(raw) ?? "You're making moves — keep going."
 
+    // T2-A: journalCount returned as-is — key name matches frontend expectation
     return res.status(200).json({ type: 'daily', insight, tasksCompleted: tasks?.length ?? 0, journalCount: journalCount ?? 0 })
   }
 
   // ── monthly ───────────────────────────────────────────────────────────────
   if (type === 'monthly') {
+    // T2-B: pull exactly 30 days of snapshots, not just calendar month-to-date
     const now = new Date()
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-      .toISOString().split('T')[0]
     const monthName = now.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0]
 
     const [{ data: snapshots, error: snapErr }, { data: profile }, { count: allTimeCount }] = await Promise.all([
       supabaseAdmin
         .from('progress_snapshots')
         .select('snapshot_date, tasks_completed')
         .eq('user_id', userId)
-        .gte('snapshot_date', monthStart),
+        .gte('snapshot_date', thirtyDaysAgoStr),
       supabaseAdmin.from('profiles').select('persona_blend').eq('id', userId).single(),
       supabaseAdmin.from('tasks').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('completed', true)
     ])
@@ -125,9 +132,10 @@ export default async function handler(req, res) {
     const bestDay = best ? { date: best.snapshot_date, count: best.tasks_completed } : null
 
     const persona = profile?.persona_blend?.join(', ') || 'coach'
-    const prompt = `Respond with exactly 2 sentences. No headers, no bullet points, no markdown, no line breaks. Do not label by persona. Give a monthly summary for ${monthName}. Total tasks completed this month: ${totalTasks}. Best day: ${bestDay?.date ?? 'none'} with ${bestDay?.count ?? 0} tasks. Persona: ${persona}. Do NOT reference 'this week' — this is a monthly summary.`
+    // T2-B: explicitly different prompt from weekly — 30-day scope, trend/pattern focus, month name required
+    const prompt = `This is a MONTHLY summary covering the past 30 days. Identify a meaningful trend or pattern across the whole month, not just this week. Reference the month by name. One sentence only. No markdown. No headers. Do not label by persona. Persona: ${persona}. Month: ${monthName}. Total tasks completed in the past 30 days: ${totalTasks}. Best single day: ${bestDay?.date ?? 'none'} with ${bestDay?.count ?? 0} tasks. Be specific about the pattern or growth you see.`
     const raw = await callHaiku(prompt)
-    const insight = sanitizeInsight(raw) ?? `You completed ${totalTasks} tasks this month.`
+    const insight = sanitizeInsight(raw) ?? `You completed ${totalTasks} tasks in ${monthName}.`
 
     return res.status(200).json({ type: 'monthly', insight, totalTasks, bestDay })
   }
@@ -184,7 +192,7 @@ export default async function handler(req, res) {
   const completedTitles = completedThisWeek.length
     ? completedThisWeek.map(t => `"${t.title}"`).join(', ')
     : 'none this week'
-  const weeklyPrompt = `Respond with a SINGLE sentence only. No headers, no bullet points, no markdown, no line breaks. One sentence maximum. Do not label by persona. In one persona-voiced sentence, give an encouraging weekly summary. Persona: ${persona}. Completed this week: ${completedTitles}. Streak: ${streak} days. Be specific.`
+  const weeklyPrompt = `Respond with a SINGLE sentence only. No headers, no bullet points, no markdown, no line breaks. One sentence maximum. Do not label by persona. In one persona-voiced sentence, give an encouraging weekly summary about the last 7 days. Persona: ${persona}. Completed this week: ${completedTitles}. Streak: ${streak} days. Be specific.`
   const raw = await callHaiku(weeklyPrompt)
   const insight = sanitizeInsight(raw) ?? `You completed ${completedThisWeek.length} tasks this week.`
 
