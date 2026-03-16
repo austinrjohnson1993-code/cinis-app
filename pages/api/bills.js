@@ -41,8 +41,10 @@ export default async function handler(req, res) {
 
   // POST { userId, ...billFields } — create bill
   if (req.method === 'POST') {
+    console.log('[bills] POST body:', JSON.stringify(req.body))
     const { userId, ...body } = req.body
     if (!userId) return res.status(400).json({ error: 'userId required' })
+    console.log('[bills] POST userId:', userId)
     if (!body.name) return res.status(400).json({ error: 'name required' })
 
     if (body.frequency && !VALID_FREQUENCIES.includes(body.frequency)) {
@@ -68,12 +70,12 @@ export default async function handler(req, res) {
       .single()
 
     if (error) {
-      console.error('[bills:POST] error:', JSON.stringify(error))
+      console.error('[bills:POST] insert error:', JSON.stringify(error))
       return res.status(500).json({ error: 'Failed to create bill' })
     }
 
     console.log(`[bills:POST] Created bill "${bill.name}" for ${userId}`)
-    return res.status(201).json({ bill })
+    return res.status(201).json({ success: true, bill })
   }
 
   // PATCH { id, ...updates } — update bill fields

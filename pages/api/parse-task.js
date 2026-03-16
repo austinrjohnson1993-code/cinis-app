@@ -28,8 +28,8 @@ Rules:
 - "tomorrow" = ${tomorrowStr}
 - "today" = ${todayStr}
 - "morning" = 09:00, "afternoon" = 14:00, "evening" = 18:00, "tonight" = 20:00
-- external = involves another person or hard deadline with consequences
-- self = personal task, no one else depending on it
+- external = ONLY when there is clearly another person involved: a meeting, appointment, call, pickup, or someone is waiting on this
+- self = anything self-directed: paying a bill, cleaning, exercising, buying, reading, writing — default to self when unclear
 - Extract recurrence if they say "every day", "daily", "every week", "weekly"
 - notes = anything that would help them start the task (policy numbers, names, context)`
 
