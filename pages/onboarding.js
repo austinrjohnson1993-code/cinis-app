@@ -188,7 +188,7 @@ export default function Onboarding() {
   const [answers, setAnswers] = useState(Array(QUESTIONS.length).fill(null))
   const [animKey, setAnimKey] = useState(0)
   const [personaBlend, setPersonaBlend] = useState([])
-  const [personaVoice, setPersonaVoice] = useState('female')
+  const [personaVoice, setPersonaVoice] = useState('voice_a')
   const [rankItems, setRankItems] = useState([...RANK_ITEMS_DEFAULT])
   const [rankDragIdx, setRankDragIdx] = useState(null)
 
@@ -504,17 +504,17 @@ export default function Onboarding() {
               <div className={styles.voicePrefRow}>
                 <button
                   type="button"
-                  onClick={() => setPersonaVoice('female')}
-                  className={`${styles.voicePrefBtn} ${personaVoice === 'female' ? styles.voicePrefBtnActive : ''}`}
+                  onClick={() => setPersonaVoice('voice_a')}
+                  className={`${styles.voicePrefBtn} ${personaVoice === 'voice_a' ? styles.voicePrefBtnActive : ''}`}
                 >
-                  Female
+                  Voice A — Warm and conversational
                 </button>
                 <button
                   type="button"
-                  onClick={() => setPersonaVoice('male')}
-                  className={`${styles.voicePrefBtn} ${personaVoice === 'male' ? styles.voicePrefBtnActive : ''}`}
+                  onClick={() => setPersonaVoice('voice_b')}
+                  className={`${styles.voicePrefBtn} ${personaVoice === 'voice_b' ? styles.voicePrefBtnActive : ''}`}
                 >
-                  Male
+                  Voice B — Clear and direct
                 </button>
               </div>
             </div>
