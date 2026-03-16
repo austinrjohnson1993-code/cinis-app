@@ -22,6 +22,7 @@ export default async function handler(req, res) {
 
   // Date helpers
   const now = new Date()
+  const today = now.toISOString().split('T')[0]
   const todayISO = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
   const tomorrowISO = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString()
 
@@ -31,7 +32,7 @@ export default async function handler(req, res) {
       user_id: userId,
       title: 'Review quarterly goals',
       scheduled_for: todayISO,
-      due_time: '09:00',
+      due_time: `${today}T09:00:00Z`,
       priority_score: 1,
       completed: false,
       archived: false,
@@ -41,7 +42,7 @@ export default async function handler(req, res) {
       user_id: userId,
       title: 'Call the insurance company',
       scheduled_for: todayISO,
-      due_time: '11:30',
+      due_time: `${today}T11:30:00Z`,
       priority_score: 0,
       completed: false,
       archived: false,
@@ -51,7 +52,7 @@ export default async function handler(req, res) {
       user_id: userId,
       title: 'Send project update email',
       scheduled_for: todayISO,
-      due_time: '14:00',
+      due_time: `${today}T14:00:00Z`,
       priority_score: 0,
       completed: false,
       archived: false,
@@ -61,7 +62,7 @@ export default async function handler(req, res) {
       user_id: userId,
       title: '30 minute walk',
       scheduled_for: todayISO,
-      due_time: '17:00',
+      due_time: `${today}T17:00:00Z`,
       priority_score: 0,
       completed: false,
       archived: false,
@@ -71,7 +72,7 @@ export default async function handler(req, res) {
       user_id: userId,
       title: 'Read before bed',
       scheduled_for: tomorrowISO,
-      due_time: '21:00',
+      due_time: `${today}T21:00:00Z`,
       priority_score: 0,
       completed: false,
       archived: false,
