@@ -1051,7 +1051,14 @@ export default function Dashboard() {
   // ── Persona ───────────────────────────────────────────────────────────────
 
   const openPersonaModal = () => {
-    setPersonaSelection(profile?.persona_blend || [])
+    const raw = profile?.persona_blend || []
+    // Normalize: onboarding may have stored labels; Settings stores keys — handle both
+    const normalized = raw.map(v => {
+      if (PERSONAS_LIST.find(p => p.key === v)) return v
+      const byLabel = PERSONAS_LIST.find(p => p.label === v || p.label.toLowerCase() === v?.toLowerCase())
+      return byLabel ? byLabel.key : null
+    }).filter(Boolean)
+    setPersonaSelection(normalized.length ? normalized : raw)
     setPersonaVoice(profile?.persona_voice || 'female')
     setShowPersonaModal(true)
   }
@@ -2294,15 +2301,18 @@ export default function Dashboard() {
                     { key: 'morning', label: 'Morning check-in', sub: 'Daily at 8am', val: notifMorning, set: setNotifMorning },
                     { key: 'evening', label: 'Evening wrap-up', sub: 'Daily at 9pm', val: notifEvening, set: setNotifEvening },
                   ].map(({ key, label, sub, val, set }) => (
-                    <div key={key} className={styles.settingsRow}>
+                    <div key={key} className={`${styles.settingsRow} ${notifPermission !== 'granted' ? styles.settingsRowDisabled : ''}`}>
                       <div className={styles.settingsRowLeft}>
                         <span className={styles.settingsRowLabel}>{label}</span>
                         <span className={styles.settingsRowSub}>{sub}</span>
                       </div>
-                      <button onClick={() => { set(v => !v); if (!val && typeof Notification !== 'undefined') Notification.requestPermission() }}
+                      <button onClick={() => notifPermission === 'granted' && (set(v => !v))}
                         className={`${styles.notifToggle} ${val ? styles.notifToggleOn : ''}`} />
                     </div>
                   ))}
+                  {notifPermission !== 'granted' && (
+                    <p className={styles.notifDisabledNote}>Enable push notifications above to activate reminders</p>
+                  )}
                   <div className={styles.settingsRow}>
                     <div className={styles.settingsRowLeft}>
                       <span className={styles.settingsRowLabel}>Push notifications</span>
@@ -2337,8 +2347,8 @@ export default function Dashboard() {
                         <span className={styles.connectionName}>{name}</span>
                         <span className={styles.connectionStatus}>{sub}</span>
                       </div>
-                      <button className={styles.connectionBtn} onClick={() => showToast(`${name} coming soon`)}>
-                        Connect
+                      <button className={styles.comingSoonBtn} disabled title="Integration coming in Phase 2">
+                        Coming soon
                       </button>
                     </div>
                   ))}

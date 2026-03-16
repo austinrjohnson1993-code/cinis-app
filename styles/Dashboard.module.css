@@ -1536,6 +1536,21 @@
 }
 .connectionBtn:hover { border-color: rgba(255,77,28,0.3); color: var(--accent); }
 
+/* Coming soon button (FIX 1) */
+.comingSoonBtn {
+  background: transparent; border: 1px solid rgba(255,200,120,0.08); border-radius: 100px;
+  padding: 7px 14px; color: rgba(240,234,214,0.3); font-size: 0.78rem;
+  font-family: 'Figtree', sans-serif; cursor: default; white-space: nowrap;
+  opacity: 0.4; pointer-events: none;
+}
+
+/* Disabled notification row (FIX 2) */
+.settingsRowDisabled { opacity: 0.4; pointer-events: none; }
+.notifDisabledNote {
+  font-size: 0.75rem; color: rgba(240,234,214,0.35); padding: 8px 18px 4px;
+  line-height: 1.5;
+}
+
 /* Settings display name input */
 .settingsNameInput {
   background: #110d06; border: 1px solid rgba(255,200,120,0.1); border-radius: 8px;
