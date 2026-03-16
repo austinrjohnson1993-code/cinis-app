@@ -32,20 +32,41 @@ async function callHaiku(prompt) {
   }
 }
 
+// Strip markdown headers/formatting and truncate to first sentence
+function sanitizeInsight(text) {
+  if (!text) return null
+  // Remove lines that start with # (markdown headers like "# The Drill Sergeant")
+  const lines = text.split('\n').filter(line => !line.trim().startsWith('#'))
+  let cleaned = lines.join(' ').trim()
+  // Strip bold, italic, inline code
+  cleaned = cleaned
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/_(.+?)_/g, '$1')
+    .replace(/`(.+?)`/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+  // Truncate to first sentence: ". " or "! " or "? " followed by a capital letter
+  const firstSentence = cleaned.match(/^(.+?[.!?])\s+[A-Z]/)
+  if (firstSentence) cleaned = firstSentence[1]
+  return cleaned || null
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { userId, type = 'weekly' } = req.query
+  const { userId, type = 'weekly', timezone = 'UTC' } = req.query
   if (!userId) return res.status(400).json({ error: 'userId required' })
 
   const supabaseAdmin = getAdminClient()
 
   // ── daily ─────────────────────────────────────────────────────────────────
   if (type === 'daily') {
-    const todayStart = new Date()
-    todayStart.setHours(0, 0, 0, 0)
-    const todayEnd = new Date()
-    todayEnd.setHours(23, 59, 59, 999)
+    // Compute today's boundaries in the user's local timezone
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: timezone })
+    const tomorrowStr = new Date(Date.now() + 86400000).toLocaleDateString('en-CA', { timeZone: timezone })
+    const todayStart = new Date(`${todayStr}T00:00:00`)
+    const todayEnd = new Date(`${tomorrowStr}T00:00:00`)
 
     const [{ data: tasks, error: tasksErr }, { data: profile }, { count: journalCount }] = await Promise.all([
       supabaseAdmin
@@ -53,14 +74,15 @@ export default async function handler(req, res) {
         .select('title, completed_at')
         .eq('user_id', userId)
         .eq('completed', true)
-        .gte('completed_at', todayStart.toISOString()),
+        .gte('completed_at', todayStart.toISOString())
+        .lt('completed_at', todayEnd.toISOString()),
       supabaseAdmin.from('profiles').select('persona_blend').eq('id', userId).single(),
       supabaseAdmin
         .from('journal_entries')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
         .gte('created_at', todayStart.toISOString())
-        .lte('created_at', todayEnd.toISOString())
+        .lt('created_at', todayEnd.toISOString())
     ])
 
     if (tasksErr) return res.status(500).json({ error: 'Failed to fetch tasks' })
@@ -68,8 +90,9 @@ export default async function handler(req, res) {
     const persona = profile?.persona_blend?.join(', ') || 'coach'
     const titles = tasks?.length ? tasks.map(t => `"${t.title}"`).join(', ') : 'none yet'
 
-    const prompt = `In one sentence, persona-voiced, give an encouraging observation about their day so far. Persona: ${persona}. Tasks done today: ${titles}. Be specific.`
-    const insight = (await callHaiku(prompt)) ?? "You're making moves — keep going."
+    const prompt = `Respond with a SINGLE sentence only. No headers, no bullet points, no markdown, no line breaks. One sentence maximum. Do not label by persona. In one persona-voiced sentence, give an encouraging observation about their day so far. Persona: ${persona}. Tasks done today: ${titles}. Be specific.`
+    const raw = await callHaiku(prompt)
+    const insight = sanitizeInsight(raw) ?? "You're making moves — keep going."
 
     return res.status(200).json({ type: 'daily', insight, tasksCompleted: tasks?.length ?? 0, journalCount: journalCount ?? 0 })
   }
@@ -102,8 +125,9 @@ export default async function handler(req, res) {
     const bestDay = best ? { date: best.snapshot_date, count: best.tasks_completed } : null
 
     const persona = profile?.persona_blend?.join(', ') || 'coach'
-    const prompt = `Give a 2-sentence monthly summary for ${monthName}. Total tasks completed this month: ${totalTasks}. Best day: ${bestDay?.date ?? 'none'} with ${bestDay?.count ?? 0} tasks. Persona: ${persona}. Do NOT reference 'this week' — this is a monthly summary.`
-    const insight = (await callHaiku(prompt)) ?? `You completed ${totalTasks} tasks this month.`
+    const prompt = `Respond with exactly 2 sentences. No headers, no bullet points, no markdown, no line breaks. Do not label by persona. Give a monthly summary for ${monthName}. Total tasks completed this month: ${totalTasks}. Best day: ${bestDay?.date ?? 'none'} with ${bestDay?.count ?? 0} tasks. Persona: ${persona}. Do NOT reference 'this week' — this is a monthly summary.`
+    const raw = await callHaiku(prompt)
+    const insight = sanitizeInsight(raw) ?? `You completed ${totalTasks} tasks this month.`
 
     return res.status(200).json({ type: 'monthly', insight, totalTasks, bestDay })
   }
@@ -160,8 +184,9 @@ export default async function handler(req, res) {
   const completedTitles = completedThisWeek.length
     ? completedThisWeek.map(t => `"${t.title}"`).join(', ')
     : 'none this week'
-  const weeklyPrompt = `In one sentence, persona-voiced, give an encouraging weekly summary. Persona: ${persona}. Completed this week: ${completedTitles}. Streak: ${streak} days. Be specific.`
-  const insight = (await callHaiku(weeklyPrompt)) ?? `You completed ${completedThisWeek.length} tasks this week.`
+  const weeklyPrompt = `Respond with a SINGLE sentence only. No headers, no bullet points, no markdown, no line breaks. One sentence maximum. Do not label by persona. In one persona-voiced sentence, give an encouraging weekly summary. Persona: ${persona}. Completed this week: ${completedTitles}. Streak: ${streak} days. Be specific.`
+  const raw = await callHaiku(weeklyPrompt)
+  const insight = sanitizeInsight(raw) ?? `You completed ${completedThisWeek.length} tasks this week.`
 
   return res.status(200).json({
     type: 'weekly',
