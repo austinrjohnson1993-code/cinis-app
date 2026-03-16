@@ -54,9 +54,12 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'No auth token provided' })
   }
 
+  console.log('[settings] token received:', !!token)
+
   // Use service role client to verify the token — more reliable than anon client
   const supabaseAdmin = getAdminClient()
   const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+  console.log('[settings] user resolved:', !!user)
   if (authError || !user) {
     console.error('[settings] auth.getUser failed:', JSON.stringify(authError))
     return res.status(401).json({ error: 'Unauthorized' })
