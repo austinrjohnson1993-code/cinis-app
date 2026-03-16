@@ -7,6 +7,8 @@ function getAdminClient() {
   )
 }
 
+const NEW_USER_INSIGHT = "Welcome to FocusBuddy. This is day one — your first win starts here. Add your first task and let's start building."
+
 async function callHaiku(prompt) {
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -69,24 +71,30 @@ export default async function handler(req, res) {
     const now = new Date()
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
       .toISOString().split('T')[0]
+    const monthName = now.toLocaleString('en-US', { month: 'long', year: 'numeric' })
 
-    const [{ data: snapshots, error: snapErr }, { data: profile }] = await Promise.all([
+    const [{ data: snapshots, error: snapErr }, { data: profile }, { count: allTimeCount }] = await Promise.all([
       supabaseAdmin
         .from('progress_snapshots')
         .select('snapshot_date, tasks_completed')
         .eq('user_id', userId)
         .gte('snapshot_date', monthStart),
-      supabaseAdmin.from('profiles').select('persona_blend').eq('id', userId).single()
+      supabaseAdmin.from('profiles').select('persona_blend').eq('id', userId).single(),
+      supabaseAdmin.from('tasks').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('completed', true)
     ])
 
     if (snapErr) return res.status(500).json({ error: 'Failed to fetch snapshots' })
+
+    if ((allTimeCount ?? 0) === 0) {
+      return res.status(200).json({ type: 'monthly', insight: NEW_USER_INSIGHT, totalTasks: 0, bestDay: null })
+    }
 
     const totalTasks = (snapshots || []).reduce((sum, s) => sum + (s.tasks_completed || 0), 0)
     const best = (snapshots || []).slice().sort((a, b) => b.tasks_completed - a.tasks_completed)[0]
     const bestDay = best ? { date: best.snapshot_date, count: best.tasks_completed } : null
 
     const persona = profile?.persona_blend?.join(', ') || 'coach'
-    const prompt = `In 2 sentences, give a monthly summary. Total: ${totalTasks} tasks. Best day: ${bestDay?.date ?? 'none'} with ${bestDay?.count ?? 0} tasks. Persona: ${persona}. Be encouraging and specific.`
+    const prompt = `Give a 2-sentence monthly summary for ${monthName}. Total tasks completed this month: ${totalTasks}. Best day: ${bestDay?.date ?? 'none'} with ${bestDay?.count ?? 0} tasks. Persona: ${persona}. Do NOT reference 'this week' — this is a monthly summary.`
     const insight = (await callHaiku(prompt)) ?? `You completed ${totalTasks} tasks this month.`
 
     return res.status(200).json({ type: 'monthly', insight, totalTasks, bestDay })
@@ -126,6 +134,17 @@ export default async function handler(req, res) {
   const bestDay = Object.keys(dayCounts).length
     ? Object.entries(dayCounts).sort((a, b) => b[1] - a[1])[0][0]
     : 'N/A'
+
+  if ((tasks || []).filter(t => t.completed).length === 0) {
+    return res.status(200).json({
+      type: 'weekly',
+      insight: NEW_USER_INSIGHT,
+      completedThisWeek: [],
+      streak: 0,
+      bestDay: 'N/A',
+      totalCompleted: 0,
+    })
+  }
 
   const { data: profile } = await supabaseAdmin
     .from('profiles').select('persona_blend').eq('id', userId).single()
