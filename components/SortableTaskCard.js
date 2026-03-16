@@ -3,7 +3,7 @@ import { CSS } from '@dnd-kit/utilities'
 
 export default function SortableTaskCard({ id, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id })
+    useSortable({ id: String(id) })
 
   const style = {
     transform: CSS.Transform.toString(transform),

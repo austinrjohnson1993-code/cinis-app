@@ -2118,3 +2118,72 @@
   font-weight: 500; text-align: center; margin-top: 2px;
 }
 
+/* ── Priority star system ── */
+.priorityEmptyCard {
+  background: rgba(255,200,120,0.04);
+  border: 1px dashed rgba(255,200,120,0.15);
+  border-radius: 16px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+.priorityEmptyIcon { font-size: 1.6rem; opacity: 0.4; }
+.priorityEmptyText { font-size: 0.95rem; font-weight: 600; color: rgba(240,234,214,0.5); }
+.priorityEmptySub { font-size: 0.82rem; color: rgba(240,234,214,0.3); }
+
+.starBtn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: rgba(240,234,214,0.25);
+  cursor: pointer;
+  padding: 0 4px;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: color 0.15s, transform 0.1s;
+}
+.starBtn:hover { color: rgba(240,234,214,0.6); transform: scale(1.15); }
+.starBtnActive { color: var(--accent) !important; }
+
+/* ── Abandon inline confirm ── */
+.abandonConfirmRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.abandonConfirmText {
+  font-size: 0.88rem;
+  color: rgba(240,234,214,0.5);
+}
+.abandonYesBtn {
+  background: rgba(244,67,54,0.12);
+  border: 1px solid rgba(244,67,54,0.35);
+  border-radius: 100px;
+  padding: 7px 18px;
+  color: #f44336;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.abandonYesBtn:hover { background: rgba(244,67,54,0.2); }
+.abandonNoBtn {
+  background: rgba(255,200,120,0.06);
+  border: 1px solid rgba(255,200,120,0.15);
+  border-radius: 100px;
+  padding: 7px 18px;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.abandonNoBtn:hover { background: rgba(255,200,120,0.12); }
