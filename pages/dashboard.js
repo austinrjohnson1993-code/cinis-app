@@ -2757,18 +2757,20 @@ export default function Dashboard() {
 
               {progressBand === 'today' && (() => {
                 if (!user?.id) {
-                  console.error('[Progress] No userId available for daily fetch')
                   return <p style={{color:'rgba(240,234,214,0.5)', padding:'24px 0'}}>Loading...</p>
                 }
                 if (progressTodayError) return <p style={{color:'rgba(240,234,214,0.5)', padding:'24px 0'}}>Couldn't load today's stats. Try refreshing.</p>
                 try {
-                  const todayTasks = tasks.filter(t => t.completed && t.completed_at && new Date(t.completed_at).toDateString() === new Date().toDateString())
-                  const journalCount = (journalEntries || []).filter(e => new Date(e.created_at).toDateString() === new Date().toDateString()).length
+                  const safeJournalEntries = Array.isArray(journalEntries) ? journalEntries : []
+                  const todayStr = new Date().toISOString().split('T')[0]
+                  const todayTasks = (tasks || []).filter(t => t.completed && t.completed_at && new Date(t.completed_at).toDateString() === new Date().toDateString())
+                  const journalCount = safeJournalEntries.filter(j => j.created_at?.startsWith(todayStr)).length
+                  const stillPending = (allPendingTasks || []).length
                   return (
                     <div>
                       <div className={styles.progressStats}>
                         <div className={styles.progressStat}><span className={styles.progressStatNum}>{todayTasks.length}</span><span className={styles.progressStatLabel}>Done today</span></div>
-                        <div className={styles.progressStat}><span className={styles.progressStatNum}>{pendingTasks.length}</span><span className={styles.progressStatLabel}>Still pending</span></div>
+                        <div className={styles.progressStat}><span className={styles.progressStatNum}>{stillPending}</span><span className={styles.progressStatLabel}>Still pending</span></div>
                         <div className={styles.progressStat}><span className={styles.progressStatNum}>{journalCount}</span><span className={styles.progressStatLabel}>Journal entries</span></div>
                       </div>
                       {todayTasks.length > 0 ? (
