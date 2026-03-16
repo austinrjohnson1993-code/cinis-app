@@ -419,6 +419,7 @@ export default function Dashboard() {
   const [settingsSaving, setSettingsSaving] = useState(false)
   const [notifMorning, setNotifMorning] = useState(true)
   const [notifEvening, setNotifEvening] = useState(true)
+  const [notifPermission, setNotifPermission] = useState(() => typeof Notification !== 'undefined' ? Notification.permission : 'default')
 
   // Bill voice input
   const [billListening, setBillListening] = useState(false)
@@ -519,6 +520,16 @@ export default function Dashboard() {
   useEffect(() => {
     return () => clearInterval(focusIntervalRef.current)
   }, [])
+
+  // Auto-scroll calendar day view to current time
+  useEffect(() => {
+    if (calView === 'day' && calDay) {
+      setTimeout(() => {
+        const nowSlot = document.getElementById('time-slot-now')
+        if (nowSlot) nowSlot.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
+    }
+  }, [calView, calDay])
 
   // Tick every 30s so getCountdownDisplay stays fresh in task list
   useEffect(() => {
@@ -1255,7 +1266,7 @@ export default function Dashboard() {
       const day = new Date(t.completed_at).toLocaleDateString('en-US', { weekday: 'short' })
       dayCounts[day] = (dayCounts[day] || 0) + 1
     })
-    if (!Object.keys(dayCounts).length) return 'N/A'
+    if (!Object.keys(dayCounts).length) return '—'
     return Object.entries(dayCounts).sort((a, b) => b[1] - a[1])[0][0]
   }
 
@@ -1382,7 +1393,7 @@ export default function Dashboard() {
               <div className={styles.viewHeader}>
                 <div>
                   <h1 className={styles.greetingText}>
-                    {greeting}, <span className={styles.name}>{firstName}.</span>
+                    {greeting}, <span className={styles.name}>{rawName.includes('@') ? 'there' : (rawName || 'there')}</span>
                   </h1>
                   <p className={styles.headerSub}>
                     {pendingTasks.length === 0
@@ -1571,7 +1582,7 @@ export default function Dashboard() {
               const blend = profile?.persona_blend
               if (!blend || blend.length === 0) return 'Default coaching style'
               const nameMap = { drill_sergeant: 'The Drill Sergeant', coach: 'The Coach', thinking_partner: 'The Thinking Partner', hype_person: 'The Hype Person', strategist: 'The Strategist' }
-              return blend.map(k => nameMap[k] || k).join(' · ')
+              return nameMap[blend[0]] || blend[0]
             })()
             return (
               <div className={styles.checkinWrap}>
@@ -1588,7 +1599,6 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className={styles.checkinMessages}>
-                  <div className={styles.checkinSpacer} />
                   {checkinMessages.map((msg, i) => (
                     <div key={i} className={msg.role === 'assistant' ? styles.checkinBubbleAI : styles.checkinBubbleUser}>
                       {msg.content}
@@ -1863,15 +1873,18 @@ export default function Dashboard() {
                     {HOURS.map(h => {
                       const slotTasks = tasksByHour[h] || []
                       const label = h === 0 ? '12am' : h === 12 ? '12pm' : h < 12 ? `${h}am` : `${h - 12}pm`
+                      const isCurrentHour = calDay && calDay.toDateString() === new Date().toDateString() && h === new Date().getHours()
                       return (
                         <div
                           key={h}
+                          id={isCurrentHour ? 'time-slot-now' : undefined}
                           className={`${styles.calHourSlot} ${slotTasks.length > 0 ? styles.calHourSlotFilled : ''} ${dragOverHour === h ? styles.timeSlotDragOver : ''}`}
                           onDragOver={e => { e.preventDefault(); setDragOverHour(h) }}
                           onDragLeave={() => setDragOverHour(null)}
                           onDrop={e => handleDropOnTimeSlot(e, h)}
                         >
                           <div className={styles.calHourLabel}>{label}</div>
+                          {isCurrentHour && <div className={styles.calNowLine}><div className={styles.calNowDot} /></div>}
                           <div className={styles.calHourLine} />
                           <div className={styles.calHourTasks}>
                             {slotTasks.map(t => (
@@ -1947,6 +1960,7 @@ export default function Dashboard() {
                     )
                   })}
                 </div>
+                <p className={styles.calendarHint}>Tap a day to view your schedule</p>
               </div>
             )
           })()}
@@ -2121,7 +2135,9 @@ export default function Dashboard() {
                   ) : <div className={styles.progressEmpty}><p className={styles.emptyText}>No completions this week yet.</p></div>}
                   <div className={styles.progressSummaryCard}>
                     <p className={styles.progressSummaryLabel}>Weekly summary</p>
-                    {weeklySummaryLoading ? <p className={styles.progressSummaryLoading}>···</p>
+                    {completedThisWeek.length === 0
+                      ? <p className={styles.progressSummaryText}>Complete some tasks this week and come back for your AI summary.</p>
+                      : weeklySummaryLoading ? <p className={styles.progressSummaryLoading}>···</p>
                       : weeklySummary ? <p className={styles.progressSummaryText}>{weeklySummary}</p>
                       : <button onClick={fetchWeeklySummary} className={styles.progressSummaryRefresh}>Generate summary</button>}
                   </div>
@@ -2141,7 +2157,9 @@ export default function Dashboard() {
                     </div>
                     <div className={styles.progressSummaryCard}>
                       <p className={styles.progressSummaryLabel}>Monthly insight</p>
-                      {weeklySummaryLoading ? <p className={styles.progressSummaryLoading}>···</p>
+                      {completedThisMonth.length === 0
+                        ? <p className={styles.progressSummaryText}>Complete some tasks this month and come back for your AI insight.</p>
+                        : weeklySummaryLoading ? <p className={styles.progressSummaryLoading}>···</p>
                         : weeklySummary ? <p className={styles.progressSummaryText}>{weeklySummary}</p>
                         : <button onClick={fetchWeeklySummary} className={styles.progressSummaryRefresh}>Generate insight</button>}
                     </div>
@@ -2248,9 +2266,15 @@ export default function Dashboard() {
                       <span className={styles.settingsRowLabel}>Push notifications</span>
                       <span className={styles.settingsRowSub}>Required for alarms &amp; check-ins</span>
                     </div>
-                    <button className={styles.connectionBtn} onClick={() => typeof Notification !== 'undefined' && Notification.requestPermission().then(p => showToast(p === 'granted' ? 'Notifications enabled' : 'Permission denied'))}>
-                      Enable
-                    </button>
+                    {notifPermission === 'granted' ? (
+                      <span className={styles.notifGrantedLabel}>Enabled ✓</span>
+                    ) : notifPermission === 'denied' ? (
+                      <span className={styles.notifDeniedMsg}>Blocked in browser settings</span>
+                    ) : (
+                      <button className={styles.connectionBtn} onClick={() => typeof Notification !== 'undefined' && Notification.requestPermission().then(p => { setNotifPermission(p); showToast(p === 'granted' ? 'Notifications enabled' : 'Permission denied') })}>
+                        Enable
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2453,7 +2477,7 @@ export default function Dashboard() {
                     <label className={styles.fieldLabel}>Take-home income</label>
                     <div className={styles.quickRow}>
                       <input
-                        type="number" placeholder="0" min="0" step="1"
+                        type="number" placeholder="e.g. 3,500" min="0" step="1"
                         value={monthlyIncomeInput}
                         onChange={e => setMonthlyIncomeInput(e.target.value)}
                         className={styles.fieldInput}
@@ -2637,7 +2661,7 @@ export default function Dashboard() {
         </main>
 
         {/* BOTTOM NAV (mobile) */}
-        <nav className={styles.bottomNav}>
+        <nav className={styles.bottomNav} aria-hidden="true">
           {NAV_ITEMS.filter(i => NAV_PRIMARY_IDS.includes(i.id)).map(item => (
             <button key={item.id} onClick={() => switchTab(item.id)}
               className={`${styles.bottomNavItem} ${activeTab === item.id ? styles.bottomNavItemActive : ''}`}>
@@ -2755,11 +2779,11 @@ export default function Dashboard() {
                         {[['Morning', '09:00'], ['Afternoon', '14:00'], ['Evening', '18:00']].map(([label, val]) => (
                           <button key={val} type="button"
                             onClick={() => { setNewDueTime(val); if (!newDueDate) setNewDueDate(todayStr()) }}
-                            className={`${styles.quickBtn} ${newDueTime === val ? styles.quickBtnActive : ''}`}
-                            disabled={!newDueDate}>{label}</button>
+                            className={`${styles.quickBtn} ${newDueTime === val ? styles.quickBtnActive : ''}`}>{label}</button>
                         ))}
-                        <input type="time" value={newDueTime} onChange={e => setNewDueTime(e.target.value)}
-                          className={styles.fieldInputCompact} disabled={!newDueDate} />
+                        <span className={styles.orLabel}>or</span>
+                        <input type="time" value={newDueTime} onChange={e => { setNewDueTime(e.target.value); if (!newDueDate) setNewDueDate(todayStr()) }}
+                          className={styles.fieldInputCompact} />
                       </div>
                     </div>
                     <div className={styles.fieldGroup}>
