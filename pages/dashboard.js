@@ -1409,15 +1409,22 @@ export default function Dashboard() {
   const saveSettings = async () => {
     if (!user || !settingsName.trim()) return
     setSettingsSaving(true)
-    const { data: { session: settingsSession } } = await supabase.auth.getSession()
-    await loggedFetch('/api/settings', {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) {
+      console.error('[settings] No session token available')
+      setSettingsSaving(false)
+      return
+    }
+    const payload = { userId: user.id, updates: { full_name: settingsName.trim() } }
+    const response = await fetch('/api/settings', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        ...(settingsSession ? { Authorization: `Bearer ${settingsSession.access_token}` } : {}),
+        'Authorization': `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ userId: user.id, updates: { full_name: settingsName.trim() } }),
+      body: JSON.stringify(payload),
     })
+    console.log('[settings] saved successfully', response.status)
     setProfile(prev => ({ ...prev, full_name: settingsName.trim() }))
     setSettingsSaving(false)
     showToast('Settings saved')
@@ -1431,16 +1438,21 @@ export default function Dashboard() {
     if (user) {
       // Direct Supabase update for reliability, plus API route as backup
       await supabase.from('profiles').update({ accent_color: theme.id }).eq('id', user.id)
-      supabase.auth.getSession().then(({ data: { session: themeSession } }) => {
-        loggedFetch('/api/settings', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(themeSession ? { Authorization: `Bearer ${themeSession.access_token}` } : {}),
-          },
-          body: JSON.stringify({ userId: user.id, updates: { accent_color: theme.id } }),
-        }).catch(() => {})
-      })
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        console.error('[settings] No session token available')
+        return
+      }
+      const payload = { userId: user.id, updates: { accent_color: theme.id } }
+      const response = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(payload),
+      }).catch(() => null)
+      if (response) console.log('[settings] saved successfully', response.status)
     }
   }
 
