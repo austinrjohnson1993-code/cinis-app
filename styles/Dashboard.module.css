@@ -2065,3 +2065,42 @@
 }
 .tutorialNext:hover { opacity: 0.88; }
 
+/* ════════════════════════════════════════════
+   FIX PASS 2 — MISC NEW CLASSES
+   ════════════════════════════════════════════ */
+
+/* FIX 2 — title input error flash */
+.titleInputError {
+  border-color: #f44336 !important;
+  box-shadow: 0 0 0 3px rgba(244,67,54,0.15) !important;
+  animation: inputFlash 1.2s ease forwards;
+}
+@keyframes inputFlash {
+  0%   { border-color: #f44336; box-shadow: 0 0 0 3px rgba(244,67,54,0.2); }
+  60%  { border-color: #f44336; box-shadow: 0 0 0 3px rgba(244,67,54,0.1); }
+  100% { border-color: rgba(255,200,120,0.12); box-shadow: none; }
+}
+
+/* FIX 8 — Custom session input */
+.focusCustomInput { min-width: 90px !important; width: auto !important; }
+
+/* FIX 12 — Session end modal */
+.sessionEndBody {
+  padding: 8px 0 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.sessionEndTask {
+  font-size: 1rem; font-weight: 600; color: rgba(240,234,214,0.75);
+  text-align: center; padding: 0 16px; line-height: 1.4;
+}
+.sessionEndPrompt {
+  font-size: 0.88rem; color: rgba(240,234,214,0.4);
+  margin-bottom: 8px;
+}
+
+/* FIX 13 — Progress stat sub-label */
+.progressStatSub {
+  font-size: 0.68rem; color: rgba(240,234,214,0.35);
+  font-weight: 500; text-align: center; margin-top: 2px;
+}
+

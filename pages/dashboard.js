@@ -315,7 +315,7 @@ export default function Dashboard() {
   const journalEndRef = useRef(null)
 
   // Focus mode
-  const [focusPhase, setFocusPhase] = useState('setup') // setup | active | complete | stuck
+  const [focusPhase, setFocusPhase] = useState('setup') // setup | active | stuck
   const [focusDuration, setFocusDuration] = useState(25)
   const [focusCustom, setFocusCustom] = useState('')
   const [focusTimeLeft, setFocusTimeLeft] = useState(0)
@@ -323,6 +323,8 @@ export default function Dashboard() {
   const [focusAiResponse, setFocusAiResponse] = useState('')
   const [focusAiLoading, setFocusAiLoading] = useState(false)
   const focusIntervalRef = useRef(null)
+  const [showSessionEndModal, setShowSessionEndModal] = useState(false)
+  const [sessionEndType, setSessionEndType] = useState('complete') // 'complete' | 'abandoned'
 
   // Progress
   const [weeklySummary, setWeeklySummary] = useState('')
@@ -337,7 +339,7 @@ export default function Dashboard() {
   const [newBillAmount, setNewBillAmount] = useState('')
   const [newBillDueDay, setNewBillDueDay] = useState('')
   const [newBillFrequency, setNewBillFrequency] = useState('monthly')
-  const [newBillCategory, setNewBillCategory] = useState('Other')
+  const [newBillCategory, setNewBillCategory] = useState('')
   const [newBillAutoTask, setNewBillAutoTask] = useState(true)
   const [addingBill, setAddingBill] = useState(false)
 
@@ -375,6 +377,8 @@ export default function Dashboard() {
 
   // FIX 1: Drag hint
   const [dragHintDismissed, setDragHintDismissed] = useState(false)
+
+  const [titleInputError, setTitleInputError] = useState(false)
 
   // FIX 2: Task edit mode
   const [detailEditing, setDetailEditing] = useState(false)
@@ -717,7 +721,13 @@ export default function Dashboard() {
 
   const addTask = async (e) => {
     e.preventDefault()
-    if (!newTitle.trim() || !user) return
+    if (!user) return
+    if (!newTitle.trim()) {
+      showToast('Please enter a task name')
+      setTitleInputError(true)
+      setTimeout(() => setTitleInputError(false), 1200)
+      return
+    }
     setAdding(true)
     let due_time = null
     if (newDueDate) {
@@ -889,7 +899,8 @@ export default function Dashboard() {
       })
       const data = await res.json()
       setJournalMessages(prev => [...prev, { role: 'assistant', content: data.message }])
-      if (!journalReminderShown) { setJournalReminderShown(true); setShowJournalReminder(true) }
+      const userMsgCount = journalMessages.filter(m => m.role === 'user').length + 1
+      if (!journalReminderShown && userMsgCount >= 3) { setJournalReminderShown(true); setShowJournalReminder(true) }
       if (data.extractedTasks?.length > 0) setJournalPendingTask(data.extractedTasks[0])
     } catch {
       setJournalMessages(prev => [...prev, { role: 'assistant', content: "I'm here. Keep going." }])
@@ -922,7 +933,8 @@ export default function Dashboard() {
       setFocusTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(focusIntervalRef.current)
-          setFocusRunning(false); setFocusPhase('complete')
+          setFocusRunning(false); setFocusPhase('setup')
+          setSessionEndType('complete'); setShowSessionEndModal(true)
           return 0
         }
         return prev - 1
@@ -938,7 +950,9 @@ export default function Dashboard() {
         setFocusTimeLeft(prev => {
           if (prev <= 1) {
             clearInterval(focusIntervalRef.current)
-            setFocusRunning(false); setFocusPhase('complete'); return 0
+            setFocusRunning(false); setFocusPhase('setup')
+            setSessionEndType('complete'); setShowSessionEndModal(true)
+            return 0
           }
           return prev - 1
         })
@@ -949,9 +963,11 @@ export default function Dashboard() {
 
   const handleFocusResult = async (result) => {
     const dur = focusCustom ? parseInt(focusCustom) : focusDuration
+    setShowSessionEndModal(false)
     if (result === 'complete') {
       if (topTask) completeTask(topTask)
       setFocusPhase('setup'); setFocusCustom('')
+      showToast('Task complete ✓')
     } else if (result === 'progress') {
       if (topTask) {
         await supabase.from('tasks').update({ notes: 'In progress' }).eq('id', topTask.id)
@@ -960,6 +976,7 @@ export default function Dashboard() {
       setFocusPhase('setup'); setFocusCustom('')
     } else if (result === 'stuck') {
       setFocusPhase('stuck'); setFocusAiLoading(true)
+      switchTab('checkin')
       try {
         const res = await fetch('/api/focus', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -992,7 +1009,7 @@ export default function Dashboard() {
     const { data } = await supabase.from('bills').insert(bill).select().single()
     if (data) setBills(prev => [data, ...prev])
     setNewBillName(''); setNewBillAmount(''); setNewBillDueDay('')
-    setNewBillFrequency('monthly'); setNewBillCategory('Other'); setNewBillAutoTask(true)
+    setNewBillFrequency('monthly'); setNewBillCategory(''); setNewBillAutoTask(true)
     setBillType('bill'); setBillInterestRate('')
     setAddingBill(false); setShowAddBillModal(false)
   }
@@ -1076,7 +1093,8 @@ export default function Dashboard() {
     const t = detailTask
     setDetailEditTitle(t.title)
     const due = t.due_time ? new Date(t.due_time) : null
-    setDetailEditDueDate(due ? due.toISOString().split('T')[0] : '')
+    const existingDate = due ? due.toISOString().split('T')[0] : (t.scheduled_for ? new Date(t.scheduled_for).toISOString().split('T')[0] : '')
+    setDetailEditDueDate(existingDate)
     setDetailEditDueTime(due ? `${String(due.getHours()).padStart(2,'0')}:${String(due.getMinutes()).padStart(2,'0')}` : '')
     setDetailEditConsequence(t.consequence_level || 'self')
     setDetailEditRecurrence(t.recurrence || 'none')
@@ -1110,7 +1128,7 @@ export default function Dashboard() {
 
   // FIX 3: Bulk task import
   const parseBulkTasks = async () => {
-    if (!bulkText.trim()) return
+    if (!bulkText.trim()) { showToast('Paste or speak your tasks first'); return }
     setBulkParsing(true)
     try {
       const res = await fetch('/api/parse-bulk-tasks', {
@@ -1263,11 +1281,12 @@ export default function Dashboard() {
   const getBestDay = () => {
     const dayCounts = {}
     tasks.filter(t => t.completed && t.completed_at).forEach(t => {
-      const day = new Date(t.completed_at).toLocaleDateString('en-US', { weekday: 'short' })
-      dayCounts[day] = (dayCounts[day] || 0) + 1
+      const dayFull = new Date(t.completed_at).toLocaleDateString('en-US', { weekday: 'long' })
+      dayCounts[dayFull] = (dayCounts[dayFull] || 0) + 1
     })
-    if (!Object.keys(dayCounts).length) return '—'
-    return Object.entries(dayCounts).sort((a, b) => b[1] - a[1])[0][0]
+    if (!Object.keys(dayCounts).length) return null
+    const [day, count] = Object.entries(dayCounts).sort((a, b) => b[1] - a[1])[0]
+    return { day, count }
   }
 
   // Finance calculations
@@ -1595,7 +1614,7 @@ export default function Dashboard() {
                     <button onClick={() => setShowAlarmsModal(true)} className={styles.checkinSkipBtn} title="Alarms">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/></svg>
                     </button>
-                    <button onClick={() => setActiveTab('tasks')} className={styles.checkinSkipBtn}>Skip to tasks</button>
+                    <button onClick={() => switchTab('tasks')} className={styles.checkinSkipBtn}>Skip to tasks</button>
                   </div>
                 </div>
                 <div className={styles.checkinMessages}>
@@ -1622,14 +1641,13 @@ export default function Dashboard() {
             <div className={styles.focusView}>
               <div className={styles.focusAccordion}>
 
-                {/* ── ⏱ SESSION ── */}
-                <div className={`${styles.focusAccordionCard} ${focusSection === 'session' ? styles.focusAccordionCardOpen : ''}`}>
-                  <div className={styles.focusAccordionHeader} onClick={() => setFocusSection(focusSection === 'session' ? null : 'session')}>
+                {/* ── ⏱ SESSION — always expanded ── */}
+                <div className={`${styles.focusAccordionCard} ${styles.focusAccordionCardOpen}`}>
+                  <div className={styles.focusAccordionHeader}>
                     <span className={styles.focusAccordionEmoji}>⏱</span>
                     <span className={styles.focusAccordionTitle}>Session</span>
-                    <span className={styles.focusAccordionChevron}>▼</span>
                   </div>
-                  {focusSection === 'session' && (
+                  {(
                     <div className={styles.focusAccordionContent}>
                       {focusPhase === 'setup' && (
                         <div className={styles.focusSetup}>
@@ -1668,7 +1686,13 @@ export default function Dashboard() {
                           <p className={styles.focusActiveTask}>{topTask?.title}</p>
                           <div className={styles.focusTimerDisplay}>{formatTimer(focusTimeLeft)}</div>
                           <button onClick={toggleFocusPause} className={styles.focusPauseBtn}>{focusRunning ? 'Pause' : 'Resume'}</button>
-                          <button onClick={() => { clearInterval(focusIntervalRef.current); setFocusPhase('setup') }} className={styles.focusAbandonBtn}>Abandon session</button>
+                          <button onClick={() => {
+                            if (window.confirm("Abandon this focus session? Your progress won't be saved.")) {
+                              clearInterval(focusIntervalRef.current)
+                              setFocusRunning(false); setFocusPhase('setup')
+                              setSessionEndType('abandoned'); setShowSessionEndModal(true)
+                            }
+                          }} className={styles.focusAbandonBtn}>Abandon session</button>
                         </div>
                       )}
                       {focusPhase === 'complete' && (
@@ -1843,7 +1867,13 @@ export default function Dashboard() {
                       <h2 className={styles.calDayTitle}>{dayLabel}</h2>
                       <p className={styles.calDaySub}>{dayTasks.length} task{dayTasks.length !== 1 ? 's' : ''}</p>
                     </div>
-                    <button onClick={() => setShowAddModal(true)} className={styles.calAddBtn}>+ Add</button>
+                    <button onClick={() => {
+                      if (calDay) {
+                        const d = calDay
+                        setNewDueDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)
+                      }
+                      setShowAddModal(true)
+                    }} className={styles.calAddBtn}>+ Add</button>
                   </div>
                   <div className={styles.calTimeline}>
                     {unscheduled.length > 0 && (
@@ -1861,7 +1891,7 @@ export default function Dashboard() {
                               <div className={styles.calChipBody} onClick={() => setDetailTask(t)}>
                                 <span className={styles.calChipTitle}>{t.title}</span>
                                 <div className={styles.calChipBadges}>
-                                  {t.consequence_level === 'external' && <span className={styles.calChipExtBadge}>Ext</span>}
+                                  {t.consequence_level === 'external' && <span className={styles.calChipExtBadge} title="External commitment">Ext</span>}
                                   {t.rollover_count > 0 && <span className={styles.calChipRollover}>↷{t.rollover_count}</span>}
                                 </div>
                               </div>
@@ -1893,7 +1923,7 @@ export default function Dashboard() {
                                 <div className={styles.calChipBody} onClick={() => setDetailTask(t)}>
                                   <span className={styles.calChipTitle}>{t.title}</span>
                                   <div className={styles.calChipBadges}>
-                                    {t.consequence_level === 'external' && <span className={styles.calChipExtBadge}>Ext</span>}
+                                    {t.consequence_level === 'external' && <span className={styles.calChipExtBadge} title="External commitment">Ext</span>}
                                     {t.rollover_count > 0 && <span className={styles.calChipRollover}>↷{t.rollover_count}</span>}
                                   </div>
                                 </div>
@@ -2114,7 +2144,13 @@ export default function Dashboard() {
                   <div className={styles.progressStats}>
                     <div className={styles.progressStat}><span className={styles.progressStatNum}>{completedThisWeek.length}</span><span className={styles.progressStatLabel}>Completed</span></div>
                     <div className={styles.progressStat}><span className={styles.progressStatNum}>{getStreak()}</span><span className={styles.progressStatLabel}>Day streak</span></div>
-                    <div className={styles.progressStat}><span className={styles.progressStatNum}>{getBestDay()}</span><span className={styles.progressStatLabel}>Best day</span></div>
+                    {(() => { const best = getBestDay(); return (
+                      <div className={styles.progressStat}>
+                        <span className={styles.progressStatNum} style={{ fontSize: '1.2rem' }}>{best ? best.day : '—'}</span>
+                        <span className={styles.progressStatLabel}>Best day</span>
+                        <span className={styles.progressStatSub}>{best ? `${best.count} task${best.count !== 1 ? 's' : ''}` : 'No data yet'}</span>
+                      </div>
+                    ) })()}
                   </div>
                   {Object.keys(completedByDay).length > 0 ? (
                     <div className={styles.progressWins}>
@@ -2153,7 +2189,13 @@ export default function Dashboard() {
                     <div className={styles.progressStats}>
                       <div className={styles.progressStat}><span className={styles.progressStatNum}>{completedThisMonth.length}</span><span className={styles.progressStatLabel}>This month</span></div>
                       <div className={styles.progressStat}><span className={styles.progressStatNum}>{totalCompleted}</span><span className={styles.progressStatLabel}>All time</span></div>
-                      <div className={styles.progressStat}><span className={styles.progressStatNum}>{getBestDay()}</span><span className={styles.progressStatLabel}>Best day</span></div>
+                      {(() => { const best = getBestDay(); return (
+                        <div className={styles.progressStat}>
+                          <span className={styles.progressStatNum} style={{ fontSize: '1.2rem' }}>{best ? best.day : '—'}</span>
+                          <span className={styles.progressStatLabel}>Best day</span>
+                          <span className={styles.progressStatSub}>{best ? `${best.count} task${best.count !== 1 ? 's' : ''}` : 'No data yet'}</span>
+                        </div>
+                      ) })()}
                     </div>
                     <div className={styles.progressSummaryCard}>
                       <p className={styles.progressSummaryLabel}>Monthly insight</p>
@@ -2760,8 +2802,8 @@ export default function Dashboard() {
                     <div className={styles.fieldGroup}>
                       <label className={styles.fieldLabel}>What needs to get done?</label>
                       <input ref={titleInputRef} type="text" placeholder="e.g. Call the insurance company"
-                        value={newTitle} onChange={e => setNewTitle(e.target.value)}
-                        className={styles.fieldInput} required />
+                        value={newTitle} onChange={e => { setNewTitle(e.target.value); if (titleInputError) setTitleInputError(false) }}
+                        className={`${styles.fieldInput} ${titleInputError ? styles.titleInputError : ''}`} />
                     </div>
                     <div className={styles.fieldGroup}>
                       <label className={styles.fieldLabel}>Due date</label>
@@ -2996,6 +3038,27 @@ export default function Dashboard() {
         {/* TOAST */}
         {toast && <div className={styles.toast}>{toast}</div>}
 
+        {/* SESSION END MODAL */}
+        {showSessionEndModal && (
+          <div className={styles.modalOverlay} onClick={e => e.target === e.currentTarget && setShowSessionEndModal(false)}>
+            <div className={styles.modal}>
+              <div className={styles.modalHeader}>
+                <h2 className={styles.detailTitle}>{sessionEndType === 'complete' ? 'Session complete' : 'Session ended'}</h2>
+                <button onClick={() => setShowSessionEndModal(false)} className={styles.modalClose}>×</button>
+              </div>
+              <div className={styles.sessionEndBody}>
+                {topTask && <p className={styles.sessionEndTask}>{topTask.title}</p>}
+                <p className={styles.sessionEndPrompt}>How'd it go?</p>
+                <div className={styles.focusResultBtns}>
+                  <button onClick={() => handleFocusResult('complete')} className={styles.focusResultBtn}>✓ Nailed it</button>
+                  <button onClick={() => handleFocusResult('progress')} className={`${styles.focusResultBtn} ${styles.focusResultBtnSecondary}`}>▶ Made progress</button>
+                  <button onClick={() => { setShowSessionEndModal(false); switchTab('checkin') }} className={`${styles.focusResultBtn} ${styles.focusResultBtnSecondary}`}>🧱 Got stuck</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* TASK DETAIL MODAL */}
         {detailTask && (
           <div className={styles.modalOverlay} onClick={e => e.target === e.currentTarget && (setDetailTask(null), setDetailEditing(false))}>
@@ -3029,8 +3092,16 @@ export default function Dashboard() {
                   </div>
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>Due time</label>
-                    <input type="time" value={detailEditDueTime} onChange={e => setDetailEditDueTime(e.target.value)}
-                      className={styles.fieldInputCompact} disabled={!detailEditDueDate} />
+                    <div className={styles.quickRow}>
+                      {[['Morning', '09:00'], ['Afternoon', '14:00'], ['Evening', '18:00']].map(([label, val]) => (
+                        <button key={val} type="button"
+                          onClick={() => { setDetailEditDueTime(val); if (!detailEditDueDate) setDetailEditDueDate(todayStr()) }}
+                          className={`${styles.quickBtn} ${detailEditDueTime === val ? styles.quickBtnActive : ''}`}>{label}</button>
+                      ))}
+                      <span className={styles.orLabel}>or</span>
+                      <input type="time" value={detailEditDueTime} onChange={e => { setDetailEditDueTime(e.target.value); if (!detailEditDueDate) setDetailEditDueDate(todayStr()) }}
+                        className={styles.fieldInputCompact} />
+                    </div>
                   </div>
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>Type</label>
