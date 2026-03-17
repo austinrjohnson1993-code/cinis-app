@@ -1505,6 +1505,20 @@
   color: rgba(240,234,214,0.25); font-size: 1.1rem; cursor: pointer; transition: all 0.2s;
 }
 .billDelete:hover { border-color: rgba(231,76,60,0.3); color: #e74c3c; }
+.billTaskCard {
+  border-left: 3px solid var(--accent);
+  background: rgba(255, 77, 28, 0.06);
+}
+.billBadge {
+  font-size: 10px;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.8;
+  margin-left: 6px;
+}
 .financeBreakdown {
   margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,200,120,0.06);
 }

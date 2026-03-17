@@ -9,7 +9,7 @@ import { saveTaskOrder } from '../lib/taskOrder'
 import { isDueSoon as billIsDueSoon, formatBillAmount, getBillCategory, getNextDueDate } from '../lib/billUtils'
 import { CHORE_PRESETS, getChoresByPreset } from '../lib/chores'
 import { requestNotificationPermission, disablePushNotifications } from '../lib/pushNotifications'
-import { CheckSquare, ChatCircle, Target, CalendarBlank, Notebook, Wallet, ChartLineUp, Plus, Trash, Archive, Star, Gear, MagnifyingGlass, X, CaretLeft, CaretRight, Receipt, Scales, List, Timer, ChartBar, Lightning, ArrowCounterClockwise, CheckCircle, Microphone } from '@phosphor-icons/react'
+import { CheckSquare, ChatCircle, Target, CalendarBlank, Notebook, Wallet, ChartLineUp, Plus, Trash, Archive, Star, Gear, MagnifyingGlass, X, CaretLeft, CaretRight, CaretDown, Receipt, Scales, Books, Robot, List, Timer, ChartBar, Lightning, ArrowCounterClockwise, CheckCircle, Microphone } from '@phosphor-icons/react'
 
 const THEMES = [
   { id: 'orange-bronze', name: 'Classic', accent: '#ff4d1c', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#ff4d1c' },
@@ -915,7 +915,15 @@ export default function Dashboard() {
 
   const fetchProfile = async (userId) => {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
-    if (data) setProfile(data)
+    if (data) {
+      setProfile(data)
+      // Apply theme immediately from loaded profile to prevent race condition
+      if (data.accent_color) {
+        const savedTheme = THEMES.find(t => t.id === data.accent_color) || THEMES.find(t => t.accent === data.accent_color) || THEMES[0]
+        applyTheme(savedTheme)
+        if (typeof localStorage !== 'undefined') localStorage.setItem('fb_accent_color', savedTheme.id)
+      }
+    }
     else router.push('/onboarding')
   }
 
@@ -2063,10 +2071,11 @@ export default function Dashboard() {
                                   ? (dueFmt ? `${dateLabel} · ${dueFmt.label}` : dateLabel)
                                   : (dueFmt ? dueFmt.label : null))
                             const isElected = task.id === electedTaskId
+                            const isBillTask = task.title?.startsWith('Pay: ')
                             return (
                               <Draggable key={String(task.id)} draggableId={String(task.id)} index={index}>
                                 {(provided) => (
-                                  <div ref={provided.innerRef} {...provided.draggableProps} className={styles.taskCard}>
+                                  <div ref={provided.innerRef} {...provided.draggableProps} className={`${styles.taskCard}${isBillTask ? ` ${styles.billTaskCard}` : ''}`}>
                                     <button
                                       className={`${styles.starBtn} ${isElected ? styles.starBtnActive : ''}`}
                                       onClick={() => setElectedTaskId(isElected ? null : task.id)}
@@ -2075,7 +2084,7 @@ export default function Dashboard() {
                                     <span {...provided.dragHandleProps} className={styles.dragHandle} title="Drag to reorder">⠿</span>
                                     <button onClick={() => completeTask(task)} className={styles.taskCheck} aria-label="Complete" />
                                     <div className={styles.taskInfo} onClick={() => setDetailTask(task)} style={{ cursor: 'pointer' }}>
-                                      <span className={styles.taskTitle}>{task.title}</span>
+                                      <span className={styles.taskTitle}>{isBillTask && <Receipt size={16} style={{ marginRight: '4px', verticalAlign: 'middle', opacity: 0.7 }} />}{task.title}{isBillTask && <span className={styles.billBadge}>Bill</span>}</span>
                                       {task.notes && <span className={styles.taskNotes}>{task.notes}</span>}
                                       <div className={styles.taskMeta}>
                                         {countdown && <span className={`${styles.taskDueTime} ${styles.taskDueUrgent}`} style={{ color: 'var(--accent)' }}>{countdown}</span>}
@@ -2329,7 +2338,7 @@ export default function Dashboard() {
                   <div className={styles.focusAccordionHeader} onClick={() => setFocusSection(focusSection === 'fuel' ? null : 'fuel')}>
                     <span className={styles.focusAccordionEmoji}>🥗</span>
                     <span className={styles.focusAccordionTitle}>Fuel Your Focus</span>
-                    <span className={styles.focusAccordionChevron}>▼</span>
+                    <span className={styles.focusAccordionChevron}><CaretDown size={16} style={{ transform: focusSection === 'fuel' ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s ease' }} /></span>
                   </div>
                   {focusSection === 'fuel' && (
                     <div className={styles.focusAccordionContent}>
@@ -2361,7 +2370,7 @@ export default function Dashboard() {
                   <div className={styles.focusAccordionHeader} onClick={() => setFocusSection(focusSection === 'move' ? null : 'move')}>
                     <span className={styles.focusAccordionEmoji}>🏃</span>
                     <span className={styles.focusAccordionTitle}>Move</span>
-                    <span className={styles.focusAccordionChevron}>▼</span>
+                    <span className={styles.focusAccordionChevron}><CaretDown size={16} style={{ transform: focusSection === 'move' ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s ease' }} /></span>
                   </div>
                   {focusSection === 'move' && (
                     <div className={styles.focusAccordionContent}>
@@ -2393,7 +2402,7 @@ export default function Dashboard() {
                   <div className={styles.focusAccordionHeader} onClick={() => setFocusSection(focusSection === 'supplements' ? null : 'supplements')}>
                     <span className={styles.focusAccordionEmoji}>💊</span>
                     <span className={styles.focusAccordionTitle}>Supplements</span>
-                    <span className={styles.focusAccordionChevron}>▼</span>
+                    <span className={styles.focusAccordionChevron}><CaretDown size={16} style={{ transform: focusSection === 'supplements' ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s ease' }} /></span>
                   </div>
                   {focusSection === 'supplements' && (
                     <div className={styles.focusAccordionContent}>
@@ -2563,9 +2572,9 @@ export default function Dashboard() {
             return (
               <div className={styles.calViewWrap}>
                 <div className={styles.calMonthNav}>
-                  <button className={styles.calNavBtn} onClick={calPrevMonth}>‹</button>
+                  <button className={styles.calNavBtn} onClick={calPrevMonth}><CaretLeft size={18} /></button>
                   <h2 className={styles.calMonthLabel}>{monthName} {year}</h2>
-                  <button className={styles.calNavBtn} onClick={calNextMonth}>›</button>
+                  <button className={styles.calNavBtn} onClick={calNextMonth}><CaretRight size={18} /></button>
                 </div>
                 <div className={styles.calDayHeaders}>
                   {['S','M','T','W','T','F','S'].map((d, i) => (
@@ -3086,7 +3095,7 @@ export default function Dashboard() {
 
               {/* Sub-tab nav */}
               <div className={styles.financeSubTabs}>
-                {[['bills','🧾','Bills'],['plans','📊','Plans'],['knowledge','📚','Knowledge'],['insights','🤖','Insights']].map(([id, icon, label]) => (
+                {[['bills',<Receipt size={18} />,'Bills'],['plans',<Scales size={18} />,'Plans'],['knowledge',<Books size={18} />,'Knowledge'],['insights',<Robot size={18} />,'Insights']].map(([id, icon, label]) => (
                   <button key={id} onClick={() => setFinanceSub(id)}
                     className={`${styles.financeSubTab} ${financeSub === id ? styles.financeSubTabActive : ''}`}>
                     <span className={styles.subTabIcon}>{icon}</span>
@@ -3401,10 +3410,14 @@ export default function Dashboard() {
                   <span style={{ fontSize: '2.5rem' }}>🤖</span>
                   <p className={styles.greetingText} style={{ fontSize: '1.15rem' }}>Financial Insights</p>
                   <p className={styles.headerSub} style={{ maxWidth: '360px', textAlign: 'center' }}>
-                    Enter your income in Plans and add your bills to get personalized financial insights.
+                    {bills.length === 0
+                      ? 'Add bills in the Bills tab to unlock spending insights.'
+                      : monthlyIncome === 0
+                        ? 'Add your income in Plans to see your full picture.'
+                        : 'Your first insight is on its way...'}
                   </p>
-                  <button className={styles.addTaskBtn} onClick={() => setFinanceSub('plans')}>
-                    Set up my budget →
+                  <button className={styles.addTaskBtn} onClick={() => setFinanceSub(bills.length === 0 ? 'bills' : 'plans')}>
+                    {bills.length === 0 ? 'Add a bill →' : 'Set up my budget →'}
                   </button>
                 </div>
               )}
