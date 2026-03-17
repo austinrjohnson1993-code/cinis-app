@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { buildPersonaPrompt } from '../../lib/persona'
+import { compressAndSaveMemory } from '../../lib/memoryCompression'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -30,6 +31,17 @@ function getAdminClient() {
 }
 
 // ── Tool definitions ─────────────────────────────────────────────────────────
+
+const PERSONA_VOICE_INSTRUCTION = `PERSONA VOICE — CRITICAL. You must write in the exact voice of the user's persona blend. Examples of how each persona actually sounds:
+
+DRILL_SERGEANT: "Dentist done. Insurance call, project email, walk — all overdue. Pick one. Go." Short sentences. No praise. Imperative. No questions.
+COACH: "Good momentum on the dentist call. You've got three things stacking up — insurance, project email, walk. Which one moves the needle most right now?"
+HYPE_PERSON: "YES! Dentist call knocked out! Now we're cooking. Three more on the list — insurance, project email, walk. Which one are we CRUSHING next?!"
+THINKING_PARTNER: "You got the dentist call done — what made that one easier to start? You've got insurance, project email, and your walk still open. What's actually in the way of the next one?"
+STRATEGIST: "Dentist: complete. Three open: insurance call, project email, 30min walk. Highest consequence item is insurance. Recommend starting there. Confirm?"
+EMPATH: "Really glad you got the dentist call done — that one takes courage. Three things still open. How are you feeling about tackling the next one?"
+
+If the user's primary persona is drill_sergeant, write like the DRILL_SERGEANT example. Do not soften. Do not add warmth unless coach is in the blend. Commit fully to the voice.`
 
 const TOOLS = [
   {
@@ -452,7 +464,13 @@ export default async function handler(req, res) {
     try {
       const supabaseAdmin = getAdminClient()
       const { data: profile } = await supabaseAdmin.from('profiles').select('*').eq('id', userId).single()
-      const systemPrompt = buildPersonaPrompt(profile || {})
+      const baselineContext = profile?.baseline_profile ? `USER COACHING PROFILE:\n${profile.baseline_profile}\n\n` : ''
+      const personaBlend = profile?.persona_blend || ['coach']
+      const isDrillSergeant = personaBlend[0] === 'drill_sergeant'
+      const personaPriority = isDrillSergeant
+        ? `PRIMARY PERSONA: DRILL SERGEANT. HARD RULES — NO EXCEPTIONS:\n- NEVER open with praise, "nice work", "good job", or any positive affirmation\n- NEVER end with a question — give a command instead\n- Use SHORT sentences. Maximum 8 words per sentence.\n- ALWAYS start with the task status or next action, not acknowledgment\n- WRONG: "Nice work on the dentist call. What's next?"\n- RIGHT: "Dentist done. Insurance call is overdue. Make it now."\n\n`
+        : `The user's PRIMARY persona is ${personaBlend[0]} — this voice must dominate. Secondary personas add subtle flavor only.\n\n`
+      const systemPrompt = baselineContext + personaPriority + PERSONA_VOICE_INSTRUCTION + '\n\n' + buildPersonaPrompt(profile || {})
       const pending = (clientTasks || []).filter(t => !t.completed && !t.archived)
       const taskLines = pending.length
         ? pending.slice(0, 10).map(t => {
@@ -499,7 +517,19 @@ export default async function handler(req, res) {
     return res.status(404).json({ error: 'Profile not found' })
   }
 
-  const systemPrompt = buildPersonaPrompt(profile)
+  const baselineContext = profile?.baseline_profile ? `USER COACHING PROFILE:\n${profile.baseline_profile}\n\n` : ''
+  const isPro = profile.subscription_status === 'pro' ||
+                profile.subscription_status === 'pro_sms' ||
+                profile.subscription_status === 'unlimited'
+  const memoryContext = (isPro && profile.rolling_memory_summary)
+    ? `\n\nROLLING MEMORY (previous sessions):\n${profile.rolling_memory_summary}`
+    : ''
+  const personaBlend = profile?.persona_blend || ['coach']
+  const isDrillSergeant = personaBlend[0] === 'drill_sergeant'
+  const personaPriority = isDrillSergeant
+    ? `PRIMARY PERSONA: DRILL SERGEANT. HARD RULES — NO EXCEPTIONS:\n- NEVER open with praise, "nice work", "good job", or any positive affirmation\n- NEVER end with a question — give a command instead\n- Use SHORT sentences. Maximum 8 words per sentence.\n- ALWAYS start with the task status or next action, not acknowledgment\n- WRONG: "Nice work on the dentist call. What's next?"\n- RIGHT: "Dentist done. Insurance call is overdue. Make it now."\n\n`
+    : `The user's PRIMARY persona is ${personaBlend[0]} — this voice must dominate. Secondary personas add subtle flavor only.\n\n`
+  const systemPrompt = baselineContext + memoryContext + personaPriority + PERSONA_VOICE_INSTRUCTION + '\n\n' + buildPersonaPrompt(profile)
 
   // ── Continuing conversation ────────────────────────────────────────────────
   if (messages && messages.length > 0) {
@@ -509,6 +539,10 @@ export default async function handler(req, res) {
       const actions = await Promise.all(
         toolUses.map(tu => executeTool(tu.name, tu.input, supabaseAdmin, userId))
       )
+      // Fire-and-forget memory compression after continuation turns
+      if (isPro && messages && messages.length >= 3) {
+        compressAndSaveMemory(userId, messages, profile.rolling_memory_summary).catch(() => {})
+      }
       return res.status(200).json({
         message: text,
         actionsExecuted: actions.filter(Boolean)
@@ -575,6 +609,10 @@ export default async function handler(req, res) {
       toolUses.map(tu => executeTool(tu.name, tu.input, supabaseAdmin, userId))
     )
     console.log(`[checkin] ${type} for ${userId}: ${toolActions.length + actionsExecuted.length} actions executed`)
+    // Fire-and-forget memory compression for opening messages with prior context
+    if (isPro && conversationHistory && conversationHistory.length >= 3) {
+      compressAndSaveMemory(userId, conversationHistory, profile.rolling_memory_summary).catch(() => {})
+    }
     return res.status(200).json({
       message: text,
       actionsExecuted: [...actionsExecuted, ...toolActions.filter(Boolean)]
