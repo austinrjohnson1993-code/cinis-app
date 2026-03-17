@@ -22,7 +22,6 @@ const THEMES = [
   { id: 'indigo-night', name: 'Night', accent: '#6366f1', gradient: 'radial-gradient(ellipse at top left, rgba(30,20,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(20,15,80,0.35) 0%, transparent 60%)', logo: '#6366f1' },
   { id: 'drill-sergeant', name: 'Command', accent: '#ef4444', gradient: 'radial-gradient(ellipse at top left, rgba(100,10,10,0.5) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,5,5,0.4) 0%, transparent 60%)', logo: '#ef4444' },
   { id: 'midnight', name: 'Midnight', accent: '#ffffff', gradient: 'radial-gradient(ellipse at top left, rgba(40,40,40,0.5) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(20,20,20,0.4) 0%, transparent 60%)', logo: '#ffffff', bg: '#000000' },
-  { id: 'paper', name: 'Paper', accent: '#000000', gradient: 'none', logo: '#000000', bg: '#f5f0e8', textColor: '#1a1a1a' },
 ]
 
 function applyTheme(theme) {
@@ -31,24 +30,15 @@ function applyTheme(theme) {
   root.style.setProperty('--accent', theme.accent)
   root.style.setProperty('--accent-gradient', theme.gradient)
   root.style.setProperty('--logo-color', theme.logo)
-  // Override background/text for themes that need it (Midnight, Paper)
+  // Override background/text for themes that need it (Midnight)
   root.style.setProperty('--night', theme.bg || '#0d1117')
   root.style.setProperty('--cream', theme.textColor || '#f0ead6')
-  if (theme.id === 'paper') {
-    root.setAttribute('data-theme', 'paper')
-    root.style.setProperty('--bg-color', '#f5f0e8')
-    root.style.setProperty('--card-bg', '#eeebe0')
-    root.style.setProperty('--text-color', '#1a1a1a')
-    root.style.setProperty('--text-muted', '#555555')
-    root.style.setProperty('--border-color', '#d4cfc4')
-  } else {
-    root.removeAttribute('data-theme')
-    root.style.setProperty('--bg-color', '#110d06')
-    root.style.setProperty('--card-bg', '#221608')
-    root.style.setProperty('--text-color', '#f0ead6')
-    root.style.setProperty('--text-muted', 'rgba(240,234,214,0.5)')
-    root.style.setProperty('--border-color', 'rgba(255,200,120,0.12)')
-  }
+  root.removeAttribute('data-theme')
+  root.style.setProperty('--bg-color', '#110d06')
+  root.style.setProperty('--card-bg', '#221608')
+  root.style.setProperty('--text-color', '#f0ead6')
+  root.style.setProperty('--text-muted', 'rgba(240,234,214,0.5)')
+  root.style.setProperty('--border-color', 'rgba(255,200,120,0.12)')
   // also set --accent-rgb so rgba(var(--accent-rgb), opacity) works with this theme
   applyAccentColor(theme.accent, theme.id)
 }
@@ -545,6 +535,9 @@ export default function Dashboard() {
   const [weeklySummary, setWeeklySummary] = useState('')
   const [weeklySummaryLoading, setWeeklySummaryLoading] = useState(false)
   const [weeklySummaryInitialized, setWeeklySummaryInitialized] = useState(false)
+  const [monthlySummary, setMonthlySummary] = useState('')
+  const [monthlySummaryLoading, setMonthlySummaryLoading] = useState(false)
+  const [monthlySummaryInitialized, setMonthlySummaryInitialized] = useState(false)
 
   // Finance
   const [bills, setBills] = useState([])
@@ -821,6 +814,12 @@ export default function Dashboard() {
   }, [activeTab, user])
 
   useEffect(() => {
+    if (activeTab === 'progress' && progressBand === 'month' && user && !monthlySummaryInitialized) {
+      fetchMonthlySummary()
+    }
+  }, [progressBand, activeTab, user])
+
+  useEffect(() => {
     if (activeTab === 'finance' && user && !billsLoaded) {
       fetchBills(user.id)
     }
@@ -987,6 +986,20 @@ export default function Dashboard() {
       setWeeklySummary('')
     }
     setWeeklySummaryLoading(false)
+  }
+
+  const fetchMonthlySummary = async () => {
+    if (!user) return
+    setMonthlySummaryInitialized(true)
+    setMonthlySummaryLoading(true)
+    try {
+      const res = await loggedFetch(`/api/progress?type=monthly&userId=${user.id}`)
+      const data = await res.json()
+      setMonthlySummary(data.insight || '')
+    } catch {
+      setMonthlySummary('')
+    }
+    setMonthlySummaryLoading(false)
   }
 
   const fetchBills = async (userId) => {
@@ -2855,9 +2868,9 @@ export default function Dashboard() {
                       <p className={styles.progressSummaryLabel}>Monthly insight</p>
                       {completedThisMonth.length === 0
                         ? <p className={styles.progressSummaryText}>Complete some tasks this month and come back for your AI insight.</p>
-                        : weeklySummaryLoading ? <p className={styles.progressSummaryLoading}>···</p>
-                        : weeklySummary ? <p className={styles.progressSummaryText}>{weeklySummary}</p>
-                        : <button onClick={fetchWeeklySummary} className={styles.progressSummaryRefresh}>Generate insight</button>}
+                        : monthlySummaryLoading ? <p className={styles.progressSummaryLoading}>···</p>
+                        : monthlySummary ? <p className={styles.progressSummaryText}>{monthlySummary}</p>
+                        : <button onClick={fetchMonthlySummary} className={styles.progressSummaryRefresh}>Generate insight</button>}
                     </div>
                   </div>
                 )
@@ -2910,7 +2923,7 @@ export default function Dashboard() {
                     <div className={styles.settingsRowRight}>
                       <div className={styles.themeSwatches}>
                         {THEMES.map(theme => {
-                          const swatchBg = theme.id === 'paper' ? '#f5f0e8' : theme.id === 'midnight' ? '#000000' : theme.accent
+                          const swatchBg = theme.id === 'midnight' ? '#000000' : theme.accent
                           return (
                             <div key={theme.id} className={styles.swatchWrap}>
                               <button title={theme.name}
@@ -2918,7 +2931,6 @@ export default function Dashboard() {
                                 className={`${styles.accentSwatch} ${activeTheme?.id === theme.id ? styles.accentSwatchActive : ''}`}
                                 style={{ background: swatchBg }}
                               />
-                              {theme.id === 'paper' && <span className={styles.swatchBadge}>Light</span>}
                               <span className={styles.swatchLabel}>{theme.name}</span>
                             </div>
                           )

@@ -66,9 +66,10 @@ export default async function handler(req, res) {
   }
 
   // Build update object from only allowed fields present in req.body
+  const source = req.body.updates && typeof req.body.updates === 'object' ? req.body.updates : req.body
   const updateObject = {}
   for (const key of ALLOWED_FIELDS) {
-    if (key in req.body) updateObject[key] = req.body[key]
+    if (key in source) updateObject[key] = source[key]
   }
 
   if (Object.keys(updateObject).length === 0) {
