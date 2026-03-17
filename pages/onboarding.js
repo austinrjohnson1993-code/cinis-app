@@ -265,6 +265,15 @@ export default function Onboarding() {
     } catch {
       await supabase.from('profiles').upsert(upsertData)
     }
+    try {
+      await fetch('/api/generate-baseline-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      })
+    } catch (e) {
+      console.error('[onboarding] baseline profile generation failed:', e)
+    }
     router.push('/dashboard')
   }
 
