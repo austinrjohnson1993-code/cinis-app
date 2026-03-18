@@ -1,4 +1,4 @@
-→import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
@@ -760,7 +760,7 @@ export default function Dashboard() {
     prevTabRef.current = activeTab
   }, [activeTab])
 
-  // Global Escape key → close topmost modal
+  // Global Escape key  close topmost modal
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key !== 'Escape') return
@@ -1747,7 +1747,7 @@ export default function Dashboard() {
   const firstName = rawName.includes('@') ? 'there' : (rawName.split(' ')[0] || 'there')
   const electedTask = electedTaskId ? (allPendingTasks.find(t => t.id === electedTaskId) || null) : null
   const todayLocalStr = localDateStr(new Date())
-  // Focus task: elected → earliest due-time today → first pending
+  // Focus task: elected  earliest due-time today  first pending
   const topTask = electedTask ||
     allPendingTasks.find(t => t.due_time && localDateStr(new Date(t.due_time)) === todayLocalStr) ||
     allPendingTasks[0] || null
@@ -1863,7 +1863,7 @@ export default function Dashboard() {
         {/* SIDEBAR */}
         <aside className={styles.sidebar}>
           <div className={styles.sidebarLogo}>
-            <span className="brand" style={{ color: 'var(--logo-color, var(--accent))' }}><span className="focus">Focus</span><span className="buddy">Buddy</span></span>
+            <span className="brand" style={{ color: 'var(--logo-color, var(--accent))' }}>Cinis</span>
           </div>
           <nav className={styles.sidebarNav}>
             {NAV_ITEMS.map(item => (
@@ -1989,7 +1989,7 @@ export default function Dashboard() {
                               setNewTitle(`First step: ${electedTask.title}`)
                               setNewDueDate(electedTask.scheduled_for ? new Date(electedTask.scheduled_for).toISOString().split('T')[0] : '')
                               setShowAddModal(true)
-                            }}>· Break it down →</button>
+                            }}>· Break it down </button>
                           )}
                         </div>
                       )}
@@ -2027,7 +2027,7 @@ export default function Dashboard() {
                       </div>
                       <div className={styles.focusCardActions}>
                         <button onClick={() => switchTab('focus')} className={styles.focusAction} style={{ color: 'var(--accent)', fontWeight: 700 }}>
-                          Start timer →
+                          Start timer 
                         </button>
                         <button onClick={() => rescheduleTask(electedTask)} className={styles.focusAction}>
                           <CaretRight size={12} style={{marginRight:'5px'}} />
@@ -2229,7 +2229,7 @@ export default function Dashboard() {
                   <input type="text" placeholder="Reply..." value={checkinInput}
                     onChange={e => setCheckinInput(e.target.value)}
                     className={styles.checkinInput} autoFocus />
-                  <button type="submit" disabled={checkinLoading || !checkinInput.trim()} className={styles.checkinSendBtn}>→</button>
+                  <button type="submit" disabled={checkinLoading || !checkinInput.trim()} className={styles.checkinSendBtn}></button>
                 </form>
               </div>
             )
@@ -2253,11 +2253,11 @@ export default function Dashboard() {
                     <div className={styles.focusAccordionContent}>
                       {focusPhase === 'setup' && (
                         <div className={styles.focusSetup}>
-                          {!topTask ? (
+                          {!electedTask ? (
                             <div className={styles.focusIdleEmpty}>
                               <p className={styles.focusIdleHeadline}>Ready to lock in?</p>
-                              <p className={styles.focusIdleSub}>Pick a task, set your timer, and get into flow.</p>
-                              <button onClick={() => switchTab('tasks')} className={styles.focusStartBtn}>Pick a Task →</button>
+                              <p className={styles.focusIdleSub}>Star a task to set your focus, then start your session.</p>
+                              <button onClick={() => switchTab('tasks')} className={styles.focusStartBtn}>Go to Tasks </button>
                               <button onClick={() => setShowAddModal(true)} className={styles.focusIdleAddLink}>or add a new task</button>
                             </div>
                           ) : (
@@ -2288,7 +2288,7 @@ export default function Dashboard() {
                                   className={styles.focusCustomInput} min="1" max="180"
                                   autoFocus />
                               )}
-                              <button onClick={startFocus} className={styles.focusStartBtn}>Start session →</button>
+                              <button onClick={startFocus} className={styles.focusStartBtn}>Start session </button>
                             </>
                           )}
                           <div className={styles.focusMusicStub}>
@@ -2319,7 +2319,7 @@ export default function Dashboard() {
                           <p className={styles.focusCompletePrompt}>How'd it go?</p>
                           <div className={styles.focusResultBtns}>
                             <button onClick={() => handleFocusResult('complete')} className={styles.focusResultBtn}>Nailed it ✓</button>
-                            <button onClick={() => handleFocusResult('progress')} className={`${styles.focusResultBtn} ${styles.focusResultBtnSecondary}`}>Made progress →</button>
+                            <button onClick={() => handleFocusResult('progress')} className={`${styles.focusResultBtn} ${styles.focusResultBtnSecondary}`}>Made progress </button>
                             <button onClick={() => handleFocusResult('stuck')} className={`${styles.focusResultBtn} ${styles.focusResultBtnSecondary}`}>Got stuck, help me</button>
                           </div>
                         </div>
@@ -2636,18 +2636,21 @@ export default function Dashboard() {
                   }
                   return (
                     <div className={styles.calUpcomingSection}>
-                      <p className={styles.calUpcomingLabel}>Upcoming tasks</p>
+                      <p className={styles.calUpcomingLabel}>Due & upcoming</p>
                       {upcomingTasks.length === 0 ? (
-                        <p className={styles.calUpcomingEmpty}>No upcoming tasks — add a due date to any task to see it here.</p>
+                        <p className={styles.calUpcomingEmpty}>No tasks with due dates — add a due date to any task to see it here.</p>
                       ) : (
                         <div className={styles.calUpcomingList}>
-                          {upcomingTasks.map(t => (
+                          {upcomingTasks.map(t => {
+                            const isOverdue = t.due_date < today
+                            return (
                             <div key={t.id} className={styles.calUpcomingRow} onClick={() => setDetailTask(t)}>
-                              <div className={styles.calUpcomingDate}>{fmtUpcomingDate(t.due_date)}</div>
+                              <div className={`${styles.calUpcomingDate}${isOverdue ? ` ${styles.calUpcomingDateOverdue}` : ''}`}>{isOverdue ? 'Overdue' : fmtUpcomingDate(t.due_date)}</div>
                               <div className={styles.calUpcomingTitle}>{t.title}</div>
                               {t.consequence_level === 'external' && <span className={styles.calUpcomingExt}>Ext</span>}
                             </div>
-                          ))}
+                          )})}
+
                         </div>
                       )}
                     </div>
@@ -2732,7 +2735,7 @@ export default function Dashboard() {
                 )}
                 <div className={styles.journalFormFooter}>
                   <span className={styles.journalHint}>Shift+Enter for new line</span>
-                  <button type="submit" disabled={journalLoading || !journalInput.trim()} className={styles.journalSendBtn}>Send →</button>
+                  <button type="submit" disabled={journalLoading || !journalInput.trim()} className={styles.journalSendBtn}>Send </button>
                 </div>
               </form>
 
@@ -3096,7 +3099,7 @@ export default function Dashboard() {
                               scheduledFor = new Date(today)
                               scheduledFor.setDate(scheduledFor.getDate() + 14)
                             } else {
-                              // weekly, biweekly, twice-weekly → spread across next 7 days
+                              // weekly, biweekly, twice-weekly  spread across next 7 days
                               scheduledFor = new Date(today)
                               scheduledFor.setDate(scheduledFor.getDate() + (weekdayIndex % 7))
                               weekdayIndex++
@@ -3131,7 +3134,7 @@ export default function Dashboard() {
               {/* How to get the most out of Cinis */}
               <div className={styles.settingsSection}>
                 <button className={styles.settingsTipsToggle} onClick={() => setShowGuideModal(true)}>
-                  How to get the most out of Cinis →
+                  How to get the most out of Cinis 
                 </button>
               </div>
             </div>
@@ -3250,7 +3253,7 @@ export default function Dashboard() {
                       {learnReferral === 'debt-avalanche' && (() => {
                         const debts = bills.filter(b => b.bill_type === 'loan' || b.bill_type === 'credit_card').filter(b => b.interest_rate > 0).sort((a, b) => b.interest_rate - a.interest_rate)
                         if (debts.length === 0) return <p>Add interest rates to your loans and debts in the Bills tab to see your payoff order.</p>
-                        return <p>Debt Avalanche order: {debts.map(d => d.name).join(' → ')}. Pay minimums on all, attack <strong>{debts[0].name}</strong> first.</p>
+                        return <p>Debt Avalanche order: {debts.map(d => d.name).join('  ')}. Pay minimums on all, attack <strong>{debts[0].name}</strong> first.</p>
                       })()}
                       {learnReferral === 'emergency-fund' && (
                         <p>Your 3-month emergency fund target: <strong>{fmtMoney(monthlyTotal * 3)}</strong>. Start with <strong>{fmtMoney(monthlyTotal * 0.5)}/month</strong> to build it in 6 months.</p>
@@ -3443,7 +3446,7 @@ export default function Dashboard() {
                                   window.scrollTo({ top: 0, behavior: 'smooth' })
                                 }}
                               >
-                                See this applied to my budget →
+                                See this applied to my budget 
                               </button>
                             </div>
                           </div>
@@ -3467,7 +3470,7 @@ export default function Dashboard() {
                         : 'Your first insight is on its way...'}
                   </p>
                   <button className={styles.addTaskBtn} onClick={() => setFinanceSub(bills.length === 0 ? 'bills' : 'plans')}>
-                    {bills.length === 0 ? 'Add a bill →' : 'Set up my budget →'}
+                    {bills.length === 0 ? 'Add a bill ' : 'Set up my budget '}
                   </button>
                 </div>
               )}
@@ -3663,7 +3666,7 @@ export default function Dashboard() {
                     </button>
                     <button type="button" onClick={parseBulkTasks} disabled={bulkParsing || !bulkText.trim()}
                       className={styles.bulkParseBtn}>
-                      {bulkParsing ? 'Parsing...' : 'Parse →'}
+                      {bulkParsing ? 'Parsing...' : 'Parse '}
                     </button>
                   </div>
 
@@ -4121,7 +4124,7 @@ export default function Dashboard() {
                       if (isLast) { dismissTutorial(true) }
                       else setTutorialStep(s => s + 1)
                     }}>
-                      {isLast ? "Let's go →" : 'Next →'}
+                      {isLast ? "Let's go " : 'Next '}
                     </button>
                   </div>
                 </div>

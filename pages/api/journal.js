@@ -1,4 +1,4 @@
-rebrand: FocusBuddy → Cinisimport Anthropic from '@anthropic-ai/sdk'
+import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { buildPersonaPrompt } from '../../lib/persona'
 import { checkDailyRateLimit, rateLimitErrorResponse } from '../../lib/rateLimit'
@@ -140,12 +140,12 @@ Only include a [TASK: ...] line if something genuinely actionable was mentioned.
       if (isJournalReminder(title)) {
         // FIX 3 — journal reminder scheduling
         if (isDailyReminder(title)) {
-          // daily reminder → tomorrow at noon
+          // daily reminder  tomorrow at noon
           const rawDate = new Date(tomorrowStr)
           rawDate.setHours(12, 0, 0, 0)
           scheduledFor = rawDate.toISOString()
         }
-        // weekly → scheduledFor stays null, no due_time
+        // weekly  scheduledFor stays null, no due_time
       } else {
         // FIX 2 — default to today at noon
         const rawDate = new Date(todayStr)
