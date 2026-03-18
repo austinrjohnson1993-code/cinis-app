@@ -1851,7 +1851,7 @@ export default function Dashboard() {
 
   if (loading) return (
     <div className={styles.loadingPage}>
-      <span className="brand"><span className="focus">Focus</span><span className="buddy">Buddy</span></span>
+      <span className={styles.wordmark}>Cinis</span>
     </div>
   )
 
@@ -1863,7 +1863,7 @@ export default function Dashboard() {
         {/* SIDEBAR */}
         <aside className={styles.sidebar}>
           <div className={styles.sidebarLogo}>
-            <span className="brand" style={{ color: 'var(--logo-color, var(--accent))' }}>Cinis</span>
+            <span className={styles.wordmark}>Cinis</span>
           </div>
           <nav className={styles.sidebarNav}>
             {NAV_ITEMS.map(item => (
