@@ -36,7 +36,7 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>Sign In — FocusBuddy</title>
+        <title>Sign In — Cinis</title>
       </Head>
       <div className={styles.page}>
         <div className={styles.card}>
