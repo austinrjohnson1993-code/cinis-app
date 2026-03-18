@@ -44,18 +44,20 @@ export default async function handler(req, res) {
   if (authError || !user) return res.status(401).json({ error: 'Unauthorized' })
 
   try {
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      line_items: [{ price: process.env.STRIPE_PRO_PRICE_ID, quantity: 1 }],
-      success_url: 'https://cinis.app/dashboard?upgraded=true',
-      cancel_url: 'https://cinis.app/dashboard',
-      metadata: { userId: user.id },
-      customer_email: user.email,
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 })
+    const customer = customers.data[0]
+    if (!customer) {
+      return res.status(404).json({ error: 'No Stripe customer found for this account' })
+    }
+
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: customer.id,
+      return_url: 'https://cinis.app/dashboard',
     })
 
-    return res.status(200).json({ url: session.url })
+    return res.status(200).json({ url: portalSession.url })
   } catch (err) {
-    console.error('[stripe/checkout] error:', err.message)
+    console.error('[stripe/portal] error:', err.message)
     return res.status(500).json({ error: err.message })
   }
 }
