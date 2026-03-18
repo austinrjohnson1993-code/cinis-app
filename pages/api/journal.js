@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { buildPersonaPrompt } from '../../lib/persona'
+import { checkDailyRateLimit, rateLimitErrorResponse } from '../../lib/rateLimit'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -68,6 +69,15 @@ export default async function handler(req, res) {
   const { userId, content, conversationHistory } = req.body
   if (!userId || !content) return res.status(400).json({ error: 'userId and content required' })
 
+  if (content.length > 2000) {
+    return res.status(400).json({ error: 'Message too long. Please keep messages under 2000 characters.' })
+  }
+
+  const rateCheck = await checkDailyRateLimit(userId)
+  if (!rateCheck.allowed) {
+    return res.status(429).json(rateLimitErrorResponse(rateCheck))
+  }
+
   // FIX 2 — date normalization
   const timezone = req.body.timezone || 'America/Chicago'
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: timezone })
@@ -102,7 +112,8 @@ If they mention something that sounds like a task or action item, add it on its 
 
 Only include a [TASK: ...] line if something genuinely actionable was mentioned. Do not invent tasks.${dedupContext}${dateContext}`
 
-  const systemPrompt = buildPersonaPrompt(profile) + JOURNAL_MODE
+  const baselineContext = profile?.baseline_profile ? `USER COACHING PROFILE:\n${profile.baseline_profile}\n\n` : ''
+  const systemPrompt = baselineContext + buildPersonaPrompt(profile) + JOURNAL_MODE
 
   const messages = [
     ...(conversationHistory || []),

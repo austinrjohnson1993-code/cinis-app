@@ -2,25 +2,9 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { buildPersonaPrompt } from '../../lib/persona'
 import { compressAndSaveMemory } from '../../lib/memoryCompression'
+import { checkDailyRateLimit, rateLimitErrorResponse } from '../../lib/rateLimit'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
-// ── Rate limiting ─────────────────────────────────────────────────────────────
-// In-memory — resets on cold start. Good enough for abuse prevention.
-const rateLimitMap = new Map() // userId -> { count, resetAt }
-const RATE_LIMIT = 50
-const RATE_WINDOW_MS = 60 * 60 * 1000 // 1 hour
-
-function checkRateLimit(userId) {
-  const now = Date.now()
-  const entry = rateLimitMap.get(userId)
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS })
-    return false
-  }
-  entry.count++
-  return entry.count > RATE_LIMIT
-}
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -493,13 +477,18 @@ export default async function handler(req, res) {
     }
   }
 
+  const userMessage = req.body.content || req.body.message || ''
+  if (userMessage.length > 2000) {
+    return res.status(400).json({ error: 'Message too long. Please keep messages under 2000 characters.' })
+  }
+
+  const rateCheck = await checkDailyRateLimit(userId)
+  if (!rateCheck.allowed) {
+    return res.status(429).json(rateLimitErrorResponse(rateCheck))
+  }
+
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: timezone || 'America/Chicago' })
   const tomorrowStr = new Date(Date.now() + 86400000).toLocaleDateString('en-CA', { timeZone: timezone || 'America/Chicago' })
-
-  if (checkRateLimit(userId)) {
-    console.warn(`[checkin] rate limit hit for ${userId}`)
-    return res.status(429).json({ error: 'Rate limit exceeded', message: "You've been busy! Give it a moment." })
-  }
 
   try {
   const supabaseAdmin = getAdminClient()
