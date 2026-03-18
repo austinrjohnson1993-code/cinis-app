@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>FocusBuddy — The app that meets you in the middle</title>
+        <title>Cinis — The app that meets you in the middle</title>
       </Head>
       <div className={styles.page}>
         <nav className={styles.nav}>
