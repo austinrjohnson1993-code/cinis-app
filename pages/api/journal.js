@@ -42,6 +42,8 @@ function isDailyReminder(title) {
 
 async function callHaiku(prompt) {
   try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 15000)
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -53,12 +55,15 @@ async function callHaiku(prompt) {
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 100,
         messages: [{ role: 'user', content: prompt }]
-      })
+      }),
+      signal: controller.signal
     })
+    clearTimeout(timeout)
     if (!response.ok) return null
     const data = await response.json()
     return data?.content?.[0]?.text?.trim() ?? null
-  } catch {
+  } catch (e) {
+    if (e.name === 'AbortError') console.warn('[journal:callHaiku] timeout after 15s')
     return null
   }
 }
@@ -133,12 +138,18 @@ Only include a [TASK: ...] line if something genuinely actionable was mentioned.
   ]
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 512,
-      system: systemPrompt,
-      messages
-    })
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Claude API timeout after 15s')), 15000)
+    )
+    const response = await Promise.race([
+      anthropic.messages.create({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 512,
+        system: systemPrompt,
+        messages
+      }),
+      timeoutPromise
+    ])
 
     const aiText = response.content.find(b => b.type === 'text')?.text ?? ''
     const extractedTaskTitles = parseExtractedTasks(aiText)

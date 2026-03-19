@@ -122,7 +122,13 @@ async function callClaude(messages, systemPrompt, useTools = true) {
     messages
   }
   if (useTools) config.tools = TOOLS
-  const response = await anthropic.messages.create(config)
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Claude API timeout after 15s')), 15000)
+  )
+  const response = await Promise.race([
+    anthropic.messages.create(config),
+    timeoutPromise
+  ])
   const text = response.content.find(b => b.type === 'text')?.text ?? ''
   const toolUses = useTools ? response.content.filter(b => b.type === 'tool_use') : []
   return { text, toolUses }
