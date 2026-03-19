@@ -2906,13 +2906,37 @@ export default function Dashboard() {
                           </button>
                         </div>
                       )}
-                      {focusPhase === 'active' && (
+                      {focusPhase === 'active' && (() => {
+                        const totalSecs = (focusCustom ? parseInt(focusCustom, 10) : focusDuration) * 60
+                        const r = 96
+                        const circ = 2 * Math.PI * r
+                        const pct = totalSecs > 0 ? focusTimeLeft / totalSecs : 0
+                        const offset = circ * (1 - pct)
+                        const durLabel = `${String(focusCustom || focusDuration).padStart(2, '0')}:00`
+                        return (
                         <div className={styles.focusActive} style={{ background: '#120704' }}>
-                          <p className={styles.focusActiveLabel} style={{ fontSize: '12px', color: 'rgba(240,234,214,0.4)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Focus session</p>
-                          <div className={styles.focusTimerDisplay} style={{ fontFamily: "'Playfair Display', serif", fontSize: '64px', color: 'rgba(240,234,214,0.85)' }}>{formatTimer(focusTimeLeft)}</div>
+                          <p className={styles.focusActiveLabel} style={{ fontSize: '12px', color: 'rgba(240,234,214,0.4)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Focus session</p>
+                          {/* Ring timer */}
+                          <div style={{ position: 'relative', width: 220, height: 220, margin: '0 auto 24px', flexShrink: 0 }}>
+                            <svg width="220" height="220" viewBox="0 0 220 220">
+                              <circle cx="110" cy="110" r={r} fill="none" stroke="rgba(240,234,214,0.04)" strokeWidth="8" />
+                              <circle
+                                cx="110" cy="110" r={r} fill="none"
+                                stroke="#E8321A" strokeWidth="8" strokeLinecap="round"
+                                strokeDasharray={circ}
+                                strokeDashoffset={offset}
+                                transform="rotate(-90 110 110)"
+                                style={{ transition: 'stroke-dashoffset 0.5s linear' }}
+                              />
+                            </svg>
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 300, fontSize: '44px', color: '#F0EAD6', lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{formatTimer(focusTimeLeft)}</span>
+                              <span style={{ fontSize: '12px', color: 'rgba(240,234,214,0.38)', marginTop: '8px' }}>of {durLabel}</span>
+                            </div>
+                          </div>
                           <div style={{ display: 'flex', gap: '10px', width: '100%', justifyContent: 'center', marginBottom: '24px' }}>
-                            <button onClick={toggleFocusPause} className={styles.focusPauseBtn}>{focusRunning ? 'Pause' : 'Resume'}</button>
-                            <button onClick={handleAbandonSession} style={{ background: 'none', border: '1px solid rgba(240,234,214,0.2)', borderRadius: '100px', padding: '10px 20px', color: 'rgba(240,234,214,0.5)', fontSize: '14px', cursor: 'pointer', fontWeight: 600 }}>Got Stuck</button>
+                            <button onClick={toggleFocusPause} style={{ background: 'transparent', border: '1px solid rgba(240,234,214,0.19)', borderRadius: '24px', padding: '10px 28px', color: 'rgba(240,234,214,0.7)', fontSize: '14px', cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>{focusRunning ? 'Pause' : 'Resume'}</button>
+                            <button onClick={handleAbandonSession} style={{ background: 'rgba(232,50,26,0.094)', border: '1px solid rgba(232,50,26,0.25)', borderRadius: '24px', padding: '10px 20px', color: '#E8321A', fontSize: '14px', cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>Got Stuck</button>
                           </div>
                           {showAbandonConfirm ? (
                             <div className={styles.abandonConfirmRow}>
@@ -2922,7 +2946,8 @@ export default function Dashboard() {
                             </div>
                           ) : null}
                         </div>
-                      )}
+                        )
+                      })()}
                       {focusPhase === 'complete' && (
                         <div className={styles.focusComplete} style={{ animation: 'focusCompletionFlash 0.2s ease-out' }}>
                           <p className={styles.focusCompleteHeading}>Session complete.</p>
