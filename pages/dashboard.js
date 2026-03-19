@@ -566,6 +566,11 @@ export default function Dashboard() {
   const [focusSubTab, setFocusSubTab] = useState('session')
   // Focus accordion section
   const [focusSection, setFocusSection] = useState('session')
+  // Focus extras
+  const [focusShieldActive, setFocusShieldActive] = useState(false)
+  const [focusSessionsToday, setFocusSessionsToday] = useState(0)
+  const [focusMinutesToday, setFocusMinutesToday] = useState(0)
+  const [focusTipIndex, setFocusTipIndex] = useState(0)
 
   // Progress time band
   const [progressBand, setProgressBand] = useState('week')
@@ -1601,12 +1606,15 @@ export default function Dashboard() {
     if (!dur || dur < 1) return
     const secs = dur * 60
     setFocusTimeLeft(secs); setFocusPhase('active'); setFocusRunning(true)
+    setFocusTipIndex(Math.floor(Math.random() * 6))
     focusIntervalRef.current = setInterval(() => {
       setFocusTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(focusIntervalRef.current)
           setFocusRunning(false); setFocusPhase('setup')
           setSessionEndType('complete'); setShowSessionEndModal(true)
+          setFocusSessionsToday(prev => prev + 1)
+          setFocusMinutesToday(prev => prev + dur)
           return 0
         }
         return prev - 1
@@ -2908,35 +2916,39 @@ export default function Dashboard() {
                       )}
                       {focusPhase === 'active' && (() => {
                         const totalSecs = (focusCustom ? parseInt(focusCustom, 10) : focusDuration) * 60
-                        const r = 96
-                        const circ = 2 * Math.PI * r
-                        const pct = totalSecs > 0 ? focusTimeLeft / totalSecs : 0
-                        const offset = circ * (1 - pct)
-                        const durLabel = `${String(focusCustom || focusDuration).padStart(2, '0')}:00`
+                        const elapsed = totalSecs - focusTimeLeft
+                        const pct = totalSecs > 0 ? (elapsed / totalSecs) * 100 : 0
+                        const durMins = focusCustom || focusDuration
+                        const durLabel = `${String(durMins).padStart(2, '0')}:00`
+                        const focusTips = [
+                          'Close every tab you don\'t need right now. Your browser is not a to-do list.',
+                          'Put your phone face-down or in another room. Out of sight, out of mind.',
+                          'One task. Not two. Not a task and a quick check. One thing.',
+                          'If a thought pops up, write it down and return to it after the session.',
+                          'You don\'t have to feel motivated to start. Start first — the feeling follows.',
+                          'The first 5 minutes are the hardest. Push through and momentum builds itself.',
+                        ]
                         return (
-                        <div className={styles.focusActive} style={{ background: '#120704' }}>
-                          <p className={styles.focusActiveLabel} style={{ fontSize: '12px', color: 'rgba(240,234,214,0.4)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Focus session</p>
-                          {/* Ring timer */}
-                          <div style={{ position: 'relative', width: 220, height: 220, margin: '0 auto 24px', flexShrink: 0 }}>
-                            <svg width="220" height="220" viewBox="0 0 220 220">
-                              <circle cx="110" cy="110" r={r} fill="none" stroke="rgba(240,234,214,0.04)" strokeWidth="8" />
-                              <circle
-                                cx="110" cy="110" r={r} fill="none"
-                                stroke="#E8321A" strokeWidth="8" strokeLinecap="round"
-                                strokeDasharray={circ}
-                                strokeDashoffset={offset}
-                                transform="rotate(-90 110 110)"
-                                style={{ transition: 'stroke-dashoffset 0.5s linear' }}
-                              />
-                            </svg>
-                            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                              <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 300, fontSize: '44px', color: '#F0EAD6', lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{formatTimer(focusTimeLeft)}</span>
-                              <span style={{ fontSize: '12px', color: 'rgba(240,234,214,0.38)', marginTop: '8px' }}>of {durLabel}</span>
-                            </div>
+                        <div style={{ padding: '24px 0 8px', textAlign: 'center' }}>
+                          {/* Label */}
+                          <p style={{ fontSize: '10px', color: '#E8321A', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>Focus Session</p>
+                          {/* Task name */}
+                          {topTask && <p style={{ fontSize: '12px', color: 'rgba(240,234,214,0.55)', margin: '0 0 16px', fontFamily: "'Figtree', sans-serif" }}>{topTask.title}</p>}
+                          {/* Digits */}
+                          <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 300, fontSize: '48px', color: '#F0EAD6', letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums', lineHeight: 1, marginBottom: '16px' }}>{formatTimer(focusTimeLeft)}</div>
+                          {/* Progress bar */}
+                          <div style={{ margin: '0 auto 6px', width: '100%', maxWidth: '280px', height: '5px', background: 'rgba(240,234,214,0.04)', borderRadius: '99px', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, #E8321A, #FF6644)', borderRadius: '99px', transition: 'width 0.5s linear' }} />
                           </div>
-                          <div style={{ display: 'flex', gap: '10px', width: '100%', justifyContent: 'center', marginBottom: '24px' }}>
-                            <button onClick={toggleFocusPause} style={{ background: 'transparent', border: '1px solid rgba(240,234,214,0.19)', borderRadius: '24px', padding: '10px 28px', color: 'rgba(240,234,214,0.7)', fontSize: '14px', cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>{focusRunning ? 'Pause' : 'Resume'}</button>
-                            <button onClick={handleAbandonSession} style={{ background: 'rgba(232,50,26,0.094)', border: '1px solid rgba(232,50,26,0.25)', borderRadius: '24px', padding: '10px 20px', color: '#E8321A', fontSize: '14px', cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>Got Stuck</button>
+                          {/* Time labels */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '280px', margin: '0 auto 24px', fontSize: '10px', color: 'rgba(240,234,214,0.25)', fontFamily: "'Figtree', sans-serif" }}>
+                            <span>0:00</span>
+                            <span>{durLabel}</span>
+                          </div>
+                          {/* Buttons */}
+                          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
+                            <button onClick={toggleFocusPause} style={{ background: 'transparent', border: '1px solid rgba(240,234,214,0.15)', borderRadius: '20px', padding: '10px 28px', color: 'rgba(240,234,214,0.7)', fontSize: '14px', cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>{focusRunning ? 'Pause' : 'Resume'}</button>
+                            <button onClick={handleAbandonSession} style={{ background: 'rgba(232,50,26,0.08)', border: '1px solid rgba(232,50,26,0.22)', borderRadius: '20px', padding: '10px 20px', color: '#E8321A', fontSize: '14px', cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>Got Stuck</button>
                           </div>
                           {showAbandonConfirm ? (
                             <div className={styles.abandonConfirmRow}>
@@ -2945,6 +2957,43 @@ export default function Dashboard() {
                               <button onClick={() => setShowAbandonConfirm(false)} className={styles.abandonNoBtn}>Keep going</button>
                             </div>
                           ) : null}
+
+                          {/* Divider */}
+                          <div style={{ height: '1px', background: 'rgba(240,234,214,0.06)', margin: '20px 0' }} />
+
+                          {/* Focus Shield */}
+                          <div style={{ background: 'rgba(240,234,214,0.03)', border: '1px solid rgba(240,234,214,0.07)', borderRadius: '12px', padding: '14px 16px', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left' }}>
+                            <div>
+                              <p style={{ fontSize: '13px', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif", fontWeight: 600, margin: '0 0 2px' }}>Focus Shield</p>
+                              <p style={{ fontSize: '11px', color: 'rgba(240,234,214,0.4)', fontFamily: "'Figtree', sans-serif", margin: 0 }}>{focusShieldActive ? 'Notifications silenced' : 'Tap to silence distractions'}</p>
+                            </div>
+                            <button
+                              onClick={() => setFocusShieldActive(v => !v)}
+                              style={{ width: '40px', height: '22px', borderRadius: '11px', border: 'none', cursor: 'pointer', background: focusShieldActive ? '#E8321A' : 'rgba(240,234,214,0.12)', position: 'relative', flexShrink: 0, transition: 'background 0.2s' }}
+                            >
+                              <span style={{ position: 'absolute', top: '3px', left: focusShieldActive ? '21px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#F0EAD6', transition: 'left 0.2s' }} />
+                            </button>
+                          </div>
+
+                          {/* Stat cards */}
+                          <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                            {[
+                              { label: 'Streak', value: '—' },
+                              { label: 'Min today', value: focusMinutesToday > 0 ? focusMinutesToday : '0' },
+                              { label: 'Sessions', value: focusSessionsToday },
+                            ].map(({ label, value }) => (
+                              <div key={label} style={{ flex: 1, background: 'rgba(240,234,214,0.03)', border: '1px solid rgba(240,234,214,0.07)', borderRadius: '10px', padding: '10px 8px', textAlign: 'center' }}>
+                                <p style={{ fontSize: '18px', fontFamily: "'Sora', sans-serif", fontWeight: 500, color: '#F0EAD6', margin: '0 0 2px', lineHeight: 1 }}>{value}</p>
+                                <p style={{ fontSize: '10px', color: 'rgba(240,234,214,0.35)', fontFamily: "'Figtree', sans-serif", margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</p>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Focus tip */}
+                          <div style={{ background: 'rgba(232,50,26,0.05)', border: '1px solid rgba(232,50,26,0.14)', borderRadius: '10px', padding: '12px 14px', textAlign: 'left' }}>
+                            <p style={{ fontSize: '10px', color: '#E8321A', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 5px', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>Focus tip</p>
+                            <p style={{ fontSize: '12px', color: 'rgba(240,234,214,0.65)', fontFamily: "'Figtree', sans-serif", lineHeight: 1.6, margin: 0 }}>{focusTips[focusTipIndex % focusTips.length]}</p>
+                          </div>
                         </div>
                         )
                       })()}
@@ -2973,102 +3022,6 @@ export default function Dashboard() {
                           </div>
                         </div>
                       )}
-                    </div>
-                  )}
-                </div>
-
-                {/* ── 🥗 FUEL ── */}
-                <div className={`${styles.focusAccordionCard} ${focusSection === 'fuel' ? styles.focusAccordionCardOpen : ''}`}>
-                  <div className={styles.focusAccordionHeader} onClick={() => setFocusSection(focusSection === 'fuel' ? null : 'fuel')}>
-                    <span className={styles.focusAccordionEmoji}>🥗</span>
-                    <span className={styles.focusAccordionTitle}>Fuel Your Focus</span>
-                    <span className={styles.focusAccordionChevron}><CaretDown size={16} style={{ transform: focusSection === 'fuel' ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s ease' }} /></span>
-                  </div>
-                  {focusSection === 'fuel' && (
-                    <div className={styles.focusAccordionContent}>
-                      <div className={styles.focusContentCards}>
-                        <h2 className={styles.focusContentTitle}>Fuel your focus</h2>
-                        <p className={styles.focusContentSub}>What you eat before a session matters. Keep it simple.</p>
-                        {[
-                          { icon: '🥚', title: 'Protein first', body: 'Eggs, Greek yogurt, or a handful of nuts before a session. Protein stabilizes blood sugar and prevents the mid-session crash that hits ~90 minutes after a high-carb meal.' },
-                          { icon: '🍠', title: 'Complex carbs for sustained energy', body: 'Oats, sweet potato, or whole grain bread 1-2 hours before a long session. They release energy slowly — no spike, no crash. Avoid simple carbs right before starting.' },
-                          { icon: '💧', title: 'Hydration is non-negotiable', body: "Even mild dehydration (1-2%) measurably impairs cognitive function. Drink 500ml of water before your session starts. Keep a glass nearby — you'll drink more if it's visible." },
-                          { icon: '☕', title: 'Caffeine timing', body: 'Wait 90 minutes after waking before your first coffee. This avoids crashing through your cortisol peak. Caffeine peaks at 30-60 min — time it to start just before your session. Cut off by 2pm to protect sleep.' },
-                          { icon: '🚫', title: 'What to avoid', body: 'Heavy meals right before a session send blood flow to your gut. Alcohol the night before fragments sleep and tanks focus the next day. Ultra-processed foods cause inflammation that slows thinking.' },
-                        ].map(({ icon, title, body }) => (
-                          <div key={title} className={styles.focusContentCard}>
-                            <span className={styles.focusContentCardIcon}>{icon}</span>
-                            <div>
-                              <p className={styles.focusContentCardTitle}>{title}</p>
-                              <p className={styles.focusContentCardBody}>{body}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* ── 🏃 MOVE ── */}
-                <div className={`${styles.focusAccordionCard} ${focusSection === 'move' ? styles.focusAccordionCardOpen : ''}`}>
-                  <div className={styles.focusAccordionHeader} onClick={() => setFocusSection(focusSection === 'move' ? null : 'move')}>
-                    <span className={styles.focusAccordionEmoji}>🏃</span>
-                    <span className={styles.focusAccordionTitle}>Move</span>
-                    <span className={styles.focusAccordionChevron}><CaretDown size={16} style={{ transform: focusSection === 'move' ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s ease' }} /></span>
-                  </div>
-                  {focusSection === 'move' && (
-                    <div className={styles.focusAccordionContent}>
-                      <div className={styles.focusContentCards}>
-                        <h2 className={styles.focusContentTitle}>Move to think better</h2>
-                        <p className={styles.focusContentSub}>Physical activity directly improves executive function. Here's how to use it.</p>
-                        {[
-                          { icon: '🚶', title: '10-minute walk before a hard task', body: "A brisk 10-minute walk before a focus session increases BDNF (brain-derived neurotrophic factor) and blood flow to the prefrontal cortex. It's the single most evidence-backed pre-work ritual for cognitive performance." },
-                          { icon: '🪑', title: 'Desk stretches every 45 minutes', body: 'Neck rolls, shoulder circles, chest opener, hip flexor stretch. Takes 2 minutes. Sitting compresses the spine and restricts blood flow — brief movement resets your posture and attention.' },
-                          { icon: '⏱️', title: 'Exercise timing for focus', body: "Morning exercise improves attention for 2-4 hours after. Afternoon exercise (3-5pm) can extend peak focus into the evening. Avoid intense exercise within 3 hours of a critical cognitive task — you'll feel great but your working memory takes a temporary hit." },
-                          { icon: '🧘', title: '5-minute breathing reset', body: "Box breathing: 4 counts in, 4 hold, 4 out, 4 hold. 5 rounds. Activates the parasympathetic nervous system and lowers cortisol. Use this before a session you've been dreading or when you hit a wall." },
-                          { icon: '🏃', title: 'Exercise and ADHD', body: 'Regular aerobic exercise is one of the most powerful non-pharmacological interventions for attention and impulse control. Even 20 minutes of moderate-intensity cardio produces dopamine and norepinephrine — the same targets as stimulant medications.' },
-                        ].map(({ icon, title, body }) => (
-                          <div key={title} className={styles.focusContentCard}>
-                            <span className={styles.focusContentCardIcon}>{icon}</span>
-                            <div>
-                              <p className={styles.focusContentCardTitle}>{title}</p>
-                              <p className={styles.focusContentCardBody}>{body}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* ── 💊 SUPPLEMENTS ── */}
-                <div className={`${styles.focusAccordionCard} ${focusSection === 'supplements' ? styles.focusAccordionCardOpen : ''}`}>
-                  <div className={styles.focusAccordionHeader} onClick={() => setFocusSection(focusSection === 'supplements' ? null : 'supplements')}>
-                    <span className={styles.focusAccordionEmoji}>💊</span>
-                    <span className={styles.focusAccordionTitle}>Supplements</span>
-                    <span className={styles.focusAccordionChevron}><CaretDown size={16} style={{ transform: focusSection === 'supplements' ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s ease' }} /></span>
-                  </div>
-                  {focusSection === 'supplements' && (
-                    <div className={styles.focusAccordionContent}>
-                      <div className={styles.focusContentCards}>
-                        <h2 className={styles.focusContentTitle}>Evidence-based supplements</h2>
-                        <p className={styles.focusContentSub}>Always consult your doctor before starting any supplement, especially if you take medication.</p>
-                        {[
-                          { icon: '🐟', title: 'Omega-3 (EPA/DHA)', body: 'The most studied supplement for cognitive function. EPA and DHA are structural components of brain cell membranes and support communication between neurons. 1-2g of combined EPA/DHA daily. Effects build over weeks, not days.' },
-                          { icon: '🧲', title: 'Magnesium glycinate', body: 'Most people are deficient. Magnesium plays a role in over 300 enzymatic reactions, including those involved in energy production and nerve function. Glycinate form is best absorbed and gentlest on the stomach. 200-400mg before bed also improves sleep quality.' },
-                          { icon: '🍵', title: 'L-Theanine + Caffeine', body: 'The gold standard focus stack. L-theanine (100-200mg) taken with caffeine smooths out the jitteriness, extends the focus window, and reduces the crash. Found naturally together in green tea. Widely studied, consistently well-tolerated.' },
-                          { icon: '🌿', title: 'Bacopa monnieri', body: 'An adaptogenic herb with some of the strongest evidence for improving memory consolidation and reducing cognitive anxiety. Effects take 8-12 weeks to build. Take with fat. Recommended dose: 300-450mg of a 55% bacosides extract.' },
-                          { icon: '⚠️', title: 'A word on stacking', body: "More is not better. Start with one supplement, give it 4-6 weeks, evaluate honestly. Supplements work best on top of fundamentals — sleep, exercise, and nutrition. No supplement compensates for poor sleep. Talk to your doctor, especially if you take any medications." },
-                        ].map(({ icon, title, body }) => (
-                          <div key={title} className={styles.focusContentCard}>
-                            <span className={styles.focusContentCardIcon}>{icon}</span>
-                            <div>
-                              <p className={styles.focusContentCardTitle}>{title}</p>
-                              <p className={styles.focusContentCardBody}>{body}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   )}
                 </div>
