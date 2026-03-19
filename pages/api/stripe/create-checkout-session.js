@@ -26,8 +26,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { priceId } = req.body || {}
-    const finalPriceId = priceId || process.env.STRIPE_PRO_PRICE_ID
+    const priceId = (req.body?.priceId || process.env.STRIPE_PRO_PRICE_ID || '').trim()
+    const finalPriceId = priceId
     const keyPrefix = (process.env.STRIPE_SECRET_KEY || '').substring(0, 20)
     console.log('[stripe:diag] key_prefix:', keyPrefix)
     console.log('[stripe:diag] priceId_received:', priceId)
