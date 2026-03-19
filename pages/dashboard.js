@@ -2833,16 +2833,17 @@ export default function Dashboard() {
                   const taskDateStr = (t) => {
                     if (t.due_date) return t.due_date
                     if (t.scheduled_for) return localDateStr(new Date(t.scheduled_for))
+                    if (t.due_time) return localDateStr(new Date(t.due_time))
                     return null
                   }
+                  const today = todayStr()
+                  const tomorrow = tomorrowStr()
                   const upcomingTasks = tasks
                     .filter(t => !t.completed && !t.archived && taskDateStr(t))
                     .sort((a, b) => {
                       const da = taskDateStr(a), db = taskDateStr(b)
                       return da < db ? -1 : da > db ? 1 : 0
                     })
-                  const today = todayStr()
-                  const tomorrow = tomorrowStr()
                   const fmtUpcomingDate = (dateStr) => {
                     if (dateStr === today) return 'Today'
                     if (dateStr === tomorrow) return 'Tomorrow'
@@ -2864,7 +2865,7 @@ export default function Dashboard() {
                             const isOverdue = dateStr < today
                             return (
                             <div key={t.id} className={styles.calUpcomingRow} onClick={() => setDetailTask(t)}>
-                              <div className={`${styles.calUpcomingDate}${isOverdue ? ` ${styles.calUpcomingDateOverdue}` : ''}`}>{isOverdue ? 'Overdue' : fmtUpcomingDate(dateStr)}</div>
+                              <div className={`${styles.calUpcomingDate}${isOverdue ? ` ${styles.calUpcomingDateOverdue}` : ''}`}>{fmtUpcomingDate(dateStr)}</div>
                               <div className={styles.calUpcomingTitle}>{t.title}</div>
                               {t.consequence_level === 'external' && <span className={styles.calUpcomingExt}>Ext</span>}
                             </div>
