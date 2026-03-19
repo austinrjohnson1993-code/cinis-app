@@ -1909,17 +1909,22 @@
 .progressDayOneCta:hover { background: rgba(255,77,28,0.08); border-color: rgba(255,77,28,0.4); }
 
 .progressSummaryCard {
-  background: linear-gradient(135deg, rgba(255,200,120,0.04) 0%, rgba(255,77,28,0.02) 100%); border: 1px solid rgba(255,200,120,0.1);
-  border-radius: 16px; padding: 22px 20px; margin-top: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,200,120,0.06); transition: all 0.2s ease;
-  border-top: 2px solid var(--accent);
+  background: #2A1810; border: none;
+  border-radius: 12px; padding: 22px 20px; margin-top: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  border-left: 3px solid #E8321A;
+  animation: progressFadeIn 0.35s ease both;
+}
+@keyframes progressFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .progressSummaryLabel {
   font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
   color: rgba(240,234,214,0.35); margin-bottom: 12px;
 }
 .progressSummaryLoading { color: rgba(240,234,214,0.35); font-size: 1.2rem; letter-spacing: 4px; }
-.progressSummaryText { font-size: 0.9rem; color: rgba(240,234,214,0.6); line-height: 1.7; }
+.progressSummaryText { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.95rem; color: rgba(240,234,214,0.7); line-height: 1.75; }
 .progressSummaryRefresh {
   background: transparent; border: 1px solid rgba(255,77,28,0.25); border-radius: 100px;
   padding: 9px 20px; color: var(--accent); font-size: 0.85rem; font-weight: 600;
@@ -2736,6 +2741,17 @@
 .progressStatSub {
   font-size: 0.68rem; color: rgba(240,234,214,0.35);
   font-weight: 500; text-align: center; margin-top: 2px;
+}
+
+.progressStreakBanner {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(232,50,26,0.08); border: 1px solid rgba(232,50,26,0.2);
+  border-radius: 100px; padding: 8px 20px; margin-bottom: 24px;
+  width: fit-content; margin-left: auto; margin-right: auto;
+}
+.progressStreakText {
+  font-family: 'Figtree', sans-serif; font-size: 0.88rem; font-weight: 700;
+  color: #E8321A; letter-spacing: 0.01em;
 }
 
 /* ── Priority star system ── */

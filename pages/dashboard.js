@@ -3360,6 +3360,14 @@ export default function Dashboard() {
                 ))}
               </div>
 
+              {/* ── Streak banner ── */}
+              {getStreak() > 0 && (
+                <div className={styles.progressStreakBanner}>
+                  <span>🔥</span>
+                  <span className={styles.progressStreakText}>{getStreak()} day streak</span>
+                </div>
+              )}
+
               {/* ── Empty state: new user with no data ── */}
               {(() => {
                 const noCompletedTasks = tasks.filter(t => t.completed).length === 0
