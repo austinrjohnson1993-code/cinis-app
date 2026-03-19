@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
@@ -23,11 +23,23 @@ const YEARLY_PRICE_ID  = process.env.NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID  || 'pri
 export default function Upgrade() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) router.push('/login')
+    })
+  }, [])
 
   const handleCheckout = async (priceId) => {
     setLoading(true)
+    setError(null)
     try {
       const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        router.push('/login')
+        return
+      }
       const res = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
@@ -40,10 +52,10 @@ export default function Upgrade() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        console.error('No checkout URL returned')
+        setError('Something went wrong. Please try again.')
       }
     } catch (err) {
-      console.error('Checkout error:', err)
+      setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -142,6 +154,7 @@ export default function Upgrade() {
             </button>
           </div>
 
+          {error && <p style={styles.errorMsg}>{error}</p>}
           <p style={styles.microCopy}>Cancel anytime. No questions asked.</p>
         </div>
 
@@ -342,6 +355,12 @@ const styles = {
     borderRadius: '12px',
     fontSize: '11px',
     fontWeight: 600,
+  },
+
+  errorMsg: {
+    fontSize: '14px',
+    color: '#FF6644',
+    margin: '0 0 12px',
   },
 
   microCopy: {
