@@ -2992,7 +2992,7 @@ export default function Dashboard() {
                 }
               })()}
 
-              {progressBand === 'week' && (
+              {tasks.filter(t => t.completed).length === 0 && (Array.isArray(journalEntries) ? journalEntries : []).length === 0 && getStreak() === 0 ? null : progressBand === 'week' && (
                 <div>
                   <div className={styles.progressStats}>
                     <div className={styles.progressStat}><span className={styles.progressStatNum}>{completedThisWeek.length}</span><span className={styles.progressStatLabel}>Completed</span></div>
@@ -3033,7 +3033,7 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {progressBand === 'month' && (() => {
+              {tasks.filter(t => t.completed).length === 0 && (Array.isArray(journalEntries) ? journalEntries : []).length === 0 && getStreak() === 0 ? null : progressBand === 'month' && (() => {
                 const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
                 const completedThisMonth = tasks.filter(t => t.completed && t.completed_at && new Date(t.completed_at) > thirtyDaysAgo)
                 const totalCompleted = tasks.filter(t => t.completed).length

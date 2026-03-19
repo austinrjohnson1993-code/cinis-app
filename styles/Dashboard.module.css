@@ -1549,7 +1549,31 @@
 .progressWinTitle { flex: 1; font-size: 0.88rem; color: rgba(240,234,214,0.65); line-height: 1.3; }
 .progressWinTime { font-size: 0.72rem; color: rgba(240,234,214,0.28); flex-shrink: 0; }
 
-.progressEmpty { text-align: center; padding: 40px 20px; }
+.progressEmpty {
+  text-align: center;
+  padding: 64px 24px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.progressEmptyHeading {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+  color: rgba(240,234,214,0.75);
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.25;
+}
+.progressEmptySub {
+  font-family: 'Figtree', sans-serif;
+  font-size: 0.88rem;
+  color: rgba(240,234,214,0.35);
+  line-height: 1.6;
+  max-width: 340px;
+  margin: 0;
+}
 
 /* Day-one empty state for Progress/Today band */
 .progressDayOneEmpty {

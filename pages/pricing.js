@@ -35,7 +35,7 @@ export default function Pricing() {
         <div style={s.header}>
           <a href="/" style={s.logo}>
             <span className="brand">
-              <span className="focus">Focus</span><span className="buddy">Buddy</span>
+              <span className="focus">Cinis</span>
             </span>
           </a>
           <p style={s.tagline}>Simple pricing. No surprises.</p>

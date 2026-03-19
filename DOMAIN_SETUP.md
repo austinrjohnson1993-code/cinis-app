@@ -1,10 +1,10 @@
-# Domain Setup — focus-buddy.app
+# Domain Setup — cinis.app
 
 Steps to connect the custom domain to Vercel.
 
 ## 1. Porkbun DNS
 
-1. Go to [Porkbun](https://porkbun.com) → log in → **Domain Management** → `focus-buddy.app`
+1. Go to [Porkbun](https://porkbun.com) → log in → **Domain Management** → `cinis.app`
 2. Click **DNS** (or "Edit DNS records")
 3. Delete any existing A or CNAME records for `@` and `www`
 4. Add the following records:
@@ -20,14 +20,14 @@ Steps to connect the custom domain to Vercel.
 
 1. Go to [Vercel Dashboard](https://vercel.com) → select project **focusbuddy-app**
 2. **Settings** → **Domains**
-3. Click **Add** and enter: `focus-buddy.app` → confirm
-4. Click **Add** again and enter: `www.focus-buddy.app` → confirm
+3. Click **Add** and enter: `cinis.app` → confirm
+4. Click **Add** again and enter: `www.cinis.app` → confirm
 5. Vercel will auto-provision SSL via Let's Encrypt (usually takes < 5 minutes)
 
 ## 3. Verify
 
-- Visit `https://focus-buddy.app` — should load the app with a valid SSL cert
-- Visit `https://www.focus-buddy.app` — should redirect to apex or load directly
+- Visit `https://cinis.app` — should load the app with a valid SSL cert
+- Visit `https://www.cinis.app` — should redirect to apex or load directly
 - `/pro` → `/pricing` redirect is handled in `vercel.json`
 
 ## Env vars reminder
