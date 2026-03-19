@@ -1,0 +1,40 @@
+<svg viewBox="0 0 1024 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="emberGlow" cx="35%" cy="50%">
+      <stop offset="0%" style="stop-color:#D4724D;stop-opacity:0.3" />
+      <stop offset="70%" style="stop-color:#D4724D;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#D4724D;stop-opacity:0" />
+    </radialGradient>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Cormorant+Garamond:wght@400;600&display=swap');
+      .wordmark { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 96px; letter-spacing: -2px; }
+      .tagline { font-family: 'Cormorant Garamond', serif; font-weight: 400; font-size: 32px; }
+    </style>
+  </defs>
+
+  <!-- Coal background -->
+  <rect width="1024" height="500" fill="#0F0906"/>
+
+  <!-- Ember glow behind mark -->
+  <circle cx="256" cy="250" r="280" fill="url(#emberGlow)"/>
+
+  <!-- Cinis mark (geometric circle + dot pattern) -->
+  <g transform="translate(220, 250)">
+    <!-- Outer circle mark -->
+    <circle cx="0" cy="0" r="95" fill="none" stroke="#D4724D" stroke-width="8"/>
+
+    <!-- Inner circles forming coaching concept -->
+    <circle cx="-45" cy="-45" r="30" fill="none" stroke="#D4724D" stroke-width="6" opacity="0.8"/>
+    <circle cx="45" cy="-45" r="30" fill="none" stroke="#D4724D" stroke-width="6" opacity="0.8"/>
+    <circle cx="0" cy="50" r="30" fill="none" stroke="#D4724D" stroke-width="6" opacity="0.8"/>
+
+    <!-- Center dot -->
+    <circle cx="0" cy="0" r="12" fill="#D4724D"/>
+  </g>
+
+  <!-- Wordmark "Cinis" -->
+  <text x="420" y="290" class="wordmark" fill="#FFFFFF">Cinis</text>
+
+  <!-- Tagline -->
+  <text x="420" y="370" class="tagline" fill="#A4A29F">The AI coach that remembers you.</text>
+</svg>
