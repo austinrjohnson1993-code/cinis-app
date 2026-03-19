@@ -278,7 +278,7 @@ const PERSONAS_LIST = [
 ]
 const PERSONA_BADGE = ['Primary', 'Supporting', 'Accent']
 
-const BILL_CATEGORIES = ['Housing', 'Utilities', 'Subscriptions', 'Insurance', 'Transport', 'Food', 'Health', 'Other']
+const BILL_CATEGORIES = ['Housing', 'Utilities', 'Subscriptions', 'Insurance', 'Transport', 'Food', 'Health', 'Medical', 'Education', 'Entertainment', 'Other']
 
 
 function getCheckinType() {
@@ -537,6 +537,9 @@ export default function Dashboard() {
   const [newBillFrequency, setNewBillFrequency] = useState('monthly')
   const [newBillCategory, setNewBillCategory] = useState('')
   const [newBillAutoTask, setNewBillAutoTask] = useState(true)
+  const [newBillNotes, setNewBillNotes] = useState('')
+  const [newBillDate1, setNewBillDate1] = useState('')
+  const [newBillDate2, setNewBillDate2] = useState('')
   const [addingBill, setAddingBill] = useState(false)
 
   // Mobile more drawer
@@ -608,6 +611,8 @@ export default function Dashboard() {
   const [monthlyIncomeInput, setMonthlyIncomeInput] = useState('')
   const [learnReferral, setLearnReferral] = useState(null)
   const [incomeFrequency, setIncomeFrequency] = useState('monthly')
+  const [incomeEntries, setIncomeEntries] = useState([])
+  const [incomeForm, setIncomeForm] = useState({ type: 'Salary', amount: '', frequency: 'monthly' })
   const [billType, setBillType] = useState('bill')
   const [billInterestRate, setBillInterestRate] = useState('')
 
@@ -624,6 +629,9 @@ export default function Dashboard() {
   const [notifMidday, setNotifMidday] = useState(false)
   const [notifEvening, setNotifEvening] = useState(true)
   const [notifPermission, setNotifPermission] = useState(() => typeof Notification !== 'undefined' ? Notification.permission : 'default')
+  const [morningTime, setMorningTime] = useState('08:00')
+  const [middayTime, setMiddayTime] = useState('12:00')
+  const [eveningTime, setEveningTime] = useState('21:00')
 
   // Bill voice input
   const [billListening, setBillListening] = useState(false)
@@ -1420,12 +1428,15 @@ export default function Dashboard() {
       auto_task: newBillAutoTask, created_at: new Date().toISOString(),
       bill_type: billType,
       ...(billInterestRate ? { interest_rate: parseFloat(billInterestRate) } : {}),
+      ...(newBillNotes.trim() ? { notes: newBillNotes.trim() } : {}),
+      ...(newBillFrequency === 'bimonthly' && newBillDate1 ? { date1: parseInt(newBillDate1) } : {}),
+      ...(newBillFrequency === 'bimonthly' && newBillDate2 ? { date2: parseInt(newBillDate2) } : {}),
     }
     const { data } = await supabase.from('bills').insert(bill).select().single()
     if (data) setBills(prev => [data, ...prev])
-    setNewBillName(''); setNewBillAmount(''); setNewBillDueDay('')
+    setNewBillName(''); setNewBillAmount(''); setNewBillDueDay(''); setNewBillNotes('')
     setNewBillFrequency('monthly'); setNewBillCategory(''); setNewBillAutoTask(true)
-    setBillType('bill'); setBillInterestRate('')
+    setBillType('bill'); setBillInterestRate(''); setNewBillDate1(''); setNewBillDate2('')
     setAddingBill(false); setShowAddBillModal(false)
   }
 
@@ -1546,7 +1557,8 @@ export default function Dashboard() {
   const togglePersonaSelection = (key) => {
     setPersonaSelection(prev => {
       if (prev.includes(key)) return prev.length > 1 ? prev.filter(k => k !== key) : prev
-      return prev.length < 3 ? [...prev, key] : prev
+      if (prev.length < 3) return [...prev, key]
+      return [...prev.slice(0, 2), key]
     })
   }
 
@@ -3147,22 +3159,22 @@ export default function Dashboard() {
                 <p className={styles.settingsSectionLabel}>Check-in notifications</p>
                 <div className={styles.settingsCard}>
                   {[
-                    { key: 'morning', label: 'Morning check-in', sub: 'Daily at 8am', val: notifMorning, set: setNotifMorning },
-                    { key: 'midday', label: 'Midday check-in', sub: 'Daily at 12pm', val: notifMidday, set: setNotifMidday },
-                    { key: 'evening', label: 'Evening wrap-up', sub: 'Daily at 9pm', val: notifEvening, set: setNotifEvening },
-                  ].map(({ key, label, sub, val, set }) => (
-                    <div key={key} className={`${styles.settingsRow} ${notifPermission !== 'granted' ? styles.settingsRowDisabled : ''}`}>
-                      <div className={styles.settingsRowLeft}>
+                    { key: 'morning', label: 'Morning check-in', val: notifMorning, set: setNotifMorning, time: morningTime, setTime: setMorningTime },
+                    { key: 'midday', label: 'Midday check-in', val: notifMidday, set: setNotifMidday, time: middayTime, setTime: setMiddayTime },
+                    { key: 'evening', label: 'Evening wrap-up', val: notifEvening, set: setNotifEvening, time: eveningTime, setTime: setEveningTime },
+                  ].map(({ key, label, val, set, time, setTime }) => (
+                    <div key={key} className={`${styles.settingsRow}`} style={{ flexWrap: 'wrap', gap: '12px' }}>
+                      <div className={styles.settingsRowLeft} style={{ flex: 1 }}>
                         <span className={styles.settingsRowLabel}>{label}</span>
-                        <span className={styles.settingsRowSub}>{sub}</span>
+                        <span className={styles.settingsRowSub}>Scheduled at {time}</span>
                       </div>
-                      <button onClick={() => notifPermission === 'granted' && (set(v => !v))}
-                        className={`${styles.notifToggle} ${val ? styles.notifToggleOn : ''}`} />
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input type="time" value={time} onChange={e => setTime(e.target.value)} style={{ padding: '6px 8px', borderRadius: '4px', border: '1px solid rgba(255,102,68,0.2)', background: 'rgba(42,24,16,0.4)', color: '#F0EAD6', fontFamily: 'Figtree, sans-serif', fontSize: '13px' }} />
+                        <button onClick={() => set(v => !v)}
+                          className={`${styles.notifToggle} ${val ? styles.notifToggleOn : ''}`} style={{ flexShrink: 0 }} />
+                      </div>
                     </div>
                   ))}
-                  {notifPermission !== 'granted' && (
-                    <p className={styles.notifDisabledNote}>Enable push notifications above to activate reminders</p>
-                  )}
                   <div className={styles.settingsRow}>
                     <div className={styles.settingsRowLeft}>
                       <span className={styles.settingsRowLabel}>Push notifications</span>
@@ -3323,7 +3335,7 @@ export default function Dashboard() {
 
               {/* Sub-tab nav */}
               <div className={styles.financeSubTabs}>
-                {[['bills',<Receipt size={18} />,'Bills'],['plans',<Scales size={18} />,'Plans'],['knowledge',<Books size={18} />,'Knowledge'],['insights',<Robot size={18} />,'Insights']].map(([id, icon, label]) => (
+                {[['bills',<Receipt size={18} />,'Bills'],['budget',<Scales size={18} />,'Budget'],['knowledge',<Books size={18} />,'Knowledge'],['insights',<Robot size={18} />,'Insights']].map(([id, icon, label]) => (
                   <button key={id} onClick={() => setFinanceSub(id)}
                     className={`${styles.financeSubTab} ${financeSub === id ? styles.financeSubTabActive : ''}`}>
                     <span className={styles.subTabIcon}>{icon}</span>
@@ -3412,7 +3424,7 @@ export default function Dashboard() {
               )}
 
               {/* ── BUDGET ── */}
-              {financeSub === 'plans' && (() => {
+              {financeSub === 'budget' && (() => {
                 const freqMultiplier = { weekly: 4.33, biweekly: 2.17, bimonthly: 2, monthly: 1 }[incomeFrequency] || 1
                 const normalizedIncome = monthlyIncome * freqMultiplier
                 return (
@@ -3439,48 +3451,51 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  {/* Income input */}
+                  {/* Multi-income builder */}
                   <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Take-home income</label>
-                    <div className={styles.quickRow}>
-                      <input
-                        type="number" placeholder="e.g. 3,500" min="0" step="1"
-                        value={monthlyIncomeInput}
-                        onChange={e => setMonthlyIncomeInput(e.target.value)}
-                        className={styles.fieldInput}
-                        style={{ maxWidth: '160px' }}
-                      />
-                      <button
-                        className={styles.addTaskBtn}
-                        onClick={() => {
-                          const val = parseFloat(monthlyIncomeInput) || 0
-                          setMonthlyIncome(val)
-                          if (typeof localStorage !== 'undefined') {
-                            localStorage.setItem('fb_monthly_income', String(val))
-                            localStorage.setItem('fb_income_frequency', incomeFrequency)
-                          }
-                          showToast('Income saved')
-                        }}
-                      >
-                        Save
-                      </button>
+                    <label className={styles.fieldLabel}>Income sources</label>
+                    {incomeEntries.length > 0 && (
+                      <div style={{ marginBottom: '16px' }}>
+                        {incomeEntries.map((entry, idx) => {
+                          const freqMult = { weekly: 4.33, biweekly: 2.17, monthly: 1, yearly: 1/12 }[entry.frequency] || 1
+                          const monthlyVal = entry.amount * freqMult
+                          return (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', padding: '8px', background: 'rgba(255,102,68,0.05)', borderRadius: '6px' }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '13px', fontWeight: 600, color: '#F0EAD6' }}>{entry.type}</div>
+                                <div style={{ fontSize: '12px', color: 'rgba(240,234,214,0.6)' }}>{fmtMoney(entry.amount)} {entry.frequency} ({fmtMoney(monthlyVal)}/mo)</div>
+                              </div>
+                              <button type="button" onClick={() => setIncomeEntries(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', color: 'rgba(240,234,214,0.5)', cursor: 'pointer', padding: '4px' }}>×</button>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                      <select value={incomeForm.type} onChange={e => setIncomeForm(prev => ({ ...prev, type: e.target.value }))} className={styles.fieldInput} style={{ padding: '8px' }}>
+                        {['Salary','Hourly','Freelance','Bonus','Gift','Disability','Child Support','Other'].map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                      <input type="number" placeholder="Amount" min="0" step="1" value={incomeForm.amount} onChange={e => setIncomeForm(prev => ({ ...prev, amount: parseFloat(e.target.value) || '' }))} className={styles.fieldInput} style={{ padding: '8px' }} />
+                      <select value={incomeForm.frequency} onChange={e => setIncomeForm(prev => ({ ...prev, frequency: e.target.value }))} className={styles.fieldInput} style={{ padding: '8px' }}>
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Biweekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                      </select>
                     </div>
-                    {/* Income frequency selector */}
-                    <div className={styles.toggleRow} style={{ marginTop: '10px' }}>
-                      {[['weekly','Weekly'],['biweekly','Biweekly'],['bimonthly','Bimonthly'],['monthly','Monthly']].map(([val, lbl]) => (
-                        <button key={val} type="button" onClick={() => {
-                          setIncomeFrequency(val)
-                          if (typeof localStorage !== 'undefined') localStorage.setItem('fb_income_frequency', val)
-                        }}
-                          className={`${styles.toggleBtn} ${incomeFrequency === val ? styles.toggleBtnActive : ''}`}>
-                          {lbl}
-                        </button>
-                      ))}
-                    </div>
-                    {incomeFrequency !== 'monthly' && monthlyIncome > 0 && (
-                      <p style={{ fontSize: '12px', color: 'rgba(240,234,214,0.35)', marginTop: '6px' }}>
-                        = {fmtMoney(normalizedIncome)}/mo
-                      </p>
+                    <button className={styles.addTaskBtn} onClick={() => {
+                      if (incomeForm.amount) {
+                        setIncomeEntries(prev => [...prev, { ...incomeForm }])
+                        setIncomeForm({ type: 'Salary', amount: '', frequency: 'monthly' })
+                        if (typeof localStorage !== 'undefined') localStorage.setItem('fb_income_entries', JSON.stringify([...incomeEntries, incomeForm]))
+                        showToast('Income source added')
+                      }
+                    }}>Add income source</button>
+                    {incomeEntries.length > 0 && (
+                      <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(255,102,68,0.08)', borderRadius: '8px' }}>
+                        <div style={{ fontSize: '12px', color: 'rgba(240,234,214,0.6)', marginBottom: '4px' }}>Total monthly:</div>
+                        <div style={{ fontSize: '18px', fontWeight: 600, color: '#F0EAD6' }}>{fmtMoney(incomeEntries.reduce((sum, e) => sum + (e.amount * ({ weekly: 4.33, biweekly: 2.17, monthly: 1, yearly: 1/12 }[e.frequency] || 1)), 0))}</div>
+                      </div>
                     )}
                   </div>
 
@@ -3617,7 +3632,7 @@ export default function Dashboard() {
                                 className={styles.learnCardApplyBtn}
                                 onClick={() => {
                                   setLearnReferral(key)
-                                  setFinanceSub('plans')
+                                  setFinanceSub('budget')
                                   window.scrollTo({ top: 0, behavior: 'smooth' })
                                 }}
                               >
@@ -3953,6 +3968,22 @@ export default function Dashboard() {
                     value={newBillDueDay} onChange={e => setNewBillDueDay(e.target.value)}
                     className={styles.fieldInput} />
                 </div>
+                {newBillFrequency === 'bimonthly' && (
+                  <>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>First date <span className={styles.fieldLabelOptional}>(optional)</span></label>
+                      <input type="number" placeholder="e.g. 1" min="1" max="31"
+                        value={newBillDate1} onChange={e => setNewBillDate1(e.target.value)}
+                        className={styles.fieldInput} />
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>Second date <span className={styles.fieldLabelOptional}>(optional)</span></label>
+                      <input type="number" placeholder="e.g. 15" min="1" max="31"
+                        value={newBillDate2} onChange={e => setNewBillDate2(e.target.value)}
+                        className={styles.fieldInput} />
+                    </div>
+                  </>
+                )}
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Category</label>
                   <div className={styles.quickRow} style={{ flexWrap: 'wrap' }}>
@@ -3963,6 +3994,12 @@ export default function Dashboard() {
                       </button>
                     ))}
                   </div>
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Notes <span className={styles.fieldLabelOptional}>(optional)</span></label>
+                  <textarea placeholder="Add any notes about this bill..."
+                    value={newBillNotes} onChange={e => setNewBillNotes(e.target.value)}
+                    className={styles.fieldInput} style={{ minHeight: '80px', resize: 'vertical' }} />
                 </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Auto-create task when due</label>
