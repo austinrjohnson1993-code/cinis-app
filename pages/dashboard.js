@@ -2131,7 +2131,7 @@ export default function Dashboard() {
                         flexShrink: 0,
                         padding: '8px 14px',
                         background: 'var(--accent)',
-                        color: '#fff',
+                        color: '#F0EAD6',
                         border: 'none',
                         borderRadius: '8px',
                         fontFamily: "'Figtree', sans-serif",

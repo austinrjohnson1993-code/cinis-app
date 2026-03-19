@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
+import { Flame } from '@phosphor-icons/react'
 import { supabase } from '../lib/supabase'
 import styles from '../styles/Habits.module.css'
 
@@ -87,7 +88,7 @@ export default function Habits() {
             <p className={styles.loading}>Loading...</p>
           ) : habits.length === 0 ? (
             <div className={styles.emptyState}>
-              <p className={styles.emptyIcon}>🔥</p>
+              <div className={styles.emptyIcon}><Flame size={40} weight="fill" color="#E8321A" /></div>
               <p className={styles.emptyText}>No habits yet.</p>
               <p className={styles.emptySub}>Add your first one to start building momentum.</p>
               <button className={styles.emptyAddBtn} onClick={() => setShowModal(true)}>Add your first habit</button>
