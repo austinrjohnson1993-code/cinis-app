@@ -119,6 +119,34 @@ export default function Habits() {
             + Add habit
           </button>
 
+          {/* Loading skeleton */}
+          {loading && habits.length === 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[1, 2, 3].map(idx => (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '16px',
+                    background: 'rgba(255,102,68,0.05)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255,102,68,0.15)',
+                    gap: '12px',
+                    opacity: 0.5,
+                    animation: 'pulse 1.5s ease-in-out infinite',
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div style={{ height: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', marginBottom: '6px', width: '60%' }} />
+                    <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', width: '40%' }} />
+                  </div>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Empty state */}
           {habits.length === 0 && !loading && (
             <div className={styles.emptyState}>

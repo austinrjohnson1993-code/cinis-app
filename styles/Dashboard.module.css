@@ -1546,6 +1546,138 @@
 .journalSendBtn:hover:not(:disabled) { background: #E8321A; box-shadow: 0 4px 20px rgba(255,77,28,0.5), 0 2px 6px rgba(0,0,0,0.3); transform: translateY(-1px); }
 .journalSendBtn:disabled { opacity: 0.35; cursor: not-allowed; }
 
+.journalPromptBtn {
+  background: none;
+  border: 1px solid rgba(255,200,120,0.18);
+  border-radius: 100px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  color: rgba(240,234,214,0.42);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  font-family: 'Figtree', sans-serif;
+  white-space: nowrap;
+}
+.journalPromptBtn:hover { color: rgba(240,234,214,0.7); border-color: rgba(255,200,120,0.35); }
+
+/* Prompt modal */
+.promptModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+  padding: 0 0 0 0;
+}
+@media (min-width: 520px) {
+  .promptModalOverlay { align-items: center; }
+}
+.promptModal {
+  background: #2A1810;
+  border: 1px solid rgba(255,200,120,0.12);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 28px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+@media (min-width: 520px) {
+  .promptModal { border-radius: 20px; }
+}
+.promptModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.promptModalTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f0ead6;
+  font-family: 'Figtree', sans-serif;
+}
+.promptModalClose {
+  background: none;
+  border: none;
+  color: rgba(240,234,214,0.4);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.promptModalClose:hover { color: rgba(240,234,214,0.8); }
+
+/* Category tabs — mirrors financeSubTab style */
+.promptCategoryTabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255,200,120,0.1);
+}
+.promptCategoryTab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-family: 'Figtree', sans-serif;
+  color: rgba(240,234,214,0.4);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+.promptCategoryTab:hover { color: rgba(240,234,214,0.7); }
+.promptCategoryTabActive {
+  border-bottom-color: var(--accent, #E8321A) !important;
+  color: rgba(240,234,214,0.9) !important;
+}
+
+/* Prompt cards */
+.promptList { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.promptCard {
+  background: rgba(255,200,120,0.04);
+  border: 1px solid rgba(255,200,120,0.1);
+  border-left: 3px solid transparent;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  color: rgba(240,234,214,0.7);
+  line-height: 1.5;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.promptCard:hover { border-left-color: rgba(232,50,26,0.4); color: rgba(240,234,214,0.9); background: rgba(255,200,120,0.07); }
+.promptCardSelected {
+  border-left-color: var(--accent, #E8321A) !important;
+  color: #f0ead6 !important;
+  background: rgba(232,50,26,0.06) !important;
+}
+
+/* Use prompt CTA */
+.promptUseBtn {
+  width: 100%;
+  background: var(--accent, #E8321A);
+  color: #110d06;
+  border: none;
+  border-radius: 100px;
+  padding: 13px 24px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.promptUseBtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(232,50,26,0.4); }
+.promptUseBtn:disabled { opacity: 0.35; cursor: not-allowed; }
+
 /* ════════════════════════════════════════════
    PROGRESS
    ════════════════════════════════════════════ */
@@ -2726,6 +2858,106 @@
 [data-theme="paper"] .focusActionDelete:hover {
   border-color: #e74c3c;
   color: #e74c3c;
+}
+
+/* ════════════════════════════════════════════
+   SKELETON LOADERS
+   ════════════════════════════════════════════ */
+.taskSkeletonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.taskSkeleton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255,102,68,0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255,102,68,0.15);
+}
+
+.skeletonCheck {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  flex-shrink: 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonDrag {
+  width: 20px;
+  height: 16px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  flex-shrink: 0;
+  animation: pulse 1.5s ease-in-out infinite 0.1s;
+}
+
+.skeletonLine {
+  height: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  animation: pulse 1.5s ease-in-out infinite 0.2s;
+}
+
+.skeletonAction {
+  width: 32px;
+  height: 24px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  flex-shrink: 0;
+  animation: pulse 1.5s ease-in-out infinite 0.3s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* ════════════════════════════════════════════
+   FAB (Floating Action Button)
+   ════════════════════════════════════════════ */
+.fabContainer {
+  display: none;
+}
+
+.fabButton {
+  z-index: 9001;
+}
+
+/* Mobile-only: show FAB on screens < 768px */
+@media (max-width: 768px) {
+  .fabContainer {
+    display: block !important;
+  }
+}
+
+/* Desktop: hide FAB on screens > 768px */
+@media (min-width: 769px) {
+  .fabContainer {
+    display: none !important;
+  }
+}
+
+/* Staggered animation for menu items */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ════════════════════════════════════════════

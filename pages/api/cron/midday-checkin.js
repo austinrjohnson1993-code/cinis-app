@@ -1,11 +1,21 @@
 import { createClient } from '@supabase/supabase-js'
 import { buildPersonaPrompt } from '../../../lib/persona'
 import { coachingMessage } from '../../../lib/anthropic'
+import webpush from 'web-push'
 
 function getAdminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
+  )
+}
+
+// Configure web-push with VAPID keys
+if (process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    'mailto:hello@cinis.app',
+    process.env.NEXT_PUBLIC_VAPID_KEY,
+    process.env.VAPID_PRIVATE_KEY
   )
 }
 
@@ -80,6 +90,23 @@ export default async function handler(req, res) {
         last_checkin_message: message,
         last_checkin_at: new Date().toISOString()
       }).eq('id', profile.id)
+
+      // Send push notification if user has enabled it
+      if (profile.push_notifications_enabled && profile.push_subscription) {
+        try {
+          await webpush.sendNotification(
+            profile.push_subscription,
+            JSON.stringify({
+              title: 'Midday check-in, ' + name,
+              body: message,
+              url: '/dashboard'
+            })
+          )
+          console.log(`[midday-checkin] Push sent to ${name}`)
+        } catch (pushErr) {
+          console.error(`[midday-checkin] Push failed for ${profile.id}:`, pushErr.message)
+        }
+      }
 
       pregenerated++
       console.log(`[midday-checkin] Pre-generated for ${name}`)

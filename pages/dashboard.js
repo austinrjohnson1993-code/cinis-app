@@ -9,7 +9,7 @@ import { saveTaskOrder } from '../lib/taskOrder'
 import { isDueSoon as billIsDueSoon, formatBillAmount, getBillCategory, getNextDueDate } from '../lib/billUtils'
 import { CHORE_PRESETS, getChoresByPreset } from '../lib/chores'
 import { requestNotificationPermission, disablePushNotifications } from '../lib/pushNotifications'
-import { CheckSquare, ChatCircle, Target, CalendarBlank, Notebook, Wallet, ChartLineUp, Plus, Trash, Archive, Star, Gear, MagnifyingGlass, X, CaretLeft, CaretRight, CaretDown, Receipt, Scales, Books, Robot, List, Timer, ChartBar, Lightning, ArrowCounterClockwise, CheckCircle, Microphone, TrendUp, WarningCircle } from '@phosphor-icons/react'
+import { CheckSquare, ChatCircle, Target, CalendarBlank, Notebook, Wallet, ChartLineUp, Plus, Trash, Archive, Star, Gear, MagnifyingGlass, X, CaretLeft, CaretRight, CaretDown, Receipt, Scales, Books, Robot, List, Timer, ChartBar, Lightning, ArrowCounterClockwise, CheckCircle, Microphone, TrendUp, WarningCircle, UsersThree } from '@phosphor-icons/react'
 import UpgradeModal from '../components/UpgradeModal'
 
 const THEMES = [
@@ -73,6 +73,7 @@ const NAV_ITEMS = [
   { id: 'calendar', label: 'Calendar', icon: <CalendarBlank size={22} /> },
   { id: 'journal', label: 'Journal', icon: <Notebook size={22} /> },
   { id: 'habits', label: 'Habits', icon: <ArrowCounterClockwise size={22} /> },
+  { id: 'partners', label: 'Partners', icon: <UsersThree size={22} />, href: '/accountability' },
   { id: 'finance', label: 'Finance', icon: <Wallet size={22} /> },
   { id: 'progress', label: 'Progress', icon: <ChartLineUp size={22} /> },
 ]
@@ -501,6 +502,10 @@ export default function Dashboard() {
   const [journalExpandedEntry, setJournalExpandedEntry] = useState(null)
   const [journalPendingTask, setJournalPendingTask] = useState(null)
   const journalEndRef = useRef(null)
+  const [showJournalPrompts, setShowJournalPrompts] = useState(false)
+  const [journalPromptCategory, setJournalPromptCategory] = useState('personal')
+  const [selectedPrompt, setSelectedPrompt] = useState(null)
+  const [partnerNudge, setPartnerNudge] = useState(null)
 
   // Focus mode
   const [focusPhase, setFocusPhase] = useState('setup') // setup | active | stuck
@@ -639,6 +644,7 @@ export default function Dashboard() {
   const [morningTime, setMorningTime] = useState('08:00')
   const [middayTime, setMiddayTime] = useState('12:00')
   const [eveningTime, setEveningTime] = useState('21:00')
+  const [checkinPrefSaved, setCheckinPrefSaved] = useState(false)
 
   // Nutrition tracking
   const [nutritionStaples, setNutritionStaples] = useState([])
@@ -656,6 +662,10 @@ export default function Dashboard() {
   const [billVoiceTranscript, setBillVoiceTranscript] = useState('')
   const [billParsing, setBillParsing] = useState(false)
   const billRecognitionRef = useRef(null)
+
+  // FAB (Floating Action Button)
+  const [showFabMenu, setShowFabMenu] = useState(false)
+  const fabMenuRef = useRef(null)
 
   // Next move
   const [nextMoveLoading, setNextMoveLoading] = useState(false)
@@ -719,6 +729,11 @@ export default function Dashboard() {
       setUser(session.user)
       fetchProfile(session.user.id)
       fetchTasks(session.user.id)
+      // Fetch partner nudge data quietly in background
+      fetch(`/api/accountability?userId=${session.user.id}`)
+        .then(r => r.json())
+        .then(data => { if (data.partner) setPartnerNudge(data.partner) })
+        .catch(() => {})
     })
   }, [])
 
@@ -828,11 +843,24 @@ export default function Dashboard() {
       if (showAddModal) { setShowAddModal(false); return }
       if (showMoreDrawer) { setShowMoreDrawer(false); return }
       if (showTutorial) { setShowTutorial(false); return }
+      if (showFabMenu) { setShowFabMenu(false); return }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showSessionEndModal, showPersonaModal, showAlarmsModal, showGuideModal,
-      showAddBillModal, detailTask, showAddModal, showMoreDrawer, showTutorial])
+      showAddBillModal, detailTask, showAddModal, showMoreDrawer, showTutorial, showFabMenu])
+
+  // Close FAB menu on click outside
+  useEffect(() => {
+    if (!showFabMenu) return
+    const handleClickOutside = (e) => {
+      if (fabMenuRef.current && !fabMenuRef.current.contains(e.target)) {
+        setShowFabMenu(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showFabMenu])
 
   useEffect(() => {
     if (activeTab === 'progress' && user) {
@@ -1073,11 +1101,17 @@ export default function Dashboard() {
     setFinanceInsightsLoading(true)
     setFinanceInsightsLoaded(true)
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
       const res = await loggedFetch('/api/finance-insights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, incomeEntries, monthlyIncome }),
+        signal: controller.signal
       })
+      clearTimeout(timeoutId)
+
       const data = await res.json()
       if (data.empty) {
         setFinanceInsightsEmpty(true)
@@ -1334,10 +1368,16 @@ export default function Dashboard() {
     const updated = [...checkinMessages, userMsg]
     setCheckinMessages(updated); setCheckinInput(''); setCheckinLoading(true)
     try {
+      // Add timeout: 15 seconds max
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
       const res = await loggedFetch('/api/checkin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, checkInType: getCheckinType(), messages: updated, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+        body: JSON.stringify({ userId: user.id, checkInType: getCheckinType(), messages: updated, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+        signal: controller.signal
       })
+      clearTimeout(timeoutId)
       if (res.status === 429) {
         setUpgradeModalTrigger('limit')
         setCheckinLoading(false)
@@ -1356,8 +1396,13 @@ export default function Dashboard() {
       fetchTasks(user.id)
       if (billsLoaded) fetchBills(user.id)
       fetchAlarms(user.id)
-    } catch {
-      setCheckinMessages(prev => [...prev, { role: 'assistant', content: "I'm here. Keep going." }])
+    } catch (err) {
+      // Check if this is a timeout error
+      if (err.name === 'AbortError') {
+        setCheckinMessages(prev => [...prev, { role: 'assistant', content: "Your coach is taking longer than usual. Try again in a moment." }])
+      } else {
+        setCheckinMessages(prev => [...prev, { role: 'assistant', content: "Something went wrong. Try again?" }])
+      }
     }
     setCheckinLoading(false)
   }
@@ -1373,10 +1418,16 @@ export default function Dashboard() {
     setJournalMessages(prev => [...prev, newMsg])
     setJournalInput(''); setJournalLoading(true)
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
       const res = await loggedFetch('/api/journal', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, content, conversationHistory: journalMessages })
+        body: JSON.stringify({ userId: user.id, content, conversationHistory: journalMessages }),
+        signal: controller.signal
       })
+      clearTimeout(timeoutId)
+
       const data = await res.json()
       setJournalMessages(prev => {
         const next = [...prev, { role: 'assistant', content: data.message }]
@@ -1386,8 +1437,12 @@ export default function Dashboard() {
       const userMsgCount = journalMessages.filter(m => m.role === 'user').length + 1
       if (!journalReminderShown && userMsgCount >= 3) { setJournalReminderShown(true); setShowJournalReminder(true) }
       if (data.extractedTasks?.length > 0) setJournalPendingTask(data.extractedTasks[0])
-    } catch {
-      setJournalMessages(prev => [...prev, { role: 'assistant', content: "I'm here. Keep going." }])
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        setJournalMessages(prev => [...prev, { role: 'assistant', content: "I'm taking a moment to think. Try again in a moment?" }])
+      } else {
+        setJournalMessages(prev => [...prev, { role: 'assistant', content: "Something went wrong. Try again?" }])
+      }
     }
     setJournalLoading(false)
   }
@@ -1618,7 +1673,8 @@ export default function Dashboard() {
         evening_time: eveningTime,
       }).eq('id', user.id)
       setProfile(prev => ({ ...prev, checkin_times: checkinTimesList, morning_time: morningTime, midday_time: middayTime, evening_time: eveningTime }))
-      showToast('Check-in preferences saved')
+      setCheckinPrefSaved(true)
+      setTimeout(() => setCheckinPrefSaved(false), 1500)
     } catch (err) {
       console.error('[checkin] save error:', err)
       showToast('Could not save check-in preferences')
@@ -2029,7 +2085,7 @@ export default function Dashboard() {
           </div>
           <nav className={styles.sidebarNav}>
             {NAV_ITEMS.map(item => (
-              <button key={item.id} onClick={() => switchTab(item.id)}
+              <button key={item.id} onClick={() => item.href ? router.push(item.href) : switchTab(item.id)}
                 className={`${styles.sidebarNavItem} ${activeTab === item.id ? styles.sidebarNavItemActive : ''}`}>
                 <span className={styles.navIcon}>{item.icon}</span>
                 <span className={styles.navLabel}>{item.label}</span>
@@ -2183,6 +2239,36 @@ export default function Dashboard() {
                 )
               })()}
 
+              {/* ── Partner nudge card ── */}
+              {partnerNudge && (() => {
+                const firstName = partnerNudge.name.split(' ')[0] || partnerNudge.name
+                return (
+                  <div style={{
+                    background: 'rgba(255,102,68,0.05)',
+                    border: '1px solid rgba(255,102,68,0.15)',
+                    borderRadius: '12px',
+                    padding: '13px 18px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                  }}>
+                    <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: '13px', color: 'rgba(240,234,214,0.65)', lineHeight: 1.5 }}>
+                      <UsersThree size={14} style={{ verticalAlign: 'middle', marginRight: '6px', color: 'var(--accent)' }} />
+                      You and <strong style={{ color: '#f0ead6' }}>{firstName}</strong> have completed{' '}
+                      <strong style={{ color: '#f0ead6' }}>{partnerNudge.combinedTasksThisWeek}</strong> tasks together this week.
+                    </div>
+                    <button
+                      onClick={() => router.push('/accountability')}
+                      style={{ flexShrink: 0, background: 'none', border: '1px solid rgba(255,102,68,0.25)', borderRadius: '100px', padding: '5px 13px', color: 'rgba(240,234,214,0.55)', fontSize: '12px', cursor: 'pointer', fontFamily: "'Figtree', sans-serif", whiteSpace: 'nowrap' }}
+                    >
+                      View
+                    </button>
+                  </div>
+                )
+              })()}
+
               <div className={styles.focusCardWrap}>
                 {electedTask ? (
                   <>
@@ -2257,6 +2343,22 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
+
+              {loading && dedupedPendingTasks.length === 0 && (
+                <div className={styles.taskSkeletonContainer}>
+                  {[1, 2, 3].map(idx => (
+                    <div key={idx} className={styles.taskSkeleton}>
+                      <div className={styles.skeletonCheck} />
+                      <div className={styles.skeletonDrag} />
+                      <div style={{ flex: 1 }}>
+                        <div className={styles.skeletonLine} style={{ width: '60%', marginBottom: '6px' }} />
+                        <div className={styles.skeletonLine} style={{ width: '40%' }} />
+                      </div>
+                      <div className={styles.skeletonAction} />
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {dedupedPendingTasks.length > 0 && (
                 <>
@@ -2744,6 +2846,20 @@ export default function Dashboard() {
                     }} className={styles.calAddBtn}>+ Add</button>
                   </div>
                   <div className={styles.calTimeline}>
+                    {dayTasks.length === 0 && dayBillsDue.length === 0 && (
+                      <div className={styles.emptyState}>
+                        <div className={styles.emptyIcon}>📅</div>
+                        <p className={styles.emptyText}>No tasks scheduled.</p>
+                        <p className={styles.emptySubtext}>Add a task with a due date to see it here.</p>
+                        <button onClick={() => {
+                          if (calDay) {
+                            const d = calDay
+                            setNewDueDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)
+                          }
+                          setShowAddModal(true)
+                        }} className={styles.emptyAddBtn}>+ Add task</button>
+                      </div>
+                    )}
                     {unscheduled.length > 0 && (
                       <div className={styles.calUnscheduledBlock}>
                         <div className={styles.calSlotLabel}>Unscheduled — drag to a time slot</div>
@@ -2980,6 +3096,75 @@ export default function Dashboard() {
                   setJournalMessages([])
                 }}>Clear history</button>
               )}
+              {/* Journal Prompts Modal */}
+              {showJournalPrompts && (() => {
+                const JOURNAL_PROMPTS = {
+                  personal: [
+                    "What's something you're proud of today, even if it's small?",
+                    "What's been on your mind that you haven't said out loud?",
+                    "Who or what are you grateful for right now?",
+                    "What would make today feel complete?",
+                  ],
+                  productivity: [
+                    "What's the one thing that would move the needle most today?",
+                    "What have you been avoiding and why?",
+                    "Where did your energy go today — was it worth it?",
+                    "What would you do differently if you started today over?",
+                  ],
+                  mental: [
+                    "How are you actually feeling right now, underneath the surface?",
+                    "What's draining you lately that you haven't addressed?",
+                    "What do you need more of right now — rest, connection, or momentum?",
+                    "What would you tell a friend who was feeling exactly how you feel?",
+                  ],
+                }
+                const catLabels = { personal: 'Personal', productivity: 'Productivity', mental: 'Mental Health' }
+                return (
+                  <div className={styles.promptModalOverlay} onClick={() => setShowJournalPrompts(false)}>
+                    <div className={styles.promptModal} onClick={e => e.stopPropagation()}>
+                      <div className={styles.promptModalHeader}>
+                        <span className={styles.promptModalTitle}>Choose a prompt</span>
+                        <button className={styles.promptModalClose} onClick={() => setShowJournalPrompts(false)}>✕</button>
+                      </div>
+                      <div className={styles.promptCategoryTabs}>
+                        {Object.keys(JOURNAL_PROMPTS).map(cat => (
+                          <button
+                            key={cat}
+                            className={`${styles.promptCategoryTab} ${journalPromptCategory === cat ? styles.promptCategoryTabActive : ''}`}
+                            onClick={() => setJournalPromptCategory(cat)}
+                          >
+                            {catLabels[cat]}
+                          </button>
+                        ))}
+                      </div>
+                      <div className={styles.promptList}>
+                        {JOURNAL_PROMPTS[journalPromptCategory].map((prompt, i) => (
+                          <div
+                            key={i}
+                            className={`${styles.promptCard} ${selectedPrompt === prompt ? styles.promptCardSelected : ''}`}
+                            onClick={() => setSelectedPrompt(prompt)}
+                          >
+                            {prompt}
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        className={styles.promptUseBtn}
+                        disabled={!selectedPrompt}
+                        onClick={() => {
+                          if (selectedPrompt) {
+                            setJournalInput(selectedPrompt)
+                            setShowJournalPrompts(false)
+                          }
+                        }}
+                      >
+                        Use this prompt
+                      </button>
+                    </div>
+                  </div>
+                )
+              })()}
+
               <form onSubmit={sendJournalMessage} className={styles.journalForm}>
                 <textarea placeholder="What's on your mind..."
                   value={journalInput}
@@ -2999,8 +3184,11 @@ export default function Dashboard() {
                   <p className={styles.journalAutoSaveHint}>Your conversation saves automatically when you leave this tab.</p>
                 )}
                 <div className={styles.journalFormFooter}>
-                  <span className={styles.journalHint}>Shift+Enter for new line</span>
-                  <button type="submit" disabled={journalLoading || !journalInput.trim()} className={styles.journalSendBtn}>Send </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span className={styles.journalHint}>Shift+Enter for new line</span>
+                    <button type="button" className={styles.journalPromptBtn} onClick={() => { setShowJournalPrompts(true); setSelectedPrompt(null) }}>Need a prompt?</button>
+                  </div>
+                  <button type="submit" disabled={journalLoading || !journalInput.trim()} className={styles.journalSendBtn}>Send</button>
                 </div>
               </form>
 
@@ -3324,7 +3512,10 @@ export default function Dashboard() {
                       </div>
                     </div>
                   ))}
-                  <button onClick={saveCheckinPreferences} className={styles.addTaskBtn} style={{ width: '100%', marginTop: '8px' }}>Save preferences</button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
+                    <button onClick={saveCheckinPreferences} className={styles.addTaskBtn} style={{ flex: 1 }}>Save preferences</button>
+                    <span style={{ fontSize: '13px', color: '#3ecf8e', opacity: checkinPrefSaved ? 1 : 0, transition: 'opacity 300ms ease', whiteSpace: 'nowrap' }}>Saved ✓</span>
+                  </div>
                 </div>
               </div>
 
@@ -4658,6 +4849,106 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+      {/* FAB (Floating Action Button) - Mobile only */}
+      <div
+        ref={fabMenuRef}
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          display: 'none',
+          zIndex: 9000,
+        }}
+        className={styles.fabContainer}
+      >
+        {/* FAB Button */}
+        <button
+          onClick={() => setShowFabMenu(!showFabMenu)}
+          style={{
+            width: '52px',
+            height: '52px',
+            borderRadius: '50%',
+            background: '#E8321A',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(232,50,26,0.3)',
+            transition: 'all 200ms ease',
+            transform: showFabMenu ? 'scale(1.1) rotate(45deg)' : 'scale(1)',
+          }}
+          className={styles.fabButton}
+        >
+          <CinisMark size={24} />
+        </button>
+
+        {/* FAB Menu */}
+        {showFabMenu && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '70px',
+              right: '0',
+              background: 'rgba(34,22,8,0.98)',
+              backdropFilter: 'blur(8px)',
+              borderRadius: '12px',
+              border: '1px solid rgba(255,102,68,0.2)',
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              minWidth: '160px',
+            }}
+          >
+            {[
+              { id: 'tasks', label: 'Tasks' },
+              { id: 'checkin', label: 'Check-in' },
+              { id: 'focus', label: 'Focus' },
+              { id: 'calendar', label: 'Calendar' },
+              { id: 'journal', label: 'Journal' },
+              { id: 'habits', label: 'Habits' },
+              { id: 'finance', label: 'Finance' },
+              { id: 'progress', label: 'Progress' },
+            ].map((item, idx) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id)
+                  setShowFabMenu(false)
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: idx < 7 ? '1px solid rgba(255,102,68,0.1)' : 'none',
+                  color: activeTab === item.id ? '#FF6644' : '#F0EAD6',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  fontWeight: activeTab === item.id ? 600 : 400,
+                  transition: 'all 150ms ease',
+                  animation: showFabMenu ? `slideUp 300ms ease ${idx * 30}ms both` : 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== item.id) {
+                    e.target.style.background = 'rgba(255,102,68,0.1)'
+                    e.target.style.color = '#FF6644'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== item.id) {
+                    e.target.style.background = 'transparent'
+                    e.target.style.color = '#F0EAD6'
+                  }
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       </div>
 
