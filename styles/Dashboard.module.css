@@ -2083,6 +2083,9 @@
 .financeSubTabs {
   display: flex; gap: 0; margin-bottom: 24px;
   border-bottom: 1px solid rgba(255,200,120,0.1);
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
 }
 .financeSubTab {
   background: none; border: none; border-bottom: 2px solid transparent;
@@ -2723,4 +2726,17 @@
 [data-theme="paper"] .focusActionDelete:hover {
   border-color: #e74c3c;
   color: #e74c3c;
+}
+
+/* ════════════════════════════════════════════
+   RESPONSIVE — 480px Mobile
+   ════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .viewHeader {
+    flex-direction: column;
+  }
+  .addTaskBtn {
+    width: 100%;
+    justify-content: center;
+  }
 }
