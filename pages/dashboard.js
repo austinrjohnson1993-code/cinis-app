@@ -2955,10 +2955,9 @@ export default function Dashboard() {
                   </div>
                   <div className={styles.calTimeline}>
                     {dayTasks.length === 0 && dayBillsDue.length === 0 && (
-                      <div className={styles.emptyState}>
-                        <div className={styles.emptyIcon}>📅</div>
-                        <p className={styles.emptyText}>No tasks scheduled.</p>
-                        <p className={styles.emptySubtext}>Add a task with a due date to see it here.</p>
+                      <div className={styles.calEmptyState}>
+                        <CalendarBlank size={36} className={styles.calEmptyIcon} weight="thin" />
+                        <p className={styles.calEmptyText}>Nothing scheduled. Add a due date to a task to see it here.</p>
                         <button onClick={() => {
                           if (calDay) {
                             const d = calDay
@@ -2992,7 +2991,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                     )}
-                    {HOURS.map(h => {
+                    {HOURS.map((h, hIdx) => {
                       const slotTasks = tasksByHour[h] || []
                       const label = h === 0 ? '12am' : h === 12 ? '12pm' : h < 12 ? `${h}am` : `${h - 12}pm`
                       const isCurrentHour = calDay && calDay.toDateString() === new Date().toDateString() && h === new Date().getHours()
@@ -3000,7 +2999,7 @@ export default function Dashboard() {
                         <div
                           key={h}
                           id={isCurrentHour ? 'time-slot-now' : undefined}
-                          className={`${styles.calHourSlot} ${slotTasks.length > 0 ? styles.calHourSlotFilled : ''} ${dragOverHour === h ? styles.timeSlotDragOver : ''}`}
+                          className={`${styles.calHourSlot} ${hIdx % 2 === 0 ? styles.calHourSlotEven : styles.calHourSlotOdd} ${slotTasks.length > 0 ? styles.calHourSlotFilled : ''} ${dragOverHour === h ? styles.timeSlotDragOver : ''}`}
                           onDragOver={e => { e.preventDefault(); setDragOverHour(h) }}
                           onDragLeave={() => setDragOverHour(null)}
                           onDrop={e => handleDropOnTimeSlot(e, h)}
@@ -3036,6 +3035,7 @@ export default function Dashboard() {
                       <div className={styles.calBillsLabel}>Bills Due</div>
                       {dayBillsDue.map(bill => (
                         <div key={bill.id} className={styles.calBillRow}>
+                          <span className={styles.calBillIcon}>$</span>
                           <span className={styles.calBillName}>{bill.name}</span>
                           <span className={styles.calBillAmount}>{fmtMoney(bill.amount)}</span>
                           <span className={styles.calBillCat}>{bill.category || 'Other'}</span>
@@ -3066,18 +3066,18 @@ export default function Dashboard() {
                     const dayTasks = monthOccurrences[dStr] || []
                     const dayBills = billDueDays[dStr] || []
                     const isToday = dStr === todayDStr
+                    const isSelected = calDay && localDateStr(calDay) === dStr
                     return (
-                      <div key={idx} className={`${styles.calCell} ${isToday ? styles.calCellToday : ''}`}
+                      <div key={idx} className={`${styles.calCell} ${isToday ? styles.calCellToday : ''} ${isSelected && !isToday ? styles.calCellSelected : ''}`}
                         onClick={() => { setCalDay(new Date(year, month, day)); setCalView('day') }}>
                         <span className={styles.calCellNum}>{day}</span>
                         {(dayTasks.length > 0 || dayBills.length > 0) && (
                           <div className={styles.calDots}>
-                            {dayTasks.slice(0, 2).map((t, di) => (
-                              <span key={`t${di}`} className={styles.calDot}
-                                style={{ background: t.consequence_level === 'external' ? 'var(--accent)' : 'rgba(240,234,214,0.4)' }} />
+                            {dayTasks.slice(0, 2).map((_, di) => (
+                              <span key={`t${di}`} className={styles.calDot} style={{ background: '#E8321A' }} />
                             ))}
-                            {dayBills.slice(0, 1).map((b, bi) => (
-                              <span key={`b${bi}`} className={styles.calDot} style={{ background: '#00b5a5' }} />
+                            {dayBills.slice(0, 1).map((_, bi) => (
+                              <span key={`b${bi}`} className={styles.calDot} style={{ background: 'rgba(240,234,214,0.3)' }} />
                             ))}
                             {(dayTasks.length + dayBills.length) > 3 && <span className={styles.calDotMore}>+</span>}
                           </div>
@@ -3117,20 +3117,24 @@ export default function Dashboard() {
                     <div className={styles.calUpcomingSection}>
                       <p className={styles.calUpcomingLabel}>Due & upcoming</p>
                       {upcomingTasks.length === 0 ? (
-                        <p className={styles.calUpcomingEmpty}>No tasks with due dates — add a due date to any task to see it here.</p>
+                        <div className={styles.calEmptyState}>
+                          <CalendarBlank size={36} className={styles.calEmptyIcon} weight="thin" />
+                          <p className={styles.calEmptyText}>Nothing scheduled. Add a due date to a task to see it here.</p>
+                        </div>
                       ) : (
                         <div className={styles.calUpcomingList}>
                           {upcomingTasks.map(t => {
                             const dateStr = taskDateStr(t)
                             const isOverdue = dateStr < today
+                            const isToday = dateStr === today
+                            const dateClass = isOverdue ? styles.calUpcomingDateOverdue : isToday ? styles.calUpcomingDateToday : ''
                             return (
                             <div key={t.id} className={styles.calUpcomingRow} onClick={() => setDetailTask(t)}>
-                              <div className={`${styles.calUpcomingDate}${isOverdue ? ` ${styles.calUpcomingDateOverdue}` : ''}`}>{fmtUpcomingDate(dateStr)}</div>
+                              <div className={`${styles.calUpcomingDate} ${dateClass}`}>{fmtUpcomingDate(dateStr)}</div>
                               <div className={styles.calUpcomingTitle}>{t.title}</div>
                               {t.consequence_level === 'external' && <span className={styles.calUpcomingExt}>Ext</span>}
                             </div>
                           )})}
-
                         </div>
                       )}
                     </div>
