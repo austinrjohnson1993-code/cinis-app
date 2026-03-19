@@ -88,10 +88,13 @@ export default async function handler(req, res) {
   const [
     { data: profile, error: profileErr },
     // FIX 1 — fetch existing tasks for deduplication
-    { data: existing }
+    { data: existing },
+    // Fetch habits for coaching context
+    { data: habits }
   ] = await Promise.all([
     supabaseAdmin.from('profiles').select('*').eq('id', userId).single(),
-    supabaseAdmin.from('tasks').select('title').eq('user_id', userId).eq('completed', false).eq('archived', false)
+    supabaseAdmin.from('tasks').select('title').eq('user_id', userId).eq('completed', false).eq('archived', false),
+    supabaseAdmin.from('habits').select('name, habit_type, frequency').eq('user_id', userId)
   ])
 
   if (profileErr || !profile) return res.status(404).json({ error: 'Profile not found' })
@@ -103,6 +106,15 @@ export default async function handler(req, res) {
 
   const dateContext = `\n\nToday is ${todayStr}. Tomorrow is ${tomorrowStr}. When creating tasks: 'today' = ${todayStr} at noon, 'tomorrow' = ${tomorrowStr} at noon, 'this week' = no specific date.`
 
+  // Build habits context for coaching
+  let habitsContext = ''
+  if (habits && habits.length > 0) {
+    const building = habits.filter(h => h.habit_type === 'build').map(h => h.name)
+    const breaking = habits.filter(h => h.habit_type === 'break').map(h => h.name)
+    if (building.length) habitsContext += `\n\nUser is building these habits: ${building.join(', ')}.`
+    if (breaking.length) habitsContext += `\nUser is working to break: ${breaking.join(', ')}.`
+  }
+
   const JOURNAL_MODE = `
 
 You are in journal mode. The user is thinking out loud. Listen first. Reflect back one specific observation about what they said. Ask one good question. Keep it under 3 sentences total.
@@ -110,7 +122,7 @@ You are in journal mode. The user is thinking out loud. Listen first. Reflect ba
 If they mention something that sounds like a task or action item, add it on its own line at the very end in exactly this format:
 [TASK: task name here]
 
-Only include a [TASK: ...] line if something genuinely actionable was mentioned. Do not invent tasks.${dedupContext}${dateContext}`
+Only include a [TASK: ...] line if something genuinely actionable was mentioned. Do not invent tasks.${dedupContext}${habitsContext}${dateContext}`
 
   const baselineContext = profile?.baseline_profile ? `USER COACHING PROFILE:\n${profile.baseline_profile}\n\n` : ''
   const systemPrompt = baselineContext + buildPersonaPrompt(profile) + JOURNAL_MODE

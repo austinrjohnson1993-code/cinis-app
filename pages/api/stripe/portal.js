@@ -15,6 +15,7 @@ export default async function handler(req, res) {
   )
 
   const { data: { user }, error } = await supabase.auth.getUser()
+  console.log('[stripe] user:', user?.id, user?.email)
   if (error || !user) return res.status(401).json({ error: 'Unauthorized' })
 
   try {

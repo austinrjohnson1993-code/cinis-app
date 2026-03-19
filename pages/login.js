@@ -46,9 +46,8 @@ export default function Login() {
       </Head>
       <div className={styles.page}>
         <div className={styles.card}>
-          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', textDecoration: 'none' }}>
-            <CinisMark size={36} />
-            <span style={{ fontFamily: "'Cormorant Garamond', 'Cormorant', serif", fontWeight: 300, fontSize: '22px', color: '#F0EAD6', letterSpacing: '0.26em' }}>Cinis</span>
+          <a href="/" style={{ display: 'inline-block', marginBottom: '28px', lineHeight: 0, textDecoration: 'none' }}>
+            <CinisMark size={40} />
           </a>
 
           <h1 className={styles.heading}>Welcome back.</h1>

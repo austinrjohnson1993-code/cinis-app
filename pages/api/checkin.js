@@ -514,6 +514,10 @@ export default async function handler(req, res) {
     return res.status(404).json({ error: 'Profile not found' })
   }
 
+  // Fetch user's habits for coaching context
+  const { data: habits } = await supabaseAdmin
+    .from('habits').select('name, habit_type, frequency').eq('user_id', userId)
+
   const baselineContext = profile?.baseline_profile ? `USER COACHING PROFILE:\n${profile.baseline_profile}\n\n` : ''
   const isPro = profile.subscription_status === 'pro' ||
                 profile.subscription_status === 'pro_sms' ||
@@ -521,12 +525,21 @@ export default async function handler(req, res) {
   const memoryContext = (isPro && profile.rolling_memory_summary)
     ? `\n\nROLLING MEMORY (previous sessions):\n${profile.rolling_memory_summary}`
     : ''
+
+  // Build habits context for coaching
+  let habitsContext = ''
+  if (habits && habits.length > 0) {
+    const building = habits.filter(h => h.habit_type === 'build').map(h => h.name)
+    const breaking = habits.filter(h => h.habit_type === 'break').map(h => h.name)
+    if (building.length) habitsContext += `\nUser is building these habits: ${building.join(', ')}.`
+    if (breaking.length) habitsContext += `\nUser is working to break: ${breaking.join(', ')}.`
+  }
   const personaBlend = profile?.persona_blend || ['coach']
   const isDrillSergeant = personaBlend[0] === 'drill_sergeant'
   const personaPriority = isDrillSergeant
     ? `PRIMARY PERSONA: DRILL SERGEANT. HARD RULES — NO EXCEPTIONS:\n- NEVER open with praise, "nice work", "good job", or any positive affirmation\n- NEVER end with a question — give a command instead\n- Use SHORT sentences. Maximum 8 words per sentence.\n- ALWAYS start with the task status or next action, not acknowledgment\n- WRONG: "Nice work on the dentist call. What's next?"\n- RIGHT: "Dentist done. Insurance call is overdue. Make it now."\n\n`
     : `The user's PRIMARY persona is ${personaBlend[0]} — this voice must dominate. Secondary personas add subtle flavor only.\n\n`
-  const systemPrompt = baselineContext + memoryContext + personaPriority + PERSONA_VOICE_INSTRUCTION + '\n\n' + buildPersonaPrompt(profile)
+  const systemPrompt = baselineContext + memoryContext + habitsContext + personaPriority + PERSONA_VOICE_INSTRUCTION + '\n\n' + buildPersonaPrompt(profile)
 
   // ── Continuing conversation ────────────────────────────────────────────────
   if (messages && messages.length > 0) {
@@ -591,13 +604,27 @@ export default async function handler(req, res) {
 
   const extra = { focusTask: req.body.focusTask, focusDuration: req.body.focusDuration, timezone, todayStr, tomorrowStr }
   const contextPrompt = buildContextPrompt(type, profile, pending, completed, isFirstCheckin, extra)
-  console.log('[checkin] context prompt:\n', contextPrompt)
+
+  // Check if user has habits and hasn't logged them today
+  let habitNudge = ''
+  if (habits && habits.length > 0 && (type === 'morning' || type === 'midday' || type === 'evening')) {
+    const lastHabitLog = profile.last_habit_completion_at
+    const now = new Date()
+    const lastLogDate = lastHabitLog ? new Date(lastHabitLog).toLocaleDateString('en-CA') : null
+    const todayDate = now.toLocaleDateString('en-CA', { timeZone: timezone || 'America/Chicago' })
+    if (!lastLogDate || lastLogDate !== todayDate) {
+      habitNudge = '\nThe user hasn\'t logged their habits today. Gently check in on their habit progress as part of the conversation.'
+    }
+  }
+
+  const fullContextPrompt = contextPrompt + habitNudge
+  console.log('[checkin] context prompt:\n', fullContextPrompt)
 
   const noTools = type === 'focus' || type === 'weekly_summary'
 
   try {
     const { text, toolUses } = await callClaude(
-      [{ role: 'user', content: contextPrompt }],
+      [{ role: 'user', content: fullContextPrompt }],
       systemPrompt,
       !noTools
     )

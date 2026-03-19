@@ -7,51 +7,57 @@ import styles from '../styles/Onboarding.module.css'
 // ── Questions ────────────────────────────────────────────────────────────────
 
 const QUESTIONS = [
+  // Q0: Avoidance behavior → biggest challenge proxy
   {
-    text: "When you have a big task you've been avoiding, what usually happens?",
+    text: "When there's a task you've been putting off, what usually happens?",
     options: [
-      { id: 'a', text: "I keep moving it to tomorrow until the deadline forces me" },
-      { id: 'b', text: "I start it but lose momentum halfway through" },
-      { id: 'c', text: "I overthink it until it feels impossible to start" },
-      { id: 'd', text: "I do everything else on my list first" },
+      { id: 'a', text: "I keep pushing it to tomorrow until the deadline forces me" },
+      { id: 'b', text: "I start it but run out of steam halfway" },
+      { id: 'c', text: "I overthink it until it feels impossible to begin" },
+      { id: 'd', text: "I stay busy doing everything else instead" },
     ]
   },
+  // Q1: Boundary/priority style
   {
-    text: "A friend asks for help moving on the same day you had planned to catch up on work. You:",
+    text: "A friend asks for a last-minute favor on a day you planned to work. You:",
     options: [
-      { id: 'a', text: "Cancel your plans — commitments to others come first" },
-      { id: 'b', text: "Try to do both and end up stressed" },
+      { id: 'a', text: "Cancel your plans — people come first" },
+      { id: 'b', text: "Try to fit both and end up stressed" },
       { id: 'c', text: "Say no but feel guilty about it all day" },
-      { id: 'd', text: "Negotiate a shorter window that works for both" },
+      { id: 'd', text: "Negotiate something that works for both" },
     ]
   },
+  // Q2: Energy patterns (replaces weak notification Q)
   {
-    text: "When you get a reminder notification, you usually:",
+    text: "When do you do your best work?",
     options: [
-      { id: 'a', text: "Do the thing immediately" },
-      { id: 'b', text: "Snooze it and forget about it" },
-      { id: 'c', text: "Acknowledge it mentally but get to it later" },
-      { id: 'd', text: "Feel annoyed and dismiss it" },
+      { id: 'a', text: "Morning — I'm sharpest before noon" },
+      { id: 'b', text: "Afternoon — I hit my stride after lunch" },
+      { id: 'c', text: "Evening or night — I come alive late" },
+      { id: 'd', text: "It varies — no consistent pattern" },
     ]
   },
+  // Q3: Productive day feeling → motivation
   {
     text: "What does a productive day feel like for you?",
     options: [
       { id: 'a', text: "I completed everything on my list" },
       { id: 'b', text: "I made real progress on the one thing that mattered most" },
       { id: 'c', text: "I stayed focused without feeling overwhelmed" },
-      { id: 'd', text: "I kept my promises to others and myself" },
+      { id: 'd', text: "I kept my promises to others and to myself" },
     ]
   },
+  // Q4: Communication style (direct question, replaces indirect "feedback reaction")
   {
-    text: "When someone gives you direct, blunt feedback, you:",
+    text: "How direct do you want your coach to be?",
     options: [
-      { id: 'a', text: "Appreciate it — just tell me straight" },
-      { id: 'b', text: "Need a moment but ultimately value it" },
-      { id: 'c', text: "Prefer it softened with some context" },
-      { id: 'd', text: "Shut down if it feels harsh" },
+      { id: 'a', text: "Completely blunt — just tell me the truth" },
+      { id: 'b', text: "Direct but kind — clear, no sugarcoating, no harshness" },
+      { id: 'c', text: "Gentle — frame things softly" },
+      { id: 'd', text: "Careful — I'm sensitive to harsh words" },
     ]
   },
+  // Q5: Support preference
   {
     text: "Your ideal coach would:",
     options: [
@@ -62,33 +68,37 @@ const QUESTIONS = [
       { id: 'e', text: "Check in on how you're feeling before anything else" },
     ]
   },
+  // Q6: Stress response (direct options: shut down / push through / distract / talk)
   {
-    text: "When you miss a goal or deadline, your first instinct is:",
+    text: "When you're stressed or overwhelmed, you tend to:",
     options: [
-      { id: 'a', text: "Figure out what went wrong and fix the system" },
-      { id: 'b', text: "Beat yourself up about it" },
-      { id: 'c', text: "Remind yourself it's not the end of the world" },
-      { id: 'd', text: "Move on quickly and focus on what's next" },
+      { id: 'a', text: "Shut down — go quiet, freeze, do nothing" },
+      { id: 'b', text: "Push through — stress actually makes me go harder" },
+      { id: 'c', text: "Seek distraction — phone, TV, anything else" },
+      { id: 'd', text: "Talk it out — venting or processing helps me reset" },
     ]
   },
+  // Q7: Start your day
   {
     text: "How do you prefer to start your day?",
     options: [
-      { id: 'a', text: "With a clear prioritized list ready to go" },
-      { id: 'b', text: "With a quick check-in to assess how I'm feeling" },
-      { id: 'c', text: "Just jumping into the most urgent thing" },
+      { id: 'a', text: "With a clear prioritized list, ready to go" },
+      { id: 'b', text: "With a quick check-in on how I'm feeling" },
+      { id: 'c', text: "By jumping into the most urgent thing" },
       { id: 'd', text: "Slowly — I need time to ease in" },
     ]
   },
+  // Q8: Task pushback reason → challenge type
   {
     text: "When a task keeps getting pushed back, it's usually because:",
     options: [
       { id: 'a', text: "I don't know where to start" },
-      { id: 'b', text: "Other things feel more urgent" },
+      { id: 'b', text: "Other things always feel more urgent" },
       { id: 'c', text: "I'm not sure it actually matters" },
       { id: 'd', text: "It feels too big to tackle in one go" },
     ]
   },
+  // Q9: Accountability / motivation style
   {
     text: "How do you respond to accountability?",
     options: [
@@ -98,17 +108,20 @@ const QUESTIONS = [
       { id: 'd', text: "I do best when I understand the why behind the goal" },
     ]
   },
+  // Q10: Life area focus (replaces weak phone notifications Q)
   {
-    text: "What's your relationship with your phone notifications?",
+    text: "Which area of your life do you most want Cinis focused on?",
     options: [
-      { id: 'a', text: "I check everything immediately" },
-      { id: 'b', text: "I batch them and check periodically" },
-      { id: 'c', text: "I'm often overwhelmed by them" },
-      { id: 'd', text: "I mostly ignore them" },
+      { id: 'a', text: "Work and career" },
+      { id: 'b', text: "Health and fitness" },
+      { id: 'c', text: "Relationships" },
+      { id: 'd', text: "Money and finances" },
+      { id: 'e', text: "All of it — everything needs attention" },
     ]
   },
+  // Q11: Completing avoided task
   {
-    text: "When you complete something you've been putting off, you feel:",
+    text: "When you finally finish something you've been putting off, you feel:",
     options: [
       { id: 'a', text: "Relieved more than proud" },
       { id: 'b', text: "Genuinely proud — wins matter to me" },
@@ -116,23 +129,60 @@ const QUESTIONS = [
       { id: 'd', text: "Like I should have done it sooner" },
     ]
   },
+  // Q12: Work style (new)
+  {
+    text: "How do you work best through your task list?",
+    options: [
+      { id: 'a', text: "Deep focus — one thing at a time, no interruptions" },
+      { id: 'b', text: "Task switching — I like bouncing between things" },
+      { id: 'c', text: "Mixed — deep focus for big work, flexible for the rest" },
+      { id: 'd', text: "I don't really have a system yet" },
+    ]
+  },
+  // Q13: One thing you want most (new)
+  {
+    text: "What's the one thing you most want Cinis to help you with?",
+    options: [
+      { id: 'a', text: "Actually doing the tasks I keep avoiding" },
+      { id: 'b', text: "Building habits that actually stick" },
+      { id: 'c', text: "Staying on top of money and bills" },
+      { id: 'd', text: "Managing stress and overwhelm" },
+      { id: 'e', text: "Staying focused and getting things done" },
+    ]
+  },
 ]
 
 // ── Persona scoring ───────────────────────────────────────────────────────────
 
 const SCORING = [
+  // Q0: avoidance behavior
   { a: { drill_sergeant: 2 }, b: { coach: 2 }, c: { thinking_partner: 2 }, d: { strategist: 2 } },
+  // Q1: boundary/priority
   { a: { drill_sergeant: 1 }, b: { hype_person: 1 }, c: { thinking_partner: 2 }, d: { strategist: 2 } },
-  { a: { drill_sergeant: 2 }, b: { hype_person: 2 }, c: { coach: 1 }, d: { strategist: 1 } },
+  // Q2: energy patterns (light weights — structural data)
+  { a: { strategist: 1, drill_sergeant: 1 }, b: { coach: 1 }, c: { hype_person: 1 }, d: { thinking_partner: 1 } },
+  // Q3: productive day
   { a: { drill_sergeant: 1, strategist: 1 }, b: { strategist: 2 }, c: { thinking_partner: 2 }, d: { coach: 2 } },
-  { a: { drill_sergeant: 3 }, b: { coach: 2 }, c: { thinking_partner: 2 }, d: { empath: 3 } },
+  // Q4: communication style
+  { a: { drill_sergeant: 3 }, b: { coach: 2, strategist: 1 }, c: { empath: 2, coach: 1 }, d: { empath: 3 } },
+  // Q5: ideal coach
   { a: { drill_sergeant: 3 }, b: { thinking_partner: 3 }, c: { hype_person: 3 }, d: { strategist: 3 }, e: { empath: 3 } },
-  { a: { strategist: 3 }, b: { thinking_partner: 2 }, c: { coach: 2 }, d: { drill_sergeant: 2 } },
+  // Q6: stress response
+  { a: { empath: 3, thinking_partner: 2 }, b: { drill_sergeant: 3 }, c: { coach: 2, hype_person: 1 }, d: { coach: 3 } },
+  // Q7: start your day
   { a: { strategist: 2, drill_sergeant: 1 }, b: { thinking_partner: 2 }, c: { drill_sergeant: 2 }, d: { coach: 1 } },
+  // Q8: task pushback reason
   { a: { thinking_partner: 2 }, b: { strategist: 2 }, c: { thinking_partner: 1, coach: 1 }, d: { coach: 2 } },
+  // Q9: accountability
   { a: { drill_sergeant: 2, hype_person: 1 }, b: { strategist: 2 }, c: { hype_person: 2 }, d: { thinking_partner: 2 } },
-  { a: { drill_sergeant: 1 }, b: { strategist: 2 }, c: { thinking_partner: 1, coach: 1 }, d: { coach: 2 } },
+  // Q10: life area focus (light weights — structural data)
+  { a: { strategist: 1 }, b: { coach: 1 }, c: { empath: 1 }, d: { strategist: 1 }, e: { coach: 1 } },
+  // Q11: completing avoided task
   { a: { thinking_partner: 1 }, b: { hype_person: 3 }, c: { strategist: 2 }, d: { drill_sergeant: 1 } },
+  // Q12: work style
+  { a: { strategist: 2, thinking_partner: 1 }, b: { hype_person: 2 }, c: { coach: 2 }, d: { coach: 1, thinking_partner: 1 } },
+  // Q13: one thing (light weights — structural data)
+  { a: { drill_sergeant: 2, coach: 1 }, b: { coach: 2 }, c: { strategist: 2 }, d: { empath: 2 }, e: { strategist: 1, drill_sergeant: 1 } },
 ]
 
 const PERSONA_DEFS = {
@@ -158,6 +208,19 @@ function computePersonas(answers) {
     .filter(([, score]) => score > 2)
     .slice(0, 3)
     .map(([key]) => key)
+}
+
+// ── Answer → structured data maps ─────────────────────────────────────────────
+
+const ANSWER_MAPS = {
+  avoidance: { a: 'delays until deadline forces action', b: 'starts but loses momentum', c: 'overthinks until paralyzed', d: 'avoids by staying busy with other tasks' },
+  energy:    { a: 'morning', b: 'afternoon', c: 'evening/night', d: 'varies' },
+  commStyle: { a: 'blunt', b: 'direct and kind', c: 'gentle/softened', d: 'careful/sensitive' },
+  stress:    { a: 'shuts down', b: 'pushes through', c: 'seeks distraction', d: 'talks it out' },
+  motivation:{ a: 'external check-ins', b: 'self-set deadlines', c: 'public commitment', d: 'understanding the why' },
+  lifeArea:  { a: 'work and career', b: 'health and fitness', c: 'relationships', d: 'finances', e: 'everything' },
+  workStyle: { a: 'deep focus', b: 'task switching', c: 'mixed', d: 'no system yet' },
+  oneThing:  { a: 'doing tasks I keep avoiding', b: 'building habits that stick', c: 'managing money and bills', d: 'managing stress and overwhelm', e: 'staying focused and getting things done' },
 }
 
 // ── Mental health context options ─────────────────────────────────────────────
@@ -188,7 +251,7 @@ export default function Onboarding() {
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState(Array(QUESTIONS.length).fill(null))
   const [animKey, setAnimKey] = useState(0)
-  const [personaBlend, setPersonaBlend] = useState([])
+  const [personaBlend, setPersonaBlend] = useState([]) // stored as keys: ['drill_sergeant', 'coach']
   const [personaVoice, setPersonaVoice] = useState('warm_gentle')
   const [rankItems, setRankItems] = useState([...RANK_ITEMS_DEFAULT])
   const [rankDragIdx, setRankDragIdx] = useState(null)
@@ -222,7 +285,6 @@ export default function Onboarding() {
       setAnimKey(k => k + 1)
       setCurrentQ(q => q + 1)
     } else {
-      // After last question, show ranked priorities question
       setPhase('rankq')
     }
   }
@@ -237,16 +299,22 @@ export default function Onboarding() {
   }
 
   const handleRankSubmit = () => {
+    // Store persona keys (not labels) so persona.js can look them up correctly
     const keys = computePersonas(answers)
-    const blend = (keys.length ? keys : ['coach']).map(k => PERSONA_DEFS[k].label)
-    setPersonaBlend(blend)
+    setPersonaBlend(keys.length ? keys : ['coach'])
     setPhase('analyzing')
     setTimeout(() => setPhase('reveal'), 1500)
   }
 
   const handleConfirm = async () => {
-    if (!personaVoice) return // Ensure voice preference is selected
+    if (!personaVoice) return
     setPhase('saving')
+
+    // Extract structured answers from key questions
+    const aiContextParts = []
+    if (answers[6]) aiContextParts.push(`Stress response: ${ANSWER_MAPS.stress[answers[6]]}`)
+    if (answers[12]) aiContextParts.push(`Work style: ${ANSWER_MAPS.workStyle[answers[12]]}`)
+
     const upsertData = {
       id: user.id,
       email: user.email,
@@ -259,14 +327,23 @@ export default function Onboarding() {
       onboarding_complete: true,
       tutorial_completed: false,
       created_at: new Date().toISOString(),
+      // Structured answers saved to profile columns
+      main_struggle: ANSWER_MAPS.avoidance[answers[0]] || null,
+      work_schedule: ANSWER_MAPS.energy[answers[2]] || null,
+      communication_style: ANSWER_MAPS.commStyle[answers[4]] || null,
+      accountability_style: ANSWER_MAPS.motivation[answers[9]] || null,
+      current_priorities: ANSWER_MAPS.lifeArea[answers[10]] || null,
+      biggest_friction: ANSWER_MAPS.oneThing[answers[13]] || null,
+      ai_context: aiContextParts.length ? aiContextParts.join('. ') : null,
     }
-    // Save ranked_priorities gracefully — column may not exist yet
     if (mentalHealthContext) upsertData.mental_health_context = mentalHealthContext
+
     try {
       await supabase.from('profiles').upsert({ ...upsertData, ranked_priorities: rankItems })
     } catch {
       await supabase.from('profiles').upsert(upsertData)
     }
+
     try {
       await fetch('/api/generate-baseline-profile', {
         method: 'POST',
@@ -276,6 +353,7 @@ export default function Onboarding() {
     } catch (e) {
       console.error('[onboarding] baseline profile generation failed:', e)
     }
+
     router.push('/dashboard')
   }
 
@@ -332,13 +410,13 @@ export default function Onboarding() {
       },
       {
         title: 'Your Answers Shape Everything',
-        body: 'Your responses shape everything — your coach\'s voice, your check-in style, and how Cinis shows up for you. Be thoughtful, be honest.',
+        body: "Your responses shape everything — your coach's voice, your check-in style, and how Cinis shows up for you. Be thoughtful, be honest.",
         cta: 'Got it',
       },
       {
         title: 'No Right Answers',
-        body: 'There are no right answers here. The more specific and honest you are, the better your coach gets. Ready?',
-        cta: 'Let\'s go',
+        body: "There are no right answers here. The more specific and honest you are, the better your coach gets. Ready?",
+        cta: "Let's go",
       },
     ]
     const screen = tutorialScreens[introTutorialStep]
@@ -377,7 +455,7 @@ export default function Onboarding() {
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '28px', fontWeight: 300, letterSpacing: '0.26em', color: '#F0EAD6' }}>Cinis</span>
             </div>
             <h1 className={styles.introTitle}>Let's set you up.</h1>
-            <p className={styles.introSub}>12 quick questions. No wrong answers. Takes about 2 minutes.</p>
+            <p className={styles.introSub}>14 quick questions. No wrong answers. Takes about 3 minutes.</p>
 
             <div className={styles.introForm}>
               <div className={styles.introField}>
@@ -534,9 +612,10 @@ export default function Onboarding() {
 
   // ── Reveal ────────────────────────────────────────────────────────────────
   if (phase === 'reveal') {
-    const primaryLabel = personaBlend[0]
-    const secondaryLabel = personaBlend[1] || null
-    const primaryDef = Object.values(PERSONA_DEFS).find(d => d.label === primaryLabel)
+    const primaryKey = personaBlend[0]
+    const secondaryKey = personaBlend[1] || null
+    const primaryDef = PERSONA_DEFS[primaryKey] || PERSONA_DEFS['coach']
+    const secondaryDef = secondaryKey ? PERSONA_DEFS[secondaryKey] : null
 
     return (
       <>
@@ -545,11 +624,11 @@ export default function Onboarding() {
           <div className={styles.revealContainer}>
             <div className={styles.revealCard}>
               <p className={styles.revealLabel}>Your coaching style</p>
-              <h1 className={styles.revealPersona}>{primaryLabel}</h1>
-              <p className={styles.revealDesc}>{primaryDef?.desc}</p>
-              {secondaryLabel && (
+              <h1 className={styles.revealPersona}>{primaryDef.label}</h1>
+              <p className={styles.revealDesc}>{primaryDef.desc}</p>
+              {secondaryDef && (
                 <p className={styles.revealSecondary}>
-                  with <strong>{secondaryLabel}</strong> energy
+                  with <strong>{secondaryDef.label}</strong> energy
                 </p>
               )}
             </div>
@@ -592,7 +671,7 @@ export default function Onboarding() {
       <div className={styles.page}>
         <div className={styles.savingContainer}>
           <div className={styles.savingLogo}>
-            <span className="brand"><span className="focus">Focus</span><span className="buddy">Buddy</span></span>
+            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '28px', fontWeight: 300, letterSpacing: '0.26em', color: '#F0EAD6' }}>Cinis</span>
           </div>
           <p className={styles.savingText}>Setting up your space...</p>
         </div>

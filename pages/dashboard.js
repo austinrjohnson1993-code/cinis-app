@@ -1022,6 +1022,10 @@ export default function Dashboard() {
       if (data.morning_time) setMorningTime(data.morning_time)
       if (data.midday_time) setMiddayTime(data.midday_time)
       if (data.evening_time) setEveningTime(data.evening_time)
+      // Load income sources
+      if (data.income_sources && Array.isArray(data.income_sources) && data.income_sources.length > 0) {
+        setIncomeEntries(data.income_sources)
+      }
       // Apply theme immediately from loaded profile to prevent race condition
       if (data.accent_color) {
         const savedTheme = THEMES.find(t => t.id === data.accent_color) || THEMES.find(t => t.accent === data.accent_color) || THEMES[0]
@@ -1544,6 +1548,11 @@ export default function Dashboard() {
   }
 
   // ── Finance ───────────────────────────────────────────────────────────────
+
+  const saveIncomeSources = async (entries) => {
+    if (!user) return
+    await supabase.from('profiles').update({ income_sources: entries }).eq('id', user.id)
+  }
 
   const addBill = async (e) => {
     e.preventDefault()

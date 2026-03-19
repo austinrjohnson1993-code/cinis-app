@@ -1,9 +1,16 @@
+@keyframes authFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  background:
+    radial-gradient(ellipse at 50% 30%, #1A0A06 0%, #0C0705 55%, #080503 100%);
 }
 
 .card {
@@ -13,6 +20,7 @@
   border: 1px solid rgba(255,200,120,0.09);
   border-radius: 20px;
   padding: 48px 40px;
+  animation: authFadeIn 300ms ease-out both;
 }
 
 .logo {
@@ -24,7 +32,7 @@
 
 .heading {
   font-family: 'Playfair Display', serif;
-  font-weight: 900;
+  font-weight: 400;
   font-size: 2rem;
   color: #f0ead6;
   letter-spacing: -0.02em;
@@ -120,18 +128,19 @@
 }
 
 .forgotLink a {
-  color: rgba(240,234,214,0.45);
+  color: #E8321A;
   text-decoration: none;
+  opacity: 0.8;
 }
 
 .forgotLink a:hover {
-  color: rgba(240,234,214,0.75);
+  opacity: 1;
 }
 
 .input {
   width: 100%;
-  background: rgba(255,200,120,0.05);
-  border: 1px solid rgba(255,200,120,0.12);
+  background: rgba(255,200,120,0.04);
+  border: 1px solid #2A1810;
   border-radius: 100px;
   padding: 14px 20px;
   color: #f0ead6;
@@ -143,8 +152,8 @@
 .input::placeholder { color: rgba(240,234,214,0.35); }
 
 .input:focus {
-  border-color: rgba(255,77,28,0.5);
-  box-shadow: 0 0 0 3px rgba(255,77,28,0.12);
+  border-color: #E8321A;
+  box-shadow: 0 0 0 3px rgba(232,50,26,0.12);
 }
 
 .submitBtn {

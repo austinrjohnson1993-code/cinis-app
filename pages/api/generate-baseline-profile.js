@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
   const { data: profile, error: profileErr } = await supabaseAdmin
     .from('profiles')
-    .select('full_name, mental_health_context, persona_blend, persona_voice, checkin_times, ranked_priorities, main_struggle, diagnosis')
+    .select('full_name, mental_health_context, persona_blend, persona_voice, checkin_times, ranked_priorities, main_struggle, diagnosis, communication_style, work_schedule, biggest_friction, accountability_style, current_priorities, ai_context')
     .eq('id', userId)
     .single()
 
@@ -39,11 +39,35 @@ export default async function handler(req, res) {
     checkin_times,
     ranked_priorities,
     main_struggle,
-    diagnosis
+    diagnosis,
+    communication_style,
+    work_schedule,
+    biggest_friction,
+    accountability_style,
+    current_priorities,
+    ai_context,
   } = profile
 
   const name = full_name || 'this user'
-  const userPrompt = `Generate a coaching profile for ${name}. Mental health context: ${mental_health_context || 'not specified'}. Persona blend: ${Array.isArray(persona_blend) ? persona_blend.join(', ') : persona_blend || 'not specified'}. Voice preference: ${persona_voice || 'not specified'}. Check-in times: ${Array.isArray(checkin_times) ? checkin_times.join(', ') : checkin_times || 'not specified'}. Ranked priorities: ${Array.isArray(ranked_priorities) ? ranked_priorities.join(', ') : ranked_priorities || 'not specified'}. Main struggle: ${main_struggle || 'not specified'}. Diagnosis: ${diagnosis || 'not specified'}. Based on this, describe: who this person is, how they like to be coached, what their biggest friction points likely are, and what kind of support will move them most.`
+  const ns = (v) => v || 'not specified'
+  const arr = (v) => Array.isArray(v) ? v.join(', ') : ns(v)
+  const userPrompt = `Generate a coaching profile for ${name}.
+
+- Mental health context: ${ns(mental_health_context)}
+- Diagnosis: ${ns(diagnosis)}
+- Coaching persona blend: ${arr(persona_blend)}
+- Voice preference: ${ns(persona_voice)}
+- Communication style preference: ${ns(communication_style)}
+- Check-in times: ${arr(checkin_times)}
+- Ranked priorities: ${arr(ranked_priorities)}
+- Peak energy / best work time: ${ns(work_schedule)}
+- Main avoidance pattern: ${ns(main_struggle)}
+- Biggest friction / what they want help with most: ${ns(biggest_friction)}
+- Accountability/motivation style: ${ns(accountability_style)}
+- Life area focus: ${ns(current_priorities)}
+- Additional context: ${ns(ai_context)}
+
+Based on this, describe: who this person is, how they like to be coached, what their biggest friction points likely are, and what kind of support will move them most.`
 
   let generatedText = null
   try {
