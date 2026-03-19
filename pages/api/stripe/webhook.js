@@ -37,30 +37,65 @@ export default async function handler(req, res) {
   const supabaseAdmin = getAdminClient()
 
   try {
+    console.log('[stripe/webhook] Webhook received:', event.type)
+
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object
       const userId = session.metadata?.userId
       const customerId = session.customer
+      const customerEmail = session.customer_details?.email
+
+      console.log('[stripe/webhook] Checkout completed - userId:', userId, 'email:', customerEmail, 'customerId:', customerId)
+
       if (userId) {
+        // Update by userId (primary method)
         await supabaseAdmin
           .from('profiles')
           .update({ subscription_status: 'pro', stripe_customer_id: customerId })
           .eq('id', userId)
+        console.log('[stripe/webhook] Updated subscription_status to pro for userId:', userId)
+      } else if (customerEmail) {
+        // Fallback: update by email if userId not in metadata
+        const { data: user } = await supabaseAdmin
+          .from('profiles')
+          .select('id')
+          .eq('email', customerEmail)
+          .single()
+
+        console.log('[stripe/webhook] Fallback user lookup by email:', customerEmail, 'result:', user)
+
+        if (user) {
+          await supabaseAdmin
+            .from('profiles')
+            .update({ subscription_status: 'pro', stripe_customer_id: customerId })
+            .eq('id', user.id)
+          console.log('[stripe/webhook] Updated subscription_status to pro for email:', customerEmail)
+        }
+      } else {
+        console.warn('[stripe/webhook] No userId or customerEmail in checkout session - cannot update subscription')
       }
     }
 
     if (event.type === 'customer.subscription.updated') {
       const sub = event.data.object
       const status = sub.status === 'active' ? 'pro' : 'cancelled'
-      // Look up user by stripe customer ID stored in metadata or customer field
       const customerId = sub.customer
+
+      console.log('[stripe/webhook] Subscription updated - customerId:', customerId, 'status:', status)
+
       const customers = await stripe.customers.retrieve(customerId)
       const email = customers.email
+
+      console.log('[stripe/webhook] Customer lookup - email:', email)
+
       if (email) {
         await supabaseAdmin
           .from('profiles')
           .update({ subscription_status: status })
           .eq('email', email)
+        console.log('[stripe/webhook] Updated subscription_status to', status, 'for email:', email)
+      } else {
+        console.warn('[stripe/webhook] No email found for customerId:', customerId)
       }
     }
 
@@ -68,21 +103,29 @@ export default async function handler(req, res) {
       const sub = event.data.object
       const customerId = sub.customer
 
+      console.log('[stripe/webhook] Subscription deleted - customerId:', customerId)
+
       // Try to look up by stripe_customer_id first (reliable method)
       let { data: profiles } = await supabaseAdmin
         .from('profiles')
         .select('id, email')
         .eq('stripe_customer_id', customerId)
 
+      console.log('[stripe/webhook] Lookup by stripe_customer_id - result:', profiles)
+
       // Fall back to email lookup if stripe_customer_id not found
       if (!profiles || profiles.length === 0) {
         const customer = await stripe.customers.retrieve(customerId)
         const email = customer.email
+
+        console.log('[stripe/webhook] Fallback lookup by email:', email)
+
         if (email) {
           ({ data: profiles } = await supabaseAdmin
             .from('profiles')
             .select('id, email')
             .eq('email', email))
+          console.log('[stripe/webhook] Fallback result:', profiles)
         }
       }
 
@@ -93,7 +136,12 @@ export default async function handler(req, res) {
           .from('profiles')
           .update({ subscription_status: 'cancelled' })
           .eq('id', userId)
+        console.log('[stripe/webhook] Updated subscription_status to cancelled for userId:', userId)
+      } else {
+        console.warn('[stripe/webhook] No profile found for customerId:', customerId)
       }
+    } else {
+      console.log('[stripe/webhook] Unhandled event type:', event.type)
     }
 
     return res.status(200).json({ received: true })
