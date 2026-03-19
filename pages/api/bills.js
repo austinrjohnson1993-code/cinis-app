@@ -12,7 +12,7 @@ const VALID_CATEGORIES = ['housing', 'utilities', 'subscriptions', 'insurance', 
 const VALID_BILL_TYPES = ['bill', 'loan', 'credit_card']
 
 const BILL_FIELDS = [
-  'name', 'amount', 'due_day', 'frequency', 'category',
+  'name', 'amount', 'due_day', 'first_date', 'second_date', 'frequency', 'category',
   'autopay', 'is_variable', 'account', 'notes', 'url', 'remind_days',
   'auto_task', 'interest_rate', 'bill_type'
 ]
@@ -71,7 +71,9 @@ export default async function handler(req, res) {
       user_id: userId,
       name: body.name,
       amount: body.amount || 0,
-      due_day: body.due_day || null,
+      due_day: body.frequency === 'bimonthly' ? null : (body.due_day || null),
+      first_date: body.frequency === 'bimonthly' ? (body.first_date || null) : null,
+      second_date: body.frequency === 'bimonthly' ? (body.second_date || null) : null,
       frequency: body.frequency || 'monthly',
       category: body.category || 'other',
       auto_task: body.auto_task || false,

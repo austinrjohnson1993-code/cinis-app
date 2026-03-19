@@ -381,7 +381,7 @@ export default function Onboarding() {
         <div className={styles.page}>
           <div className={styles.contextContainer}>
             <div className={styles.contextLogo}>
-              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '28px', fontWeight: 300, letterSpacing: '0.26em', color: '#F0EAD6' }}>Cinis</span>
+              <span style={{ fontFamily: "'Sora', sans-serif", fontSize: '28px', fontWeight: 600, letterSpacing: '0.16em', color: '#F0EAD6' }}>Cinis</span>
             </div>
             <h1 className={styles.introTitle}>What brings you here?</h1>
             <p className={styles.introSub}>This helps Cinis understand how to support you. You can always update this later.</p>
@@ -469,7 +469,7 @@ export default function Onboarding() {
         <div className={styles.page}>
           <div className={styles.introContainer}>
             <div className={styles.introLogo}>
-              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '28px', fontWeight: 300, letterSpacing: '0.26em', color: '#F0EAD6' }}>Cinis</span>
+              <span style={{ fontFamily: "'Sora', sans-serif", fontSize: '28px', fontWeight: 600, letterSpacing: '0.16em', color: '#F0EAD6' }}>Cinis</span>
             </div>
             <h1 className={styles.introTitle}>Let's set you up.</h1>
             <p className={styles.introSub}>14 quick questions. No wrong answers. Takes about 3 minutes.</p>
@@ -688,7 +688,7 @@ export default function Onboarding() {
       <div className={styles.page}>
         <div className={styles.savingContainer}>
           <div className={styles.savingLogo}>
-            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '28px', fontWeight: 300, letterSpacing: '0.26em', color: '#F0EAD6' }}>Cinis</span>
+            <span style={{ fontFamily: "'Sora', sans-serif", fontSize: '28px', fontWeight: 600, letterSpacing: '0.16em', color: '#F0EAD6' }}>Cinis</span>
           </div>
           <p className={styles.savingText}>Setting up your space...</p>
         </div>

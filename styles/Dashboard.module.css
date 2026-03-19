@@ -59,11 +59,11 @@
 }
 .sidebarLogo { font-size: 1.2rem; padding: 0 8px; margin-bottom: 36px; }
 .wordmark {
-  font-family: 'Cormorant Garamond', 'Cormorant', serif;
-  font-weight: 300;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
   font-size: 1.3rem;
   color: var(--text-color, #f0ead6);
-  letter-spacing: 0.26em;
+  letter-spacing: 0.16em;
 }
 .sidebarNav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .sidebarNavItem {
@@ -388,6 +388,9 @@
 }
 .fieldInput:focus { border-color: rgba(255,77,28,0.4); box-shadow: 0 0 0 3px rgba(255,77,28,0.08); outline: none; }
 .fieldInput::placeholder { color: rgba(240,234,214,0.2); }
+.fieldInput::-webkit-outer-spin-button,
+.fieldInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.fieldInput[type=number] { -moz-appearance: textfield; }
 
 .fieldInputCompact {
   background: rgba(255,200,120,0.04); border: 1px solid rgba(255,200,120,0.12); border-radius: 10px;

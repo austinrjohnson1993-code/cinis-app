@@ -1714,8 +1714,8 @@ export default function Dashboard() {
       bill_type: billType,
       ...(billInterestRate ? { interest_rate: parseFloat(billInterestRate) } : {}),
       ...(newBillNotes.trim() ? { notes: newBillNotes.trim() } : {}),
-      ...(newBillFrequency === 'bimonthly' && newBillDate1 ? { date1: parseInt(newBillDate1) } : {}),
-      ...(newBillFrequency === 'bimonthly' && newBillDate2 ? { date2: parseInt(newBillDate2) } : {}),
+      ...(newBillFrequency === 'bimonthly' && newBillDate1 ? { first_date: parseInt(newBillDate1) } : {}),
+      ...(newBillFrequency === 'bimonthly' && newBillDate2 ? { second_date: parseInt(newBillDate2) } : {}),
     }
     const { data } = await supabase.from('bills').insert(bill).select().single()
     if (data) setBills(prev => [data, ...prev])
@@ -2235,7 +2235,7 @@ export default function Dashboard() {
           <div className={styles.sidebarLogo}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <CinisMark size={24} />
-              <span style={{ fontFamily: "'Cormorant Garamond', 'Cormorant', serif", fontWeight: 300, fontSize: '18px', color: '#F0EAD6', letterSpacing: '0.26em' }}>Cinis</span>
+              <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 600, fontSize: '13px', color: '#F0EAD6', letterSpacing: '0.16em', textTransform: 'uppercase' }}>Cinis</span>
             </div>
           </div>
           <nav className={styles.sidebarNav}>
@@ -4194,11 +4194,16 @@ export default function Dashboard() {
                               <div className={styles.billInfo}>
                                 <span className={styles.billName}>{bill.name}</span>
                                 <div className={styles.billMeta}>
-                                  {bill.due_day && (
+                                  {bill.frequency === 'bimonthly' && (bill.first_date || bill.second_date) ? (
+                                    <span className={styles.billDue}>
+                                      Due {bill.first_date ? `${bill.first_date}${bill.first_date===1?'st':bill.first_date===2?'nd':bill.first_date===3?'rd':'th'}` : '—'}
+                                      {bill.second_date ? ` & ${bill.second_date}${bill.second_date===1?'st':bill.second_date===2?'nd':bill.second_date===3?'rd':'th'}` : ''}
+                                    </span>
+                                  ) : bill.due_day ? (
                                     <span className={`${styles.billDue} ${isDueSoon(bill.due_day) ? styles.billDueSoon : ''}`}>
                                       {isDueSoon(bill.due_day) ? '⚡ ' : ''}Due {bill.due_day}{bill.due_day === 1 ? 'st' : bill.due_day === 2 ? 'nd' : bill.due_day === 3 ? 'rd' : 'th'}
                                     </span>
-                                  )}
+                                  ) : null}
                                   <span className={styles.billFreq}>{bill.frequency}</span>
                                 </div>
                               </div>
@@ -4860,12 +4865,14 @@ export default function Dashboard() {
                     ))}
                   </div>
                 </div>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Due day of month <span className={styles.fieldLabelOptional}>(optional)</span></label>
-                  <input type="number" placeholder="e.g. 15" min="1" max="31"
-                    value={newBillDueDay} onChange={e => setNewBillDueDay(e.target.value)}
-                    className={styles.fieldInput} />
-                </div>
+                {newBillFrequency !== 'bimonthly' && (
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Due day of month <span className={styles.fieldLabelOptional}>(optional)</span></label>
+                    <input type="number" placeholder="e.g. 15" min="1" max="31"
+                      value={newBillDueDay} onChange={e => setNewBillDueDay(e.target.value)}
+                      className={styles.fieldInput} />
+                  </div>
+                )}
                 {newBillFrequency === 'bimonthly' && (
                   <>
                     <div className={styles.fieldGroup}>

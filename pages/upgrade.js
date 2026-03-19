@@ -202,12 +202,12 @@ const styles = {
   },
 
   title: {
-    fontFamily: "'Cormorant Garamond', 'Cormorant', serif",
+    fontFamily: "'Sora', sans-serif",
     fontSize: '64px',
-    fontWeight: 700,
+    fontWeight: 600,
     margin: '0 0 24px',
     color: '#f0ead6',
-    letterSpacing: '-0.02em',
+    letterSpacing: '0.16em',
   },
 
   tagline: {
@@ -303,12 +303,12 @@ const styles = {
   },
 
   ctaHeading: {
-    fontFamily: "'Cormorant Garamond', 'Cormorant', serif",
+    fontFamily: "'Sora', sans-serif",
     fontSize: '40px',
-    fontWeight: 700,
+    fontWeight: 600,
     margin: '0 0 40px',
     color: '#f0ead6',
-    letterSpacing: '-0.02em',
+    letterSpacing: '0.16em',
   },
 
   buttonGrid: {
