@@ -99,6 +99,10 @@ export default function Login() {
             </button>
           </form>
 
+          <p style={{ fontSize: '12px', color: 'rgba(240,234,214,0.5)', textAlign: 'center', margin: '10px 0 2px' }}>
+            Previously signed in with magic link? Use Forgot Password to set a password.
+          </p>
+
           <p className={styles.forgotLink}>
             <a href="/forgot-password">Forgot password?</a>
           </p>
