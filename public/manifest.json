@@ -1,9 +1,9 @@
 {
   "name": "Cinis",
   "short_name": "Cinis",
-  "description": "Your personal AI productivity coach",
+  "description": "AI coaching for ADHD brains",
   "start_url": "https://cinis.app",
-rebrand: FocusBuddy → Cinis  "background_color": "#110d06",
+  "background_color": "#110d06",
   "theme_color": "#ff4d1c",
   "orientation": "portrait",
   "icons": [

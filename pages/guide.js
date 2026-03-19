@@ -87,7 +87,7 @@ export default function Guide() {
 
   return (
     <>
-      <Head><title>Guide — FocusBuddy</title></Head>
+      <Head><title>Guide — Cinis</title></Head>
       <div className={styles.guidePage}>
         <button className={styles.backBtn} onClick={() => router.back()}>← Back</button>
 

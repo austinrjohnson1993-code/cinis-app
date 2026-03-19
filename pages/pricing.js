@@ -30,7 +30,7 @@ export default function Pricing() {
 
   return (
     <>
-      <Head><title>Pricing — FocusBuddy</title></Head>
+      <Head><title>Pricing — Cinis</title></Head>
       <div style={s.page}>
         <div style={s.header}>
           <a href="/" style={s.logo}>

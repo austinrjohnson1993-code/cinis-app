@@ -2930,7 +2930,25 @@ export default function Dashboard() {
                 ))}
               </div>
 
-              {progressBand === 'today' && (() => {
+              {/* ── Empty state: new user with no data ── */}
+              {(() => {
+                const noCompletedTasks = tasks.filter(t => t.completed).length === 0
+                const noJournal = (Array.isArray(journalEntries) ? journalEntries : []).length === 0
+                const noStreak = getStreak() === 0
+                if (noCompletedTasks && noJournal && noStreak) {
+                  return (
+                    <div className={styles.progressEmpty}>
+                      <p className={styles.progressEmptyHeading}>Your progress starts today.</p>
+                      <p className={styles.progressEmptySub}>
+                        Complete a task, finish a check-in, or write a journal entry — your stats will appear here.
+                      </p>
+                    </div>
+                  )
+                }
+                return null
+              })()}
+
+              {tasks.filter(t => t.completed).length === 0 && (Array.isArray(journalEntries) ? journalEntries : []).length === 0 && getStreak() === 0 ? null : progressBand === 'today' && (() => {
                 if (!user?.id) {
                   return <p style={{color:'rgba(240,234,214,0.5)', padding:'24px 0'}}>Loading...</p>
                 }
