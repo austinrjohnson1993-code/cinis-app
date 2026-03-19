@@ -524,6 +524,8 @@ export default function Dashboard() {
   const [stuckTask, setStuckTask] = useState(null)
   const [routinesExpanded, setRoutinesExpanded] = useState(false)
   const [electedTaskId, setElectedTaskId] = useState(null) // user-starred priority task (UI only)
+  const [inlineAddActive, setInlineAddActive] = useState(false)
+  const [inlineAddValue, setInlineAddValue] = useState('')
 
   // Progress
   const [weeklySummary, setWeeklySummary] = useState('')
@@ -1260,6 +1262,18 @@ export default function Dashboard() {
     showToast('Task added ✓')
   }
 
+  const saveInlineTask = async () => {
+    if (!inlineAddValue.trim()) return
+    await addTaskQuick(inlineAddValue)
+    setInlineAddValue('')
+    setInlineAddActive(false)
+  }
+
+  const cancelInlineTask = () => {
+    setInlineAddValue('')
+    setInlineAddActive(false)
+  }
+
   // ── Voice input ───────────────────────────────────────────────────────────
 
   const startListening = () => {
@@ -1535,7 +1549,25 @@ export default function Dashboard() {
   }
 
   const handleAbandonSession = () => {
-    setShowAbandonConfirm(true)
+    setShowStuckModal(true)
+    setStuckTask(topTask)
+  }
+
+  const handleStuckOption = async (option) => {
+    setShowStuckModal(false)
+    clearInterval(focusIntervalRef.current)
+    setFocusRunning(false)
+    if (option === 'reschedule') {
+      setFocusPhase('setup')
+      showToast('Task rescheduled. Pick another task.')
+    } else if (option === 'remove') {
+      await deleteTask(topTask?.id)
+      setFocusPhase('setup')
+      showToast('Task removed')
+    } else if (option === 'keep') {
+      setFocusPhase('setup')
+      showToast('Task kept. Good luck next time!')
+    }
   }
 
   const confirmAbandon = () => {
@@ -2139,7 +2171,7 @@ export default function Dashboard() {
                       : `${allPendingTasks.length} thing${allPendingTasks.length !== 1 ? 's' : ''} on your list.`}
                   </p>
                 </div>
-                <button onClick={() => setShowAddModal(true)} className={styles.addTaskBtn}>
+                <button onClick={() => setInlineAddActive(true)} className={styles.addTaskBtn}>
                   <span>+</span> Add task
                 </button>
               </div>
@@ -2377,6 +2409,27 @@ export default function Dashboard() {
                       <button onClick={dismissDragHint} className={styles.dragHintClose}>×</button>
                     </div>
                   )}
+                  <div className={styles.upNextLabel}>UP NEXT</div>
+                  {inlineAddActive && (
+                    <div className={styles.inlineAddTaskInput}>
+                      <input
+                        type="text"
+                        className={styles.inlineAddTaskField}
+                        placeholder="What needs doing?"
+                        value={inlineAddValue}
+                        onChange={e => setInlineAddValue(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') saveInlineTask()
+                          if (e.key === 'Escape') cancelInlineTask()
+                        }}
+                        autoFocus
+                      />
+                      <div className={styles.inlineAddTaskActions}>
+                        <button className={styles.inlineAddTaskSave} onClick={saveInlineTask}>Add</button>
+                        <button className={styles.inlineAddTaskCancel} onClick={cancelInlineTask}>Cancel</button>
+                      </div>
+                    </div>
+                  )}
                   <DragDropContext onDragEnd={handleDragEnd}>
                     <Droppable droppableId="upnext-tasks">
                       {(provided) => (
@@ -2396,7 +2449,7 @@ export default function Dashboard() {
                             return (
                               <Draggable key={String(task.id)} draggableId={String(task.id)} index={index}>
                                 {(provided) => (
-                                  <div ref={provided.innerRef} {...provided.draggableProps} className={`${styles.taskCard}${isBillTask ? ` ${styles.billTaskCard}` : ''}`}>
+                                  <div ref={provided.innerRef} {...provided.draggableProps} className={`${styles.taskCard}${isBillTask ? ` ${styles.billTaskCard}` : ''}${isElected ? ` ${styles.taskCardStarred}` : ''}`}>
                                     <button
                                       className={`${styles.starBtn} ${isElected ? styles.starBtnActive : ''}`}
                                       onClick={e => { e.stopPropagation(); setElectedTaskId(isElected ? null : task.id) }}
@@ -2615,7 +2668,7 @@ export default function Dashboard() {
                           {!electedTask ? (
                             <div className={styles.focusIdleEmpty}>
                               <p className={styles.focusIdleHeadline}>Ready to lock in?</p>
-                              <p className={styles.focusIdleSub}>Star a task to set your focus, then start your session.</p>
+                              <p className={styles.focusIdleSub}>Pick a session length and go.</p>
                               <button onClick={() => switchTab('tasks')} className={styles.focusStartBtn}>Go to Tasks </button>
                               <button onClick={() => setShowAddModal(true)} className={styles.focusIdleAddLink}>or add a new task</button>
                             </div>
@@ -2628,7 +2681,7 @@ export default function Dashboard() {
                               )}
                               <p className={styles.focusDurationLabel}>Session length</p>
                               <div className={styles.focusDurationRow}>
-                                {[5, 15, 25, 45, 60].map(d => (
+                                {[15, 25, 45, 60, 90].map(d => (
                                   <button key={d}
                                     onClick={() => { setFocusDuration(d); setFocusCustom('') }}
                                     className={`${styles.focusDurationBtn} ${focusDuration === d && !focusCustom ? styles.focusDurationBtnActive : ''}`}>
@@ -2656,30 +2709,33 @@ export default function Dashboard() {
                         </div>
                       )}
                       {focusPhase === 'active' && (
-                        <div className={styles.focusActive}>
-                          <p className={styles.focusActiveTask}>{topTask?.title}</p>
-                          <div className={`${styles.focusTimerDisplay} ${styles.timerDisplay}`}>{formatTimer(focusTimeLeft)}</div>
-                          <button onClick={toggleFocusPause} className={styles.focusPauseBtn}>{focusRunning ? 'Pause' : 'Resume'}</button>
+                        <div className={styles.focusActive} style={{ background: '#120704' }}>
+                          <p className={styles.focusActiveLabel} style={{ fontSize: '12px', color: 'rgba(240,234,214,0.4)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Focus session</p>
+                          <div className={styles.focusTimerDisplay} style={{ fontFamily: "'Playfair Display', serif", fontSize: '64px', color: 'rgba(240,234,214,0.85)' }}>{formatTimer(focusTimeLeft)}</div>
+                          <div style={{ display: 'flex', gap: '10px', width: '100%', justifyContent: 'center', marginBottom: '24px' }}>
+                            <button onClick={toggleFocusPause} className={styles.focusPauseBtn}>{focusRunning ? 'Pause' : 'Resume'}</button>
+                            <button onClick={handleAbandonSession} style={{ background: 'none', border: '1px solid rgba(240,234,214,0.2)', borderRadius: '100px', padding: '10px 20px', color: 'rgba(240,234,214,0.5)', fontSize: '14px', cursor: 'pointer', fontWeight: 600 }}>Got Stuck</button>
+                          </div>
                           {showAbandonConfirm ? (
                             <div className={styles.abandonConfirmRow}>
                               <span className={styles.abandonConfirmText}>Abandon session?</span>
                               <button onClick={confirmAbandon} className={styles.abandonYesBtn}>Yes, stop</button>
                               <button onClick={() => setShowAbandonConfirm(false)} className={styles.abandonNoBtn}>Keep going</button>
                             </div>
-                          ) : (
-                            <button onClick={handleAbandonSession} className={styles.focusAbandonBtn}>Abandon session</button>
-                          )}
+                          ) : null}
                         </div>
                       )}
                       {focusPhase === 'complete' && (
-                        <div className={styles.focusComplete}>
-                          <p className={styles.focusCompleteHeading}>Time's up.</p>
+                        <div className={styles.focusComplete} style={{ animation: 'focusCompletionFlash 0.2s ease-out' }}>
+                          <p className={styles.focusCompleteHeading}>Session complete.</p>
                           <p className={styles.focusCompleteTask}>{topTask?.title}</p>
-                          <p className={styles.focusCompletePrompt}>How'd it go?</p>
+                          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', margin: '20px 0 28px', fontSize: '14px', color: 'rgba(240,234,214,0.6)' }}>
+                            <div><strong>{focusDuration}</strong> min session</div>
+                            <div>You nailed it 🔥</div>
+                          </div>
                           <div className={styles.focusResultBtns}>
-                            <button onClick={() => handleFocusResult('complete')} className={styles.focusResultBtn}>Nailed it ✓</button>
-                            <button onClick={() => handleFocusResult('progress')} className={`${styles.focusResultBtn} ${styles.focusResultBtnSecondary}`}>Made progress </button>
-                            <button onClick={() => handleFocusResult('stuck')} className={`${styles.focusResultBtn} ${styles.focusResultBtnSecondary}`}>Got stuck, help me</button>
+                            <button onClick={() => handleFocusResult('complete')} className={styles.focusResultBtn}>Start another</button>
+                            <button onClick={() => { handleFocusResult('complete'); switchTab('tasks') }} className={`${styles.focusResultBtn} ${styles.focusResultBtnSecondary}`} style={{ fontSize: '13px' }}>Back to tasks</button>
                           </div>
                         </div>
                       )}
