@@ -18,31 +18,40 @@ const CinisMark = ({ size = 32 }) => (
   </svg>
 )
 
-export default function Login() {
+export default function ResetPassword() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const handleSignIn = async (e) => {
+  const handleReset = async (e) => {
     e.preventDefault()
-    setLoading(true)
     setError(null)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.')
+      return
+    }
+    if (password !== confirm) {
+      setError('Passwords do not match.')
+      return
+    }
+    setLoading(true)
+    const { error } = await supabase.auth.updateUser({ password })
     if (error) {
       setError(error.message)
       setLoading(false)
     } else {
-      router.push('/dashboard')
+      router.push('/login')
     }
   }
 
   return (
     <>
       <Head>
-        <title>Sign In — Cinis</title>
+        <title>Set New Password — Cinis</title>
       </Head>
       <div className={styles.page}>
         <div className={styles.card}>
@@ -51,27 +60,20 @@ export default function Login() {
             <span style={{ fontFamily: "'Cormorant Garamond', 'Cormorant', serif", fontWeight: 300, fontSize: '22px', color: '#F0EAD6', letterSpacing: '0.26em' }}>Cinis</span>
           </a>
 
-          <h1 className={styles.heading}>Welcome back.</h1>
-          <p className={styles.sub}>Sign in to your account.</p>
+          <h1 className={styles.heading}>Set new password.</h1>
+          <p className={styles.sub}>Choose a strong password for your account.</p>
 
           {error && <div className={styles.error}>{error}</div>}
 
-          <form onSubmit={handleSignIn} className={styles.form}>
-            <input
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              className={styles.input}
-            />
+          <form onSubmit={handleReset} className={styles.form}>
             <div className={styles.passwordWrap}>
               <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Password"
+                placeholder="New password (min 8 characters)"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
+                minLength={8}
                 className={styles.input}
               />
               <button
@@ -94,18 +96,39 @@ export default function Login() {
                 )}
               </button>
             </div>
+            <div className={styles.passwordWrap}>
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                placeholder="Confirm new password"
+                value={confirm}
+                onChange={e => setConfirm(e.target.value)}
+                required
+                className={styles.input}
+              />
+              <button
+                type="button"
+                className={styles.showHideBtn}
+                onClick={() => setShowConfirm(v => !v)}
+                tabIndex={-1}
+              >
+                {showConfirm ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                )}
+              </button>
+            </div>
             <button type="submit" disabled={loading} className={styles.submitBtn}>
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? 'Updating…' : 'Set new password'}
             </button>
           </form>
-
-          <p className={styles.forgotLink}>
-            <a href="/forgot-password">Forgot password?</a>
-          </p>
-
-          <p className={styles.signupLink}>
-            Don&apos;t have an account? <a href="/signup">Sign up free</a>
-          </p>
         </div>
       </div>
     </>

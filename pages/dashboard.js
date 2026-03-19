@@ -3711,16 +3711,12 @@ export default function Dashboard() {
               {financeSub === 'insights' && (
                 <div className={styles.insightsPlaceholder}>
                   <span style={{ fontSize: '2.5rem' }}>🤖</span>
-                  <p className={styles.greetingText} style={{ fontSize: '1.15rem' }}>Financial Insights</p>
+                  <p className={styles.greetingText} style={{ fontSize: '1.15rem' }}>Your financial picture</p>
                   <p className={styles.headerSub} style={{ maxWidth: '360px', textAlign: 'center' }}>
-                    {bills.length === 0
-                      ? 'Add bills in the Bills tab to unlock spending insights.'
-                      : monthlyIncome === 0
-                        ? 'Add your income in Plans to see your full picture.'
-                        : 'Your first insight is on its way...'}
+                    Insights are generated from your bills and budget data. Add bills and set your budget to unlock personalized coaching here.
                   </p>
-                  <button className={styles.addTaskBtn} onClick={() => setFinanceSub(bills.length === 0 ? 'bills' : 'plans')}>
-                    {bills.length === 0 ? 'Add a bill ' : 'Set up my budget '}
+                  <button className={styles.addTaskBtn} onClick={() => setFinanceSub(bills.length === 0 ? 'bills' : 'budget')}>
+                    {bills.length === 0 ? 'Add a bill' : 'View budget'}
                   </button>
                 </div>
               )}
