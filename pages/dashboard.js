@@ -1778,6 +1778,7 @@ export default function Dashboard() {
   }
 
   const switchTab = (id) => {
+    if (id === 'habits') { router.push('/habits'); return }
     setActiveTab(id); setShowMoreDrawer(false)
   }
 
