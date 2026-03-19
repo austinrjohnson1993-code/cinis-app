@@ -483,6 +483,7 @@ export default function Dashboard() {
   const [parsing, setParsing] = useState(false)
   const recognitionRef = useRef(null)
   const titleInputRef = useRef(null)
+  const inlineInputRef = useRef(null)
 
   // Calendar
   const [calView, setCalView] = useState('month')
@@ -526,6 +527,7 @@ export default function Dashboard() {
   const [electedTaskId, setElectedTaskId] = useState(null) // user-starred priority task (UI only)
   const [inlineAddActive, setInlineAddActive] = useState(false)
   const [inlineAddValue, setInlineAddValue] = useState('')
+  const [inlineAddConfirmed, setInlineAddConfirmed] = useState(false)
 
   // Progress
   const [weeklySummary, setWeeklySummary] = useState('')
@@ -1291,28 +1293,58 @@ export default function Dashboard() {
     resetForm(); setAdding(false); setShowAddModal(false)
   }
 
-  const addTaskQuick = async (title) => {
+  const addTaskQuick = async (title, dueTime = null) => {
     if (!title || !user) return
     const task = {
-      user_id: user.id, title, completed: false, archived: false, due_time: null,
+      user_id: user.id, title, completed: false, archived: false, due_time: dueTime,
       consequence_level: 'self', notes: null, recurrence: 'none', rollover_count: 0,
       priority_score: 0, created_at: new Date().toISOString(), scheduled_for: new Date().toISOString()
     }
     const { data } = await supabase.from('tasks').insert(task).select().single()
     if (data) setTasks(prev => [data, ...prev])
-    showToast('Task added ✓')
+  }
+
+  const parseTaskTime = (text) => {
+    const timeMatch = text.match(/\bat (\d{1,2})(:\d{2})?(am|pm)\b/i)
+    if (!timeMatch) return null
+    let hours = parseInt(timeMatch[1], 10)
+    const minutes = timeMatch[2] ? parseInt(timeMatch[2].slice(1), 10) : 0
+    const meridiem = timeMatch[3].toLowerCase()
+    if (meridiem === 'pm' && hours !== 12) hours += 12
+    if (meridiem === 'am' && hours === 12) hours = 0
+    const base = new Date()
+    const dateMatch = text.match(/\b(tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i)
+    if (dateMatch) {
+      const day = dateMatch[1].toLowerCase()
+      if (day === 'tomorrow') {
+        base.setDate(base.getDate() + 1)
+      } else if (day !== 'today') {
+        const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
+        const targetDay = days.indexOf(day)
+        const diff = ((targetDay - base.getDay()) + 7) % 7 || 7
+        base.setDate(base.getDate() + diff)
+      }
+    }
+    base.setHours(hours, minutes, 0, 0)
+    return base.toISOString()
   }
 
   const saveInlineTask = async () => {
     if (!inlineAddValue.trim()) return
-    await addTaskQuick(inlineAddValue)
+    const dueTime = parseTaskTime(inlineAddValue)
+    await addTaskQuick(inlineAddValue, dueTime)
     setInlineAddValue('')
-    setInlineAddActive(false)
+    setInlineAddConfirmed(true)
+    setTimeout(() => {
+      setInlineAddConfirmed(false)
+      inlineInputRef.current?.focus()
+    }, 1000)
   }
 
   const cancelInlineTask = () => {
     setInlineAddValue('')
     setInlineAddActive(false)
+    setInlineAddConfirmed(false)
   }
 
   // ── Voice input ───────────────────────────────────────────────────────────
@@ -2484,6 +2516,7 @@ export default function Dashboard() {
                   {inlineAddActive && (
                     <div className={styles.inlineAddTaskInput}>
                       <input
+                        ref={inlineInputRef}
                         type="text"
                         className={styles.inlineAddTaskField}
                         placeholder="What needs doing?"
@@ -2495,6 +2528,9 @@ export default function Dashboard() {
                         }}
                         autoFocus
                       />
+                      {inlineAddConfirmed && (
+                        <span className={styles.inlineAddConfirmed}>Task added ✓</span>
+                      )}
                       <div className={styles.inlineAddTaskActions}>
                         <button className={styles.inlineAddTaskSave} onClick={saveInlineTask}>Add</button>
                         <button className={styles.inlineAddTaskCancel} onClick={cancelInlineTask}>Cancel</button>
@@ -2559,12 +2595,37 @@ export default function Dashboard() {
               )}
 
               {dedupedPendingTasks.length === 0 && completedTasks.length === 0 && (
-                <div className={styles.emptyState}>
-                  <div className={styles.emptyIcon}>✦</div>
-                  <p className={styles.emptyText}>Nothing on your list.</p>
-                  <p className={styles.emptySubtext}>Add your first task and Cinis will handle the rest.</p>
-                  <button onClick={() => setShowAddModal(true)} className={styles.emptyAddBtn}>+ Add your first task</button>
-                </div>
+                inlineAddActive ? (
+                  <div className={styles.inlineAddTaskInput}>
+                    <input
+                      ref={inlineInputRef}
+                      type="text"
+                      className={styles.inlineAddTaskField}
+                      placeholder="What needs doing?"
+                      value={inlineAddValue}
+                      onChange={e => setInlineAddValue(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') saveInlineTask()
+                        if (e.key === 'Escape') cancelInlineTask()
+                      }}
+                      autoFocus
+                    />
+                    {inlineAddConfirmed && (
+                      <span className={styles.inlineAddConfirmed}>Task added ✓</span>
+                    )}
+                    <div className={styles.inlineAddTaskActions}>
+                      <button className={styles.inlineAddTaskSave} onClick={saveInlineTask}>Add</button>
+                      <button className={styles.inlineAddTaskCancel} onClick={cancelInlineTask}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.emptyState}>
+                    <div className={styles.emptyIcon}>✦</div>
+                    <p className={styles.emptyText}>Nothing on your list.</p>
+                    <p className={styles.emptySubtext}>Add your first task and Cinis will handle the rest.</p>
+                    <button onClick={() => setInlineAddActive(true)} className={styles.emptyAddBtn}>+ Add your first task</button>
+                  </div>
+                )
               )}
 
               {/* ── Coming up ── */}
