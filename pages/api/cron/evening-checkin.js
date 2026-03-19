@@ -18,9 +18,20 @@ function fmtTask(t) {
   return s
 }
 
-// Called nightly at 8PM by Vercel cron (see vercel.json)
+// Returns true if the user's saved time preference falls within ±windowMinutes of targetHour (UTC)
+function isInTimeWindow(timeStr, targetHour, windowMinutes = 60) {
+  if (!timeStr) return true // no preference set — always process
+  const [h] = String(timeStr).split(':').map(Number)
+  if (isNaN(h)) return true
+  const diffHours = Math.abs(h - targetHour)
+  const diffMin = Math.min(diffHours, 24 - diffHours) * 60
+  return diffMin <= windowMinutes
+}
+
+// Called nightly at 8PM UTC by Vercel cron (see vercel.json)
 export default async function handler(req, res) {
   const supabaseAdmin = getAdminClient()
+  const currentUtcHour = new Date().getUTCHours()
 
   // 1. Run nightly rollover
   let rolloverResult = { rolled: 0, tasks: [] }
@@ -41,9 +52,12 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, rolled: rolloverResult.rolled, pregenerated: 0 })
   }
 
+  // Filter to users whose evening_time preference is near the current UTC hour (or unset)
+  const activeProfiles = profiles.filter(p => isInTimeWindow(p.evening_time, currentUtcHour))
+
   let pregenerated = 0
 
-  await Promise.allSettled(profiles.map(async (profile) => {
+  await Promise.allSettled(activeProfiles.map(async (profile) => {
     try {
       const { data: tasks = [] } = await supabaseAdmin
         .from('tasks').select('*').eq('user_id', profile.id).eq('archived', false)

@@ -17,13 +17,6 @@ function fmtTask(t) {
   return s
 }
 
-function topTask(pending) {
-  return pending.find(t => t.consequence_level === 'external' || t.due_time)
-    || pending.find(t => (t.rollover_count || 0) > 0)
-    || pending[0]
-    || null
-}
-
 // Returns true if the user's saved time preference falls within ±windowMinutes of targetHour (UTC)
 function isInTimeWindow(timeStr, targetHour, windowMinutes = 60) {
   if (!timeStr) return true // no preference set — always process
@@ -34,7 +27,8 @@ function isInTimeWindow(timeStr, targetHour, windowMinutes = 60) {
   return diffMin <= windowMinutes
 }
 
-// Called daily at 8AM UTC by Vercel cron (see vercel.json)
+// Called daily at 12PM UTC by Vercel cron (see vercel.json)
+// Only fires for users with midday check-ins enabled (midday in checkin_times array)
 export default async function handler(req, res) {
   const supabaseAdmin = getAdminClient()
   const currentUtcHour = new Date().getUTCHours()
@@ -42,14 +36,14 @@ export default async function handler(req, res) {
   const { data: profiles } = await supabaseAdmin
     .from('profiles')
     .select('*')
-    .contains('checkin_times', ['morning'])
+    .contains('checkin_times', ['midday'])
 
   if (!profiles || profiles.length === 0) {
     return res.status(200).json({ success: true, pregenerated: 0 })
   }
 
-  // Filter to users whose morning_time preference is near the current UTC hour (or unset)
-  const activeProfiles = profiles.filter(p => isInTimeWindow(p.morning_time, currentUtcHour))
+  // Filter to users whose midday_time preference is near the current UTC hour (or unset)
+  const activeProfiles = profiles.filter(p => isInTimeWindow(p.midday_time, currentUtcHour))
 
   if (activeProfiles.length === 0) {
     return res.status(200).json({ success: true, pregenerated: 0 })
@@ -63,18 +57,18 @@ export default async function handler(req, res) {
         .from('tasks').select('*').eq('user_id', profile.id).eq('archived', false)
 
       const pending = (tasks || []).filter(t => !t.completed)
+      const completed = (tasks || []).filter(t => t.completed)
       const name = profile.full_name?.split(' ')[0] || 'there'
-      const top = topTask(pending)
 
-      const topLine = top
-        ? `Top priority: ${fmtTask(top)}.`
-        : 'No pending tasks today.'
+      const doneNote = completed.length > 0
+        ? `Already done: ${completed.map(fmtTask).join(', ')}.`
+        : 'Nothing completed yet.'
 
-      const allPendingLine = pending.length > 1
-        ? `Also pending: ${pending.filter(t => t !== top).map(fmtTask).join(', ')}.`
-        : ''
+      const pendingNote = pending.length > 0
+        ? `Still on the list: ${pending.map(fmtTask).join(', ')}.`
+        : 'Nothing left pending — great job.'
 
-      const contextPrompt = `It's morning. ${name} is starting their day. ${topLine} ${allPendingLine} Write the morning check-in. 2-3 sentences max. Name the top task specifically. Be direct and energizing.`
+      const contextPrompt = `It's midday. ${name} is checking in on how the day is going. ${doneNote} ${pendingNote} Write a brief midday check-in. Acknowledge progress so far. Focus on what matters most for the rest of the day. 2-3 sentences. Keep it grounded and practical.`
 
       const systemPrompt = buildPersonaPrompt(profile)
       const message = await coachingMessage(
@@ -88,9 +82,9 @@ export default async function handler(req, res) {
       }).eq('id', profile.id)
 
       pregenerated++
-      console.log(`[morning-checkin] Pre-generated for ${name}`)
+      console.log(`[midday-checkin] Pre-generated for ${name}`)
     } catch (err) {
-      console.error(`[morning-checkin] Pre-gen failed for ${profile.id}:`, err.message)
+      console.error(`[midday-checkin] Pre-gen failed for ${profile.id}:`, err.message)
     }
   }))
 

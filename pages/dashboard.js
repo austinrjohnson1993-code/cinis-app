@@ -9,7 +9,7 @@ import { saveTaskOrder } from '../lib/taskOrder'
 import { isDueSoon as billIsDueSoon, formatBillAmount, getBillCategory, getNextDueDate } from '../lib/billUtils'
 import { CHORE_PRESETS, getChoresByPreset } from '../lib/chores'
 import { requestNotificationPermission, disablePushNotifications } from '../lib/pushNotifications'
-import { CheckSquare, ChatCircle, Target, CalendarBlank, Notebook, Wallet, ChartLineUp, Plus, Trash, Archive, Star, Gear, MagnifyingGlass, X, CaretLeft, CaretRight, CaretDown, Receipt, Scales, Books, Robot, List, Timer, ChartBar, Lightning, ArrowCounterClockwise, CheckCircle, Microphone } from '@phosphor-icons/react'
+import { CheckSquare, ChatCircle, Target, CalendarBlank, Notebook, Wallet, ChartLineUp, Plus, Trash, Archive, Star, Gear, MagnifyingGlass, X, CaretLeft, CaretRight, CaretDown, Receipt, Scales, Books, Robot, List, Timer, ChartBar, Lightning, ArrowCounterClockwise, CheckCircle, Microphone, TrendUp, WarningCircle } from '@phosphor-icons/react'
 import UpgradeModal from '../components/UpgradeModal'
 
 const THEMES = [
@@ -617,6 +617,12 @@ export default function Dashboard() {
   const [billType, setBillType] = useState('bill')
   const [billInterestRate, setBillInterestRate] = useState('')
 
+  // Finance Insights
+  const [financeInsights, setFinanceInsights] = useState([])
+  const [financeInsightsLoading, setFinanceInsightsLoading] = useState(false)
+  const [financeInsightsLoaded, setFinanceInsightsLoaded] = useState(false)
+  const [financeInsightsEmpty, setFinanceInsightsEmpty] = useState(false)
+
   // Journal history (up to 20 past entries)
   const [journalHistory, setJournalHistory] = useState([])
 
@@ -853,6 +859,12 @@ export default function Dashboard() {
     }
   }, [activeTab, user])
 
+  useEffect(() => {
+    if (activeTab === 'finance' && financeSub === 'insights' && user && !financeInsightsLoaded) {
+      fetchFinanceInsights()
+    }
+  }, [activeTab, financeSub, user])
+
   // Cleanup focus timer on unmount
   useEffect(() => {
     return () => clearInterval(focusIntervalRef.current)
@@ -1054,6 +1066,30 @@ export default function Dashboard() {
       .from('bills').select('*').eq('user_id', userId)
       .order('created_at', { ascending: false })
     setBills(data || [])
+  }
+
+  const fetchFinanceInsights = async () => {
+    if (!user || financeInsightsLoading) return
+    setFinanceInsightsLoading(true)
+    setFinanceInsightsLoaded(true)
+    try {
+      const res = await loggedFetch('/api/finance-insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, incomeEntries, monthlyIncome }),
+      })
+      const data = await res.json()
+      if (data.empty) {
+        setFinanceInsightsEmpty(true)
+        setFinanceInsights([])
+      } else {
+        setFinanceInsightsEmpty(false)
+        setFinanceInsights(data.insights || [])
+      }
+    } catch {
+      setFinanceInsights([])
+    }
+    setFinanceInsightsLoading(false)
   }
 
   const fetchAlarms = async (userId) => {
@@ -3167,13 +3203,13 @@ export default function Dashboard() {
                 <h1 className={styles.greetingText}>Settings</h1>
               </div>
 
-              {/* Account */}
-              <div className={styles.settingsSection}>
-                <p className={styles.settingsSectionLabel}>Account</p>
+              {/* 1. Profile */}
+              <div className={styles.settingsSection} style={{ paddingTop: '24px' }}>
+                <p className={styles.settingsSectionLabel}>Profile</p>
                 <div className={styles.settingsCard}>
                   <div className={styles.settingsRow}>
                     <div className={styles.settingsRowLeft}>
-                      <span className={styles.settingsRowLabel}>Display name</span>
+                      <span className={styles.settingsRowLabel}>Name</span>
                     </div>
                     <div className={styles.settingsRowRight}>
                       <input
@@ -3188,46 +3224,26 @@ export default function Dashboard() {
                       </button>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Appearance / Theme */}
-              <div className={styles.settingsSection}>
-                <p className={styles.settingsSectionLabel}>Theme</p>
-                <div className={styles.settingsCard}>
                   <div className={styles.settingsRow}>
                     <div className={styles.settingsRowLeft}>
-                      <span className={styles.settingsRowLabel}>Color theme</span>
-                      <span className={styles.settingsRowSub}>{activeTheme?.name || 'Classic'}</span>
+                      <span className={styles.settingsRowLabel}>Email</span>
                     </div>
                     <div className={styles.settingsRowRight}>
-                      <div className={styles.themeSwatches}>
-                        {THEMES.map(theme => {
-                          const swatchBg = theme.id === 'midnight' ? '#000000' : theme.accent
-                          return (
-                            <div key={theme.id} className={styles.swatchWrap}>
-                              <button title={theme.name}
-                                onClick={() => saveTheme(theme)}
-                                className={`${styles.accentSwatch} ${activeTheme?.id === theme.id ? styles.accentSwatchActive : ''}`}
-                                style={{ background: swatchBg }}
-                              />
-                              <span className={styles.swatchLabel}>{theme.name}</span>
-                            </div>
-                          )
-                        })}
-                      </div>
+                      <span style={{ color: 'rgba(240,234,214,0.6)', fontSize: '14px' }}>{user?.email || '—'}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Persona */}
-              <div className={styles.settingsSection}>
-                <p className={styles.settingsSectionLabel}>AI Persona</p>
+              <div style={{ height: '1px', background: 'var(--card-bg)', marginTop: '24px', marginBottom: '24px' }} />
+
+              {/* 2. Coaching personas */}
+              <div className={styles.settingsSection} style={{ paddingTop: '24px' }}>
+                <p className={styles.settingsSectionLabel}>Coaching personas</p>
                 <div className={styles.settingsCard}>
                   <div className={styles.settingsRow}>
                     <div className={styles.settingsRowLeft}>
-                      <span className={styles.settingsRowLabel}>Coaching style</span>
+                      <span className={styles.settingsRowLabel}>Your coaching style</span>
                       <span className={styles.settingsRowSub}>
                         {profile?.persona_blend?.length
                           ? profile.persona_blend.map(k => PERSONAS_LIST.find(p => p.key === k)?.label || k).join(' · ')
@@ -3241,9 +3257,55 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Notification preferences */}
-              <div className={styles.settingsSection}>
-                <p className={styles.settingsSectionLabel}>Check-in notifications</p>
+              <div style={{ height: '1px', background: 'var(--card-bg)', marginTop: '24px', marginBottom: '24px' }} />
+
+              {/* 3. Voice tone */}
+              <div className={styles.settingsSection} style={{ paddingTop: '24px' }}>
+                <p className={styles.settingsSectionLabel}>Voice tone</p>
+                <div className={styles.settingsCard}>
+                  <div className={styles.settingsRow}>
+                    <div className={styles.settingsRowLeft}>
+                      <span className={styles.settingsRowLabel}>Coach's voice</span>
+                      <span className={styles.settingsRowSub}>{personaVoice || 'female'}</span>
+                    </div>
+                    <div className={styles.settingsRowRight}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {[{ val: 'female', label: 'Female' }, { val: 'male', label: 'Male' }, { val: 'neutral', label: 'Neutral' }].map(({ val, label }) => (
+                          <button
+                            key={val}
+                            onClick={async () => {
+                              setPersonaVoice(val)
+                              const updates = { persona_voice: val }
+                              await supabase.from('profiles').update(updates).eq('id', user.id)
+                              setProfile(prev => ({ ...prev, persona_voice: val }))
+                              showToast('Voice tone updated')
+                            }}
+                            style={{
+                              padding: '8px 12px',
+                              borderRadius: '6px',
+                              border: personaVoice === val ? '2px solid #FF6644' : '1px solid rgba(240,234,214,0.2)',
+                              background: personaVoice === val ? 'rgba(255,102,68,0.1)' : 'transparent',
+                              color: '#F0EAD6',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: personaVoice === val ? 600 : 400,
+                              transition: 'all 200ms ease',
+                            }}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ height: '1px', background: 'var(--card-bg)', marginTop: '24px', marginBottom: '24px' }} />
+
+              {/* 4. Check-in preferences */}
+              <div className={styles.settingsSection} style={{ paddingTop: '24px' }}>
+                <p className={styles.settingsSectionLabel}>Check-in preferences</p>
                 <div className={styles.settingsCard}>
                   {[
                     { key: 'morning', label: 'Morning check-in', val: notifMorning, set: setNotifMorning, time: morningTime, setTime: setMorningTime },
@@ -3262,10 +3324,19 @@ export default function Dashboard() {
                       </div>
                     </div>
                   ))}
-                  <button onClick={saveCheckinPreferences} className={styles.addTaskBtn} style={{ width: '100%', marginBottom: '16px', marginTop: '8px' }}>Save check-in preferences</button>
+                  <button onClick={saveCheckinPreferences} className={styles.addTaskBtn} style={{ width: '100%', marginTop: '8px' }}>Save preferences</button>
+                </div>
+              </div>
+
+              <div style={{ height: '1px', background: 'var(--card-bg)', marginTop: '24px', marginBottom: '24px' }} />
+
+              {/* 5. Push notifications */}
+              <div className={styles.settingsSection} style={{ paddingTop: '24px' }}>
+                <p className={styles.settingsSectionLabel}>Push notifications</p>
+                <div className={styles.settingsCard}>
                   <div className={styles.settingsRow}>
                     <div className={styles.settingsRowLeft}>
-                      <span className={styles.settingsRowLabel}>Push notifications</span>
+                      <span className={styles.settingsRowLabel}>Enable notifications</span>
                       <span className={styles.settingsRowSub}>Required for alarms &amp; check-ins</span>
                     </div>
                     {notifPermission === 'denied' ? (
@@ -3283,8 +3354,10 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Nutrition */}
-              <div className={styles.settingsSection}>
+              <div style={{ height: '1px', background: 'var(--card-bg)', marginTop: '24px', marginBottom: '24px' }} />
+
+              {/* 6. Nutrition */}
+              <div className={styles.settingsSection} style={{ paddingTop: '24px' }}>
                 <p className={styles.settingsSectionLabel}>Nutrition</p>
                 <div className={styles.settingsCard}>
 
@@ -3442,133 +3515,52 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Connections */}
-              <div className={styles.settingsSection}>
-                <p className={styles.settingsSectionLabel}>Connections</p>
+              <div style={{ height: '1px', background: 'var(--card-bg)', marginTop: '24px', marginBottom: '24px' }} />
+
+              {/* 7. Subscription */}
+              <div className={styles.settingsSection} style={{ paddingTop: '24px' }}>
+                <p className={styles.settingsSectionLabel}>Subscription</p>
                 <div className={styles.settingsCard}>
-                  {[
-                    { name: 'Google Calendar', sub: 'Sync events to calendar view' },
-                    { name: 'Spotify', sub: 'Play focus playlists' },
-                    { name: 'Apple Music', sub: 'Play focus playlists' },
-                    { name: 'Fitbit', sub: 'Track activity and sleep' },
-                    { name: 'Oura Ring', sub: 'Track readiness and sleep' },
-                  ].map(({ name, sub }) => (
-                    <div key={name} className={styles.connectionRow}>
-                      <div className={styles.connectionInfo}>
-                        <span className={styles.connectionName}>{name}</span>
-                        <span className={styles.connectionStatus}>{sub}</span>
-                      </div>
-                      <button className={styles.comingSoonBtn} disabled title="Integration coming in Phase 2">
-                        Coming soon
-                      </button>
+                  <div className={styles.settingsRow}>
+                    <div className={styles.settingsRowLeft}>
+                      <span className={styles.settingsRowLabel}>{profile?.subscription_status === 'pro' ? 'Pro plan' : 'Free plan'}</span>
+                      <span className={styles.settingsRowSub}>
+                        {profile?.subscription_status === 'pro'
+                          ? 'Unlimited check-ins'
+                          : '5 AI check-ins per day'}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Chore Cadence */}
-              <div className={styles.settingsSection}>
-                <p className={styles.settingsSectionLabel}>Chore Cadence</p>
-                {CHORE_PRESETS.map(preset => {
-                  const isActive = profile?.chore_preset === preset.id
-                  return (
-                    <div key={preset.id} className={`${styles.chorePresetCard} ${isActive ? styles.chorePresetCardActive : ''}`}>
-                      <div>
-                        <div className={styles.chorePresetName}>
-                          {preset.name}
-                          {isActive && <span className={styles.choreActiveBadge}>Active</span>}
-                        </div>
-                        <div className={styles.chorePresetDesc}>{preset.description}</div>
-                      </div>
-                      {isActive ? (
-                        <button className={styles.choreRemoveBtn} onClick={async () => {
-                          const { data: { session: choreSession } } = await supabase.auth.getSession()
-                          await loggedFetch('/api/chores', {
-                            method: 'DELETE',
-                            headers: choreSession ? { Authorization: `Bearer ${choreSession.access_token}` } : {},
-                          })
-                          setProfile(prev => ({ ...prev, chore_preset: null }))
-                          fetchTasks(user.id)
-                          showToast('Chore routine removed')
-                        }}>Remove</button>
-                      ) : (
-                        <button className={styles.choreSetupBtn} onClick={async () => {
-                          const chorePreset = getChoresByPreset(preset.id)
-                          if (!chorePreset) return
-                          const today = new Date()
-                          today.setHours(9, 0, 0, 0)
-                          let weekdayIndex = 0
-                          const choreTasks = chorePreset.chores.map(chore => {
-                            let scheduledFor
-                            if (chore.recurrence === 'daily') {
-                              scheduledFor = new Date(today)
-                            } else if (chore.recurrence === 'monthly') {
-                              scheduledFor = new Date(today)
-                              scheduledFor.setDate(scheduledFor.getDate() + 14)
-                            } else {
-                              // weekly, biweekly, twice-weekly  spread across next 7 days
-                              scheduledFor = new Date(today)
-                              scheduledFor.setDate(scheduledFor.getDate() + (weekdayIndex % 7))
-                              weekdayIndex++
-                            }
-                            return {
-                              user_id: user.id,
-                              title: chore.title,
-                              recurrence: chore.recurrence === 'daily' ? 'daily' : chore.recurrence === 'monthly' ? 'monthly' : 'weekly',
-                              consequence_level: 'self',
-                              completed: false,
-                              archived: false,
-                              rollover_count: 0,
-                              priority_score: 0,
-                              notes: null,
-                              due_time: null,
-                              scheduled_for: scheduledFor.toISOString(),
-                              created_at: new Date().toISOString(),
-                            }
-                          })
-                          await supabase.from('tasks').insert(choreTasks)
-                          await supabase.from('profiles').update({ chore_preset: preset.id }).eq('id', user.id)
-                          setProfile(prev => ({ ...prev, chore_preset: preset.id }))
-                          fetchTasks(user.id)
-                          showToast('Chore routine added to your tasks')
-                        }}>Set up</button>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Subscription management (Pro users only) */}
-              {profile?.subscription_status === 'pro' && (
-                <div className={styles.settingsSection}>
-                  <p className={styles.settingsSectionLabel}>Subscription</p>
-                  <div className={styles.settingsCard}>
-                    <div className={styles.settingsRow}>
-                      <div className={styles.settingsRowLeft}>
-                        <span className={styles.settingsRowLabel}>Pro plan</span>
-                        <span className={styles.settingsRowSub}>$14/mo · Active</span>
-                      </div>
-                      <button
-                        className={styles.connectionBtn}
-                        onClick={async () => {
+                    <button
+                      className={styles.connectionBtn}
+                      onClick={async () => {
+                        if (profile?.subscription_status === 'pro') {
                           try {
                             const res = await loggedFetch('/api/stripe/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
                             const data = await res.json()
                             if (data.url) window.location.href = data.url
                           } catch {}
-                        }}
-                      >
-                        Manage
-                      </button>
-                    </div>
+                        } else {
+                          window.location.href = '/pricing'
+                        }
+                      }}
+                      style={{ color: profile?.subscription_status === 'pro' ? 'inherit' : '#FF6644', fontWeight: profile?.subscription_status === 'pro' ? 400 : 600 }}
+                    >
+                      {profile?.subscription_status === 'pro' ? 'Manage subscription →' : 'Upgrade to Pro →'}
+                    </button>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* How to get the most out of Cinis */}
-              <div className={styles.settingsSection}>
-                <button className={styles.settingsTipsToggle} onClick={() => setShowGuideModal(true)}>
-                  How to get the most out of Cinis
+              <div style={{ height: '1px', background: 'var(--card-bg)', marginTop: '24px', marginBottom: '24px' }} />
+
+              {/* 8. Sign out */}
+              <div className={styles.settingsSection} style={{ paddingTop: '24px', paddingBottom: '40px' }}>
+                <button
+                  onClick={handleSignOut}
+                  className={styles.signOutBtn}
+                  style={{ width: '100%' }}
+                >
+                  Sign out
                 </button>
               </div>
             </div>
