@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import { supabase } from '../lib/supabase'
 
 const CinisMark = ({ size = 32 }) => (
   <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
@@ -26,9 +27,13 @@ export default function Upgrade() {
   const handleCheckout = async (priceId) => {
     setLoading(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({ priceId })
       })
       const data = await res.json()

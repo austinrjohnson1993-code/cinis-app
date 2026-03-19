@@ -771,35 +771,8 @@ export default function Dashboard() {
       const saved = loadChatHistory(historyKey)
       if (saved && saved.length > 0) {
         setCheckinMessages(saved)
-        return
       }
-      setCheckinLoading(true)
-      loggedFetch('/api/checkin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, checkInType: getCheckinType(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
-      })
-        .then(r => {
-          if (r.status === 429) { setUpgradeModalTrigger('limit'); return null }
-          return r.json()
-        })
-        .then(data => {
-          if (!data) return
-          if (data.message) {
-            const msgs = [{ role: 'assistant', content: data.message }]
-            setCheckinMessages(msgs)
-            saveChatHistory(historyKey, msgs)
-            // Track session count for memory gap banner
-            try {
-              const key = `cinis_checkin_sessions_${user.id}`
-              const count = parseInt(localStorage.getItem(key) || '0', 10) + 1
-              localStorage.setItem(key, String(count))
-            } catch {}
-          }
-          fetchTasks(user.id)
-        })
-        .catch(() => setCheckinMessages([{ role: 'assistant', content: "Hey — how are you doing today?" }]))
-        .finally(() => setCheckinLoading(false))
+      // No auto-API call — user clicks "Start check-in" to begin
     }
   }, [activeTab, user])
 
@@ -1377,6 +1350,37 @@ export default function Dashboard() {
   }
 
   // ── Check-in ──────────────────────────────────────────────────────────────
+
+  const startCheckin = () => {
+    if (checkinLoading) return
+    const historyKey = `cinis_checkin_history_${user.id}`
+    setCheckinLoading(true)
+    loggedFetch('/api/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id, checkInType: getCheckinType(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+    })
+      .then(r => {
+        if (r.status === 429) { setUpgradeModalTrigger('limit'); return null }
+        return r.json()
+      })
+      .then(data => {
+        if (!data) return
+        if (data.message) {
+          const msgs = [{ role: 'assistant', content: data.message }]
+          setCheckinMessages(msgs)
+          saveChatHistory(historyKey, msgs)
+          try {
+            const key = `cinis_checkin_sessions_${user.id}`
+            const count = parseInt(localStorage.getItem(key) || '0', 10) + 1
+            localStorage.setItem(key, String(count))
+          } catch {}
+        }
+        fetchTasks(user.id)
+      })
+      .catch(() => setCheckinMessages([{ role: 'assistant', content: "Hey — how are you doing today?" }]))
+      .finally(() => setCheckinLoading(false))
+  }
 
   const sendCheckinMessage = async (e) => {
     e.preventDefault()
@@ -2621,28 +2625,67 @@ export default function Dashboard() {
                     <button onClick={() => switchTab('tasks')} className={styles.checkinSkipBtn}>Skip to tasks</button>
                   </div>
                 </div>
-                <div className={styles.checkinMessages}>
-                  {checkinMessages.map((msg, i) => (
-                    <div key={i} className={msg.role === 'assistant' ? styles.checkinBubbleAI : styles.checkinBubbleUser}>
-                      {msg.content}
+                {checkinMessages.length === 0 && !checkinLoading ? (
+                  <div className={styles.checkinEmptyState}>
+                    <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginBottom: '16px', opacity: 0.7 }}>
+                      <polygon points="32,2 56,15 56,43 32,56 8,43 8,15" fill="none" stroke="#FF6644" strokeWidth="1.1" opacity="0.45"/>
+                      <polygon points="32,4 54,16 54,42 32,54 10,42 10,16" fill="#FF6644"/>
+                      <polygon points="32,7 51,18 51,40 32,52 13,40 13,18" fill="#120704"/>
+                      <polygon points="32,14 46,22 46,40 32,48 18,40 18,22" fill="#5A1005"/>
+                      <polygon points="32,20 42,26 42,40 32,45 22,40 22,26" fill="#A82010"/>
+                      <polygon points="32,26 38,29 38,40 32,43 26,40 26,29" fill="#E8321A"/>
+                      <polygon points="32,29 45,40 40,43 32,47 24,43 19,40" fill="#FF6644" opacity="0.92"/>
+                      <polygon points="32,33 41,40 38,42 32,45 26,42 23,40" fill="#FFD0C0" opacity="0.76"/>
+                      <polygon points="32,36 37,40 36,41 32,43 28,41 27,40" fill="#FFF0EB" opacity="0.60"/>
+                    </svg>
+                    <p className={styles.checkinEmptyHeading}>Ready when you are</p>
+                    <p className={styles.checkinEmptySubtext}>Start a check-in to reflect, plan, and get coached.</p>
+                    <button className={styles.checkinStartBtn} onClick={startCheckin}>Start check-in</button>
+                  </div>
+                ) : (
+                  <>
+                    {checkinMessages.length > 0 && (
+                      <div className={styles.checkinSessionHeader}>
+                        <span className={styles.checkinSessionLabel}>{typeLabel}</span>
+                        <span className={styles.checkinSessionPersona}>{personaLabel}</span>
+                        <div className={styles.checkinSessionDivider} />
+                      </div>
+                    )}
+                    <div className={styles.checkinMessages}>
+                      {checkinMessages.map((msg, i) => (
+                        <div
+                          key={i}
+                          className={`${msg.role === 'assistant' ? styles.checkinBubbleAI : styles.checkinBubbleUser}${i === checkinMessages.length - 1 ? ` ${styles.checkinMsgNew}` : ''}`}
+                        >
+                          {msg.content}
+                        </div>
+                      ))}
+                      {checkinLoading && (
+                        <div className={styles.checkinBubbleAI}>
+                          <div className={styles.checkinTypingDots}>
+                            <span className={styles.checkinDot} />
+                            <span className={styles.checkinDot} />
+                            <span className={styles.checkinDot} />
+                          </div>
+                        </div>
+                      )}
+                      <div ref={checkinEndRef} />
                     </div>
-                  ))}
-                  {checkinLoading && <div className={styles.checkinBubbleAI}><span className={styles.checkinTyping}>···</span></div>}
-                  <div ref={checkinEndRef} />
-                </div>
-                {checkinMessages.length > 1 && (
-                  <button className={styles.clearHistoryBtn} onClick={() => {
-                    try { localStorage.removeItem(`cinis_checkin_history_${user.id}`) } catch {}
-                    setCheckinMessages([])
-                    setCheckinInitialized(false)
-                  }}>Clear history</button>
+                    {checkinMessages.length > 1 && (
+                      <button className={styles.clearHistoryBtn} onClick={() => {
+                        try { localStorage.removeItem(`cinis_checkin_history_${user.id}`) } catch {}
+                        setCheckinMessages([])
+                        setCheckinInitialized(false)
+                      }}>Clear history</button>
+                    )}
+                    <form onSubmit={sendCheckinMessage} className={styles.checkinForm}>
+                      <input type="text" placeholder="Say anything..." value={checkinInput}
+                        onChange={e => setCheckinInput(e.target.value)}
+                        className={styles.checkinInput} autoFocus />
+                      <button type="submit" disabled={checkinLoading || !checkinInput.trim()} className={styles.checkinSendBtn}>↑</button>
+                    </form>
+                  </>
                 )}
-                <form onSubmit={sendCheckinMessage} className={styles.checkinForm}>
-                  <input type="text" placeholder="Reply..." value={checkinInput}
-                    onChange={e => setCheckinInput(e.target.value)}
-                    className={styles.checkinInput} autoFocus />
-                  <button type="submit" disabled={checkinLoading || !checkinInput.trim()} className={styles.checkinSendBtn}></button>
-                </form>
               </div>
             )
           })()}
@@ -3791,7 +3834,8 @@ export default function Dashboard() {
                       onClick={async () => {
                         if (profile?.subscription_status === 'pro') {
                           try {
-                            const res = await loggedFetch('/api/stripe/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                            const { data: { session: stripeSession } } = await supabase.auth.getSession()
+                            const res = await loggedFetch('/api/stripe/portal', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${stripeSession.access_token}` } })
                             const data = await res.json()
                             if (data.url) window.location.href = data.url
                           } catch {}

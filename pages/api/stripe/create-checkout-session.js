@@ -2,21 +2,28 @@ import { createClient } from '@supabase/supabase-js'
 import { stripe } from '../../../lib/stripe'
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      global: {
-        headers: { cookie: req.headers.cookie || '' }
-      }
-    }
+    process.env.SUPABASE_SERVICE_ROLE_KEY
   )
 
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const authHeader = req.headers.authorization
+  const token = authHeader?.replace('Bearer ', '')
+
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' })
+  }
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
   console.log('[stripe] user:', user?.id, user?.email)
-  if (error || !user) return res.status(401).json({ error: 'Unauthorized' })
+
+  if (authError || !user) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
 
   try {
     const { priceId } = req.body || {}
