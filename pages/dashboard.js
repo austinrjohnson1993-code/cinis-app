@@ -13,7 +13,7 @@ import { CheckSquare, ChatCircle, Target, CalendarBlank, Notebook, Wallet, Chart
 import UpgradeModal from '../components/UpgradeModal'
 
 const THEMES = [
-  { id: 'orange-bronze', name: 'Classic', accent: '#ff4d1c', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#ff4d1c' },
+  { id: 'orange-bronze', name: 'Classic', accent: '#E8321A', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#E8321A' },
   { id: 'teal-ocean', name: 'Ocean', accent: '#2dd4bf', gradient: 'radial-gradient(ellipse at top left, rgba(15,80,90,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(10,60,70,0.35) 0%, transparent 60%)', logo: '#2dd4bf' },
   { id: 'purple-cosmos', name: 'Cosmos', accent: '#8b5cf6', gradient: 'radial-gradient(ellipse at top left, rgba(60,20,120,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(40,10,90,0.35) 0%, transparent 60%)', logo: '#8b5cf6' },
   { id: 'blue-arctic', name: 'Arctic', accent: '#3b82f6', gradient: 'radial-gradient(ellipse at top left, rgba(15,40,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(10,30,80,0.35) 0%, transparent 60%)', logo: '#3b82f6' },
@@ -1782,6 +1782,22 @@ export default function Dashboard() {
   const isChoreTask = (t) => choreTitleSet.size > 0 && choreTitleSet.has(t.title)
 
   const allPendingTasks = sortBySchedule(tasks.filter(t => !t.completed && !isChoreTask(t)))
+  // Collapse same-title recurring tasks into a single card with a count badge
+  const dedupedPendingTasks = (() => {
+    const counts = {}
+    allPendingTasks.forEach(t => {
+      if (t.recurrence && t.recurrence !== 'none') counts[t.title] = (counts[t.title] || 0) + 1
+    })
+    const seen = new Set()
+    return allPendingTasks.reduce((acc, t) => {
+      if (t.recurrence && t.recurrence !== 'none') {
+        if (seen.has(t.title)) return acc
+        seen.add(t.title)
+        return [...acc, counts[t.title] > 1 ? { ...t, _groupCount: counts[t.title] } : t]
+      }
+      return [...acc, t]
+    }, [])
+  })()
   const pendingChores = sortBySchedule(tasks.filter(t => !t.completed && isChoreTask(t) && (() => {
     if (!t.scheduled_for) return false
     const sf = new Date(t.scheduled_for)
@@ -2053,7 +2069,7 @@ export default function Dashboard() {
                       style={{
                         flexShrink: 0,
                         padding: '8px 14px',
-                        background: 'linear-gradient(135deg, #FF6644, #FF4500)',
+                        background: 'var(--accent)',
                         color: '#fff',
                         border: 'none',
                         borderRadius: '8px',
@@ -2145,7 +2161,7 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {allPendingTasks.length > 0 && (
+              {dedupedPendingTasks.length > 0 && (
                 <>
                   {!dragHintDismissed && (
                     <div className={styles.dragHintBanner}>
@@ -2158,7 +2174,7 @@ export default function Dashboard() {
                       {(provided) => (
                         <div className={styles.taskGroup} ref={provided.innerRef} {...provided.droppableProps}>
                           <div className={styles.taskGroupLabel}>Up next</div>
-                          {allPendingTasks.map((task, index) => {
+                          {dedupedPendingTasks.map((task, index) => {
                             const dueFmt = task.due_time ? formatDueTime(task.due_time) : null
                             const dateLabel = getTaskDateLabel(task)
                             const countdown = getCountdownDisplay(task.due_time, tickNow)
@@ -2188,7 +2204,7 @@ export default function Dashboard() {
                                         {!countdown && dateDisplay && <span className={`${styles.taskDueTime} ${dueFmt?.urgent ? styles.taskDueUrgent : ''}`}>{dateDisplay}</span>}
                                         {task.rollover_count > 0 && <span className={styles.taskRollover}>↷ {task.rollover_count}×</span>}
                                         {task.consequence_level === 'external' && <span className={styles.taskExternal}>External</span>}
-                                        {task.recurrence && task.recurrence !== 'none' && <span className={styles.taskRecurrence}>↻ {task.recurrence}</span>}
+                                        {task.recurrence && task.recurrence !== 'none' && <span className={styles.taskRecurrence}>↻ {task.recurrence}{task._groupCount > 1 ? ` (${task._groupCount})` : ''}</span>}
                                       </div>
                                     </div>
                                     <div className={styles.taskActions}>
@@ -2210,7 +2226,7 @@ export default function Dashboard() {
                 </>
               )}
 
-              {allPendingTasks.length === 0 && completedTasks.length === 0 && (
+              {dedupedPendingTasks.length === 0 && completedTasks.length === 0 && (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyIcon}>✦</div>
                   <p className={styles.emptyText}>Nothing on your list.</p>
