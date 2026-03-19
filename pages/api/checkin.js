@@ -9,8 +9,6 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  console.log('[checkin] admin client key prefix:', key?.slice(0, 20))
-  console.log('[checkin:client] url present:', !!url, '| service key present:', !!key)
   return createClient(url, key)
 }
 
@@ -133,7 +131,6 @@ async function callClaude(messages, systemPrompt, useTools = true) {
 // ── Tool execution ───────────────────────────────────────────────────────────
 
 async function executeTool(toolName, input, supabaseAdmin, userId) {
-  console.log('[executeTool] called:', toolName, JSON.stringify(input))
 
   if (toolName === 'reschedule_task') {
     const { task_id, scheduled_for, due_time } = input
@@ -153,7 +150,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
       // rollover_count intentionally NOT incremented here — only the nightly cron owns that counter
       ...(due_time ? { due_time } : {})
     }
-    console.log(`[checkin:tool] reschedule_task updating "${task?.title}" (${task_id})`, updates)
 
     let updated = null
     let updateErr = null
@@ -162,7 +158,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
         .from('tasks').update(updates).eq('id', task_id).select().single()
       updateErr = error
       updated = data
-      console.log('[executeTool] supabase result:', JSON.stringify(data), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] reschedule_task update threw:', e)
       return { tool: 'reschedule_task', taskId: task_id, result: 'error', updatedTask: null }
@@ -170,8 +165,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
 
     if (updateErr) console.error('[checkin:tool] reschedule_task update error:', JSON.stringify(updateErr))
     else {
-      console.log(`[checkin:tool] reschedule_task done — scheduled_for:`, updated?.scheduled_for)
-      console.log(`[checkin:tool:success] reschedule_task executed for task ${task_id}`)
     }
 
     return { tool: 'reschedule_task', taskId: task_id, result: updateErr ? 'error' : 'rescheduled', updatedTask: updated || null }
@@ -179,7 +172,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
 
   if (toolName === 'update_task_time') {
     const { task_id, due_time } = input
-    console.log(`[checkin:tool] update_task_time — task_id: ${task_id}, due_time: ${due_time}`)
 
     let updated = null
     let updateErr = null
@@ -188,7 +180,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
         .from('tasks').update({ due_time }).eq('id', task_id).select().single()
       updateErr = error
       updated = data
-      console.log('[executeTool] supabase result:', JSON.stringify(data), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] update_task_time threw:', e)
       return { tool: 'update_task_time', taskId: task_id, result: 'error', updatedTask: null }
@@ -196,8 +187,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
 
     if (updateErr) console.error('[checkin:tool] update_task_time error:', JSON.stringify(updateErr), 'task_id:', task_id)
     else {
-      console.log(`[checkin:tool] update_task_time done — new due_time:`, updated?.due_time)
-      console.log(`[checkin:tool:success] update_task_time executed for task ${task_id}`)
     }
 
     return { tool: 'update_task_time', taskId: task_id, result: updateErr ? 'error' : 'updated', updatedTask: updated || null }
@@ -205,14 +194,12 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
 
   if (toolName === 'schedule_morning_checkin') {
     const { checkin_time } = input
-    console.log(`[checkin:tool] schedule_morning_checkin — checkin_time: ${checkin_time}`)
     // Only update the profile — do NOT create a task
     let profileErr = null
     try {
       const { error } = await supabaseAdmin
         .from('profiles').update({ next_checkin_at: checkin_time }).eq('id', userId)
       profileErr = error
-      console.log('[executeTool] supabase result:', JSON.stringify(null), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] schedule_morning_checkin threw:', e)
       return { tool: 'schedule_morning_checkin', taskId: null, result: 'error' }
@@ -220,8 +207,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
 
     if (profileErr) console.error('[checkin:tool] schedule_morning_checkin profile error:', JSON.stringify(profileErr))
     else {
-      console.log(`[checkin:tool] schedule_morning_checkin done — next_checkin_at set`)
-      console.log(`[checkin:tool:success] schedule_morning_checkin executed for user ${userId}`)
     }
 
     return { tool: 'schedule_morning_checkin', taskId: null, result: profileErr ? 'error' : 'scheduled' }
@@ -230,7 +215,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
   if (toolName === 'complete_task') {
     const { task_id } = input
     const completedAt = new Date().toISOString()
-    console.log(`[checkin:tool] complete_task — task_id: ${task_id}`)
 
     let updated = null
     let updateErr = null
@@ -240,7 +224,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
         .eq('id', task_id).select().single()
       updateErr = error
       updated = data
-      console.log('[executeTool] supabase result:', JSON.stringify(data), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] complete_task threw:', e)
       return { tool: 'complete_task', taskId: task_id, result: 'error', updatedTask: null }
@@ -248,8 +231,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
 
     if (updateErr) console.error('[checkin:tool] complete_task error:', JSON.stringify(updateErr), 'task_id:', task_id)
     else {
-      console.log(`[checkin:tool] complete_task done — "${updated?.title}"`)
-      console.log(`[checkin:tool:success] complete_task executed for task ${task_id}`)
     }
 
     return { tool: 'complete_task', taskId: task_id, result: updateErr ? 'error' : 'completed', updatedTask: updated || null }
@@ -257,7 +238,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
 
   if (toolName === 'archive_task') {
     const { task_id } = input
-    console.log(`[checkin:tool] archive_task — task_id: ${task_id}`)
 
     let updated = null
     let updateErr = null
@@ -267,7 +247,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
         .eq('id', task_id).select().single()
       updateErr = error
       updated = data
-      console.log('[executeTool] supabase result:', JSON.stringify(data), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] archive_task threw:', e)
       return { tool: 'archive_task', taskId: task_id, result: 'error', updatedTask: null }
@@ -275,8 +254,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
 
     if (updateErr) console.error('[checkin:tool] archive_task error:', JSON.stringify(updateErr), 'task_id:', task_id)
     else {
-      console.log(`[checkin:tool] archive_task done — "${updated?.title}"`)
-      console.log(`[checkin:tool:success] archive_task executed for task ${task_id}`)
     }
 
     return { tool: 'archive_task', taskId: task_id, result: updateErr ? 'error' : 'archived', updatedTask: updated || null }
@@ -284,7 +261,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
 
   if (toolName === 'create_alarm') {
     const { alarm_time, title, task_id } = input
-    console.log(`[checkin:tool] create_alarm — alarm_time: ${alarm_time}, title: "${title}"`)
 
     let inserted = null
     let insertErr = null
@@ -303,7 +279,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
         .single()
       insertErr = error
       inserted = data
-      console.log('[executeTool] supabase result:', JSON.stringify(data), JSON.stringify(error))
     } catch (e) {
       console.error('[checkin:tool] create_alarm threw:', e)
       return { tool: 'create_alarm', result: 'error', alarm: null }
@@ -311,8 +286,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
 
     if (insertErr) console.error('[checkin:tool] create_alarm error:', JSON.stringify(insertErr))
     else {
-      console.log(`[checkin:tool] create_alarm done — id: ${inserted?.id}`)
-      console.log(`[checkin:tool:success] create_alarm executed for user ${userId}`)
     }
 
     return { tool: 'create_alarm', result: insertErr ? 'error' : 'created', alarm: inserted || null }
@@ -339,7 +312,6 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
       console.error('[checkin:executeTool] create_task error:', JSON.stringify(error))
       return { result: 'error', error: error.message }
     }
-    console.log('[checkin:executeTool] create_task success:', data.id, data.title)
     return { result: 'created', task_id: data.id, title: data.title }
   }
 
@@ -435,8 +407,6 @@ Write the evening check-in. 2-3 sentences. One specific win or honest acknowledg
 export const config = { maxDuration: 30 }
 
 export default async function handler(req, res) {
-  console.log('[checkin] API key prefix:', process.env.ANTHROPIC_API_KEY?.slice(0, 15))
-  console.log('[checkin] API key length:', process.env.ANTHROPIC_API_KEY?.length)
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
@@ -545,7 +515,6 @@ export default async function handler(req, res) {
   if (messages && messages.length > 0) {
     try {
       const { text, toolUses } = await callClaude(messages, systemPrompt)
-      if (toolUses.length > 0) console.log('[checkin] continuation tools:', toolUses.map(t => `${t.name}(${JSON.stringify(t.input)})`).join(', '))
       const actions = await Promise.all(
         toolUses.map(tu => executeTool(tu.name, tu.input, supabaseAdmin, userId))
       )
@@ -587,7 +556,6 @@ export default async function handler(req, res) {
           scheduled_for: tomorrowISO,
         }).eq('id', task.id)
         if (rollErr) console.error('[checkin] evening rollover error:', JSON.stringify(rollErr), 'task_id:', task.id)
-        else console.log(`[checkin:tool:success] evening rollover executed for task ${task.id}`)
       } catch (e) {
         console.error('[checkin] evening rollover threw:', e)
       }
@@ -618,7 +586,6 @@ export default async function handler(req, res) {
   }
 
   const fullContextPrompt = contextPrompt + habitNudge
-  console.log('[checkin] context prompt:\n', fullContextPrompt)
 
   const noTools = type === 'focus' || type === 'weekly_summary'
 
@@ -628,11 +595,9 @@ export default async function handler(req, res) {
       systemPrompt,
       !noTools
     )
-    if (toolUses.length > 0) console.log('[checkin] tools called by AI:', toolUses.map(t => `${t.name}(${JSON.stringify(t.input)})`).join(', '))
     const toolActions = await Promise.all(
       toolUses.map(tu => executeTool(tu.name, tu.input, supabaseAdmin, userId))
     )
-    console.log(`[checkin] ${type} for ${userId}: ${toolActions.length + actionsExecuted.length} actions executed`)
     // Fire-and-forget memory compression for opening messages with prior context
     if (isPro && conversationHistory && conversationHistory.length >= 3) {
       compressAndSaveMemory(userId, conversationHistory, profile.rolling_memory_summary).catch(() => {})

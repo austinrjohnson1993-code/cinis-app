@@ -3864,16 +3864,21 @@ export default function Dashboard() {
 
               {/* ── BUDGET ── */}
               {financeSub === 'budget' && (() => {
-                const freqMultiplier = { weekly: 4.33, biweekly: 2.17, bimonthly: 2, monthly: 1 }[incomeFrequency] || 1
-                const normalizedIncome = monthlyIncome * freqMultiplier
+                const freqToMonthly = { weekly: 4.33, biweekly: 2.17, monthly: 1, yearly: 1/12 }
+                const toMonthly = (e) => (parseFloat(e.amount) || 0) * (freqToMonthly[e.frequency] || 1)
+                const totalMonthlyIncome = incomeEntries.reduce((sum, e) => sum + toMonthly(e), 0)
+                const needsTarget = totalMonthlyIncome * 0.5
+                const wantsTarget = totalMonthlyIncome * 0.3
+                const savingsTarget = totalMonthlyIncome * 0.2
+                const surplus = totalMonthlyIncome - monthlyTotal
                 return (
                 <div className={styles.budgetPanel}>
                   {/* Learn referral callout */}
                   {learnReferral && (
                     <div className={styles.learnReferralBanner}>
                       <button className={styles.learnReferralClose} onClick={() => setLearnReferral(null)}>×</button>
-                      {learnReferral === '50-30-20' && (normalizedIncome > 0
-                        ? <p>Based on 50/30/20 — Your needs budget is <strong>{fmtMoney(normalizedIncome * 0.5)}</strong>, wants <strong>{fmtMoney(normalizedIncome * 0.3)}</strong>, savings <strong>{fmtMoney(normalizedIncome * 0.2)}</strong>. Your fixed bills of <strong>{fmtMoney(monthlyTotal)}</strong> fit within your needs allocation.</p>
+                      {learnReferral === '50-30-20' && (totalMonthlyIncome > 0
+                        ? <p>Based on 50/30/20 — Your needs budget is <strong>{fmtMoney(needsTarget)}</strong>, wants <strong>{fmtMoney(wantsTarget)}</strong>, savings <strong>{fmtMoney(savingsTarget)}</strong>. Your fixed bills of <strong>{fmtMoney(monthlyTotal)}</strong> fit within your needs allocation.</p>
                         : <p>Add your income above to see this calculation.</p>
                       )}
                       {learnReferral === 'debt-avalanche' && (() => {
@@ -3890,98 +3895,137 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  {/* Multi-income builder */}
+                  {/* ── Income builder ── */}
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>Income sources</label>
                     {incomeEntries.length > 0 && (
-                      <div style={{ marginBottom: '16px' }}>
+                      <div style={{ marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {incomeEntries.map((entry, idx) => {
-                          const freqMult = { weekly: 4.33, biweekly: 2.17, monthly: 1, yearly: 1/12 }[entry.frequency] || 1
-                          const monthlyVal = entry.amount * freqMult
+                          const monthly = toMonthly(entry)
                           return (
-                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', padding: '8px', background: 'rgba(255,102,68,0.05)', borderRadius: '6px' }}>
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'rgba(255,102,68,0.06)', border: '1px solid rgba(255,102,68,0.12)', borderRadius: '8px' }}>
                               <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#F0EAD6' }}>{entry.type}</div>
-                                <div style={{ fontSize: '12px', color: 'rgba(240,234,214,0.6)' }}>{fmtMoney(entry.amount)} {entry.frequency} ({fmtMoney(monthlyVal)}/mo)</div>
+                                <div style={{ fontSize: '12px', color: 'rgba(240,234,214,0.55)', marginTop: '2px' }}>
+                                  {fmtMoney(entry.amount)} {entry.frequency} &rarr; {fmtMoney(monthly)}/mo
+                                </div>
                               </div>
-                              <button type="button" onClick={() => setIncomeEntries(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', color: 'rgba(240,234,214,0.5)', cursor: 'pointer', padding: '4px' }}>×</button>
+                              <button type="button" onClick={() => {
+                                const next = incomeEntries.filter((_, i) => i !== idx)
+                                setIncomeEntries(next)
+                                saveIncomeSources(next)
+                              }} style={{ background: 'none', border: 'none', color: 'rgba(240,234,214,0.4)', cursor: 'pointer', fontSize: '18px', lineHeight: 1, padding: '2px 6px' }}>×</button>
                             </div>
                           )
                         })}
+                        <div style={{ padding: '10px 12px', background: 'rgba(255,102,68,0.1)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '12px', color: 'rgba(240,234,214,0.6)', fontWeight: 500 }}>Total monthly income</span>
+                          <span style={{ fontSize: '16px', fontWeight: 700, color: '#F0EAD6' }}>{fmtMoney(totalMonthlyIncome)}</span>
+                        </div>
                       </div>
                     )}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '10px' }}>
                       <select value={incomeForm.type} onChange={e => setIncomeForm(prev => ({ ...prev, type: e.target.value }))} className={styles.fieldInput} style={{ padding: '8px' }}>
                         {['Salary','Hourly','Freelance','Bonus','Gift','Disability','Child Support','Other'].map(t => <option key={t} value={t}>{t}</option>)}
                       </select>
-                      <input type="number" placeholder="Amount" min="0" step="1" value={incomeForm.amount} onChange={e => setIncomeForm(prev => ({ ...prev, amount: parseFloat(e.target.value) || '' }))} className={styles.fieldInput} style={{ padding: '8px' }} />
+                      <input type="number" placeholder="Amount" min="0" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm(prev => ({ ...prev, amount: e.target.value }))} className={styles.fieldInput} style={{ padding: '8px' }} />
                       <select value={incomeForm.frequency} onChange={e => setIncomeForm(prev => ({ ...prev, frequency: e.target.value }))} className={styles.fieldInput} style={{ padding: '8px' }}>
                         <option value="weekly">Weekly</option>
-                        <option value="biweekly">Biweekly</option>
+                        <option value="biweekly">Bi-weekly</option>
                         <option value="monthly">Monthly</option>
                         <option value="yearly">Yearly</option>
                       </select>
                     </div>
                     <button className={styles.addTaskBtn} onClick={() => {
-                      if (incomeForm.amount) {
-                        setIncomeEntries(prev => [...prev, { ...incomeForm }])
-                        setIncomeForm({ type: 'Salary', amount: '', frequency: 'monthly' })
-                        if (typeof localStorage !== 'undefined') localStorage.setItem('fb_income_entries', JSON.stringify([...incomeEntries, incomeForm]))
-                        showToast('Income source added')
-                      }
-                    }}>Add income source</button>
-                    {incomeEntries.length > 0 && (
-                      <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(255,102,68,0.08)', borderRadius: '8px' }}>
-                        <div style={{ fontSize: '12px', color: 'rgba(240,234,214,0.6)', marginBottom: '4px' }}>Total monthly:</div>
-                        <div style={{ fontSize: '18px', fontWeight: 600, color: '#F0EAD6' }}>{fmtMoney(incomeEntries.reduce((sum, e) => sum + (e.amount * ({ weekly: 4.33, biweekly: 2.17, monthly: 1, yearly: 1/12 }[e.frequency] || 1)), 0))}</div>
-                      </div>
-                    )}
+                      const amt = parseFloat(incomeForm.amount)
+                      if (!amt || amt <= 0) return
+                      const newEntry = { type: incomeForm.type, amount: amt, frequency: incomeForm.frequency }
+                      const next = [...incomeEntries, newEntry]
+                      setIncomeEntries(next)
+                      setIncomeForm({ type: 'Salary', amount: '', frequency: 'monthly' })
+                      saveIncomeSources(next)
+                      showToast('Income source added')
+                    }}>+ Add income source</button>
                   </div>
 
-                  {normalizedIncome > 0 ? (
+                  {totalMonthlyIncome > 0 ? (
                     <>
-                      {/* 50/30/20 breakdown */}
-                      <div className={styles.budgetCard}>
-                        <p className={styles.financeBreakdownLabel}>50 / 30 / 20 breakdown</p>
-                        {[
-                          { label: 'Needs', pct: 50, desc: 'Rent, groceries, bills' },
-                          { label: 'Wants', pct: 30, desc: 'Dining, subscriptions, fun' },
-                          { label: 'Savings', pct: 20, desc: 'Emergency fund, investments' },
-                        ].map(({ label, pct, desc }) => (
-                          <div key={label} className={styles.budgetRow}>
-                            <div>
-                              <span className={styles.budgetRowLabel}>{label} <span className={styles.budgetRowPct}>({pct}%)</span></span>
-                              <span className={styles.budgetRowDesc}>{desc}</span>
+                      {/* ── 50/30/20 cards ── */}
+                      <div>
+                        <p className={styles.financeBreakdownLabel} style={{ marginBottom: '12px' }}>50 / 30 / 20 breakdown</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+                          {/* Needs — 50% */}
+                          <div className={styles.budgetCard} style={{ borderLeft: '3px solid rgba(232,50,26,0.6)', padding: '16px 20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                              <div>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: '#F0EAD6' }}>Needs <span style={{ color: 'rgba(240,234,214,0.35)', fontWeight: 400 }}>(50%)</span></span>
+                                <div style={{ fontSize: '12px', color: 'rgba(240,234,214,0.5)', marginTop: '2px' }}>Housing, bills, groceries, transport</div>
+                              </div>
+                              <span style={{ fontSize: '16px', fontWeight: 700, color: '#F0EAD6' }}>{fmtMoney(needsTarget)}<span style={{ fontSize: '11px', fontWeight: 400, color: 'rgba(240,234,214,0.45)' }}>/mo</span></span>
                             </div>
-                            <span className={styles.budgetRowAmt}>{fmtMoney(normalizedIncome * pct / 100)}</span>
+                            {monthlyTotal > 0 && (
+                              <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(240,234,214,0.07)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
+                                  <span style={{ color: 'rgba(240,234,214,0.55)' }}>Tracked bills</span>
+                                  <span style={{ color: monthlyTotal > needsTarget ? '#e74c3c' : '#3ecf8e', fontWeight: 600 }}>{fmtMoney(monthlyTotal)}</span>
+                                </div>
+                                <div style={{ height: '4px', background: 'rgba(240,234,214,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: `${Math.min(100, (monthlyTotal / needsTarget) * 100)}%`, background: monthlyTotal > needsTarget ? '#e74c3c' : '#3ecf8e', borderRadius: '2px', transition: 'width 400ms ease' }} />
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'rgba(240,234,214,0.4)', marginTop: '4px' }}>
+                                  {monthlyTotal > needsTarget
+                                    ? `${fmtMoney(monthlyTotal - needsTarget)} over target`
+                                    : `${fmtMoney(needsTarget - monthlyTotal)} remaining`}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        ))}
-                        <div className={styles.budgetRow}>
-                          <div>
-                            <span className={styles.budgetRowLabel}>Your fixed bills</span>
-                            <span className={styles.budgetRowDesc}>Tracked in Bills tab</span>
+
+                          {/* Wants — 30% */}
+                          <div className={styles.budgetCard} style={{ borderLeft: '3px solid rgba(232,50,26,0.35)', padding: '16px 20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <div>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: '#F0EAD6' }}>Wants <span style={{ color: 'rgba(240,234,214,0.35)', fontWeight: 400 }}>(30%)</span></span>
+                                <div style={{ fontSize: '12px', color: 'rgba(240,234,214,0.5)', marginTop: '2px' }}>Dining, entertainment, subscriptions</div>
+                              </div>
+                              <span style={{ fontSize: '16px', fontWeight: 700, color: '#F0EAD6' }}>{fmtMoney(wantsTarget)}<span style={{ fontSize: '11px', fontWeight: 400, color: 'rgba(240,234,214,0.45)' }}>/mo</span></span>
+                            </div>
                           </div>
-                          <span className={styles.budgetRowAmt}>{fmtMoney(monthlyTotal)}<span className={styles.financeTotalSub}>/mo</span></span>
+
+                          {/* Savings — 20% */}
+                          <div className={styles.budgetCard} style={{ borderLeft: '3px solid rgba(62,207,142,0.5)', padding: '16px 20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <div>
+                                <span style={{ fontSize: '14px', fontWeight: 600, color: '#F0EAD6' }}>Savings <span style={{ color: 'rgba(240,234,214,0.35)', fontWeight: 400 }}>(20%)</span></span>
+                                <div style={{ fontSize: '12px', color: 'rgba(240,234,214,0.5)', marginTop: '2px' }}>Emergency fund, investments, debt payoff</div>
+                              </div>
+                              <span style={{ fontSize: '16px', fontWeight: 700, color: '#3ecf8e' }}>{fmtMoney(savingsTarget)}<span style={{ fontSize: '11px', fontWeight: 400, color: 'rgba(240,234,214,0.45)' }}>/mo</span></span>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Surplus / Deficit */}
-                      {(() => {
-                        const diff = normalizedIncome - monthlyTotal
-                        return (
-                          <div className={styles.budgetCard}>
-                            <div className={styles.budgetRow} style={{ borderBottom: 'none' }}>
-                              <span className={styles.budgetRowLabel}>{diff >= 0 ? 'Surplus' : 'Deficit'} after fixed bills</span>
-                              <span className={diff >= 0 ? styles.surplusPositive : styles.surplusNegative}>
-                                {diff >= 0 ? '+' : ''}{fmtMoney(diff)}
-                              </span>
-                            </div>
-                          </div>
-                        )
-                      })()}
+                      {/* ── Surplus / Deficit ── */}
+                      <div className={styles.budgetCard} style={{ padding: '16px 20px' }}>
+                        <div className={styles.budgetRow}>
+                          <span className={styles.budgetRowLabel}>Total income</span>
+                          <span className={styles.budgetRowAmt}>{fmtMoney(totalMonthlyIncome)}<span className={styles.financeTotalSub}>/mo</span></span>
+                        </div>
+                        <div className={styles.budgetRow}>
+                          <span className={styles.budgetRowLabel}>Total bills</span>
+                          <span className={styles.budgetRowAmt}>{fmtMoney(monthlyTotal)}<span className={styles.financeTotalSub}>/mo</span></span>
+                        </div>
+                        <div className={styles.budgetRow} style={{ borderBottom: 'none', paddingTop: '10px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: '#F0EAD6' }}>{surplus >= 0 ? 'Surplus' : 'Deficit'}</span>
+                          <span style={{ fontSize: '16px', fontWeight: 700, color: surplus >= 0 ? '#3ecf8e' : 'rgba(232,50,26,0.9)' }}>
+                            {surplus >= 0 ? '+' : ''}{fmtMoney(surplus)}
+                          </span>
+                        </div>
+                      </div>
                     </>
                   ) : (
-                    <p className={styles.budgetEmptyNote}>Enter your take-home income above to see your breakdown.</p>
+                    <p className={styles.budgetEmptyNote}>Add an income source above to see your 50/30/20 breakdown.</p>
                   )}
                 </div>
                 )

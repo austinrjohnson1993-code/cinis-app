@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Cinis</string>
+    <string name="title_activity_main">Cinis</string>
+    <string name="package_name">app.cinis.app</string>
+    <string name="custom_url_scheme">app.cinis.app</string>
+</resources>

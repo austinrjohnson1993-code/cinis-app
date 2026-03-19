@@ -46,7 +46,6 @@ export async function runRollover() {
   const tasksToRoll = overdueTasks.filter(t => !alreadyRolledToday.has(t.user_id))
 
   if (tasksToRoll.length === 0) {
-    console.log(`[rollover-tasks] All ${userIds.length} user(s) already rolled today — skipping`)
     return { rolled: 0, skipped: overdueTasks.length, tasks: [] }
   }
 
@@ -93,7 +92,6 @@ export default async function handler(req, res) {
 
   try {
     const result = await runRollover()
-    console.log(`[rollover-tasks] Rolled ${result.rolled}, skipped ${result.skipped}:`, result.tasks)
     return res.status(200).json(result)
   } catch (err) {
     console.error('[rollover-tasks] Error:', err.message)

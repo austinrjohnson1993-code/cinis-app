@@ -47,7 +47,6 @@ export default async function handler(req, res) {
   let rolloverResult = { rolled: 0, tasks: [] }
   try {
     rolloverResult = await runRollover()
-    console.log(`[evening-checkin] Rollover: ${rolloverResult.rolled} tasks moved`)
   } catch (err) {
     console.error('[evening-checkin] Rollover error:', err.message)
   }
@@ -104,20 +103,17 @@ export default async function handler(req, res) {
               url: '/dashboard'
             })
           )
-          console.log(`[evening-checkin] Push sent to ${name}`)
         } catch (pushErr) {
           console.error(`[evening-checkin] Push failed for ${profile.id}:`, pushErr.message)
         }
       }
 
       pregenerated++
-      console.log(`[evening-checkin] Pre-generated for ${name}`)
 
       // 3. Create bill tasks due today or tomorrow
       try {
         const billResult = await runBillsToTasks(profile.id)
         if (billResult.created > 0) {
-          console.log(`[evening-checkin] Bill tasks created for ${name}:`, billResult.bills)
         }
       } catch (billErr) {
         console.error(`[evening-checkin] Bill tasks failed for ${profile.id}:`, billErr.message)

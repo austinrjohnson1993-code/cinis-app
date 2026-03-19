@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
@@ -26,6 +26,16 @@ export default function ResetPassword() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [inRecovery, setInRecovery] = useState(false)
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setInRecovery(true)
+      }
+    })
+    return () => subscription?.unsubscribe()
+  }, [])
 
   const handleReset = async (e) => {
     e.preventDefault()
@@ -44,7 +54,7 @@ export default function ResetPassword() {
       setError(error.message)
       setLoading(false)
     } else {
-      router.push('/login')
+      router.push('/dashboard')
     }
   }
 
@@ -55,12 +65,11 @@ export default function ResetPassword() {
       </Head>
       <div className={styles.page}>
         <div className={styles.card}>
-          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', textDecoration: 'none' }}>
-            <CinisMark size={36} />
-            <span style={{ fontFamily: "'Cormorant Garamond', 'Cormorant', serif", fontWeight: 300, fontSize: '22px', color: '#F0EAD6', letterSpacing: '0.26em' }}>Cinis</span>
+          <a href="/" style={{ display: 'inline-block', marginBottom: '28px', lineHeight: 0, textDecoration: 'none' }}>
+            <CinisMark size={40} />
           </a>
 
-          <h1 className={styles.heading}>Set new password.</h1>
+          <h1 className={styles.heading}>Set a new password.</h1>
           <p className={styles.sub}>Choose a strong password for your account.</p>
 
           {error && <div className={styles.error}>{error}</div>}

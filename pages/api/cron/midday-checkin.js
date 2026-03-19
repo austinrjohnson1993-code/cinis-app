@@ -102,14 +102,12 @@ export default async function handler(req, res) {
               url: '/dashboard'
             })
           )
-          console.log(`[midday-checkin] Push sent to ${name}`)
         } catch (pushErr) {
           console.error(`[midday-checkin] Push failed for ${profile.id}:`, pushErr.message)
         }
       }
 
       pregenerated++
-      console.log(`[midday-checkin] Pre-generated for ${name}`)
     } catch (err) {
       console.error(`[midday-checkin] Pre-gen failed for ${profile.id}:`, err.message)
     }

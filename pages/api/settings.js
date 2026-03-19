@@ -40,13 +40,11 @@ function extractTokenFromCookies(cookieHeader) {
 export default async function handler(req, res) {
   if (!['POST', 'PATCH'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' })
 
-  console.log('[settings] received:', req.method, JSON.stringify(req.body))
 
   // Extract token from Authorization header first, fall back to cookie
   let token = req.headers.authorization?.replace('Bearer ', '').trim() || null
   if (!token) {
     token = extractTokenFromCookies(req.headers.cookie)
-    if (token) console.log('[settings] auth: token extracted from cookie')
   }
 
   if (!token) {
@@ -54,12 +52,10 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'No auth token provided' })
   }
 
-  console.log('[settings] token received:', !!token)
 
   // Use service role client to verify the token — more reliable than anon client
   const supabaseAdmin = getAdminClient()
   const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
-  console.log('[settings] user resolved:', !!user)
   if (authError || !user) {
     console.error('[settings] auth.getUser failed:', JSON.stringify(authError))
     return res.status(401).json({ error: 'Unauthorized' })
@@ -86,6 +82,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to update profile' })
   }
 
-  console.log('[settings] updated profile for', user.id, '— fields:', Object.keys(updateObject).join(', '))
   return res.status(200).json({ success: true, updated: updateObject })
 }

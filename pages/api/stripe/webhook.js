@@ -46,7 +46,6 @@ export default async function handler(req, res) {
           .from('profiles')
           .update({ subscription_status: 'pro', stripe_customer_id: customerId })
           .eq('id', userId)
-        console.log(`[stripe/webhook] checkout.session.completed — set pro for user ${userId}, saved customer ID ${customerId}`)
       }
     }
 
@@ -62,7 +61,6 @@ export default async function handler(req, res) {
           .from('profiles')
           .update({ subscription_status: status })
           .eq('email', email)
-        console.log(`[stripe/webhook] subscription.updated — set ${status} for ${email}`)
       }
     }
 
@@ -95,7 +93,6 @@ export default async function handler(req, res) {
           .from('profiles')
           .update({ subscription_status: 'cancelled' })
           .eq('id', userId)
-        console.log(`[stripe/webhook] subscription.deleted — set cancelled for user ${userId}`)
       }
     }
 

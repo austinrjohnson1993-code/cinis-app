@@ -41,10 +41,8 @@ export default async function handler(req, res) {
 
   // POST { userId, ...billFields } — create bill
   if (req.method === 'POST') {
-    console.log('[bills] POST body:', JSON.stringify(req.body))
     const { userId, ...raw } = req.body
     if (!userId) return res.status(400).json({ error: 'userId required' })
-    console.log('[bills] POST userId:', userId)
 
     // Normalize camelCase keys from frontend to snake_case
     const body = {
@@ -98,7 +96,6 @@ export default async function handler(req, res) {
     let data, error
     if (existing) {
       // Update instead of insert
-      console.log(`[bills:POST] Duplicate detected — updating existing bill "${insertObj.name}" (${existing.id})`)
       const { name: _n, user_id: _u, ...updateFields } = insertObj
       ;({ data, error } = await supabaseAdmin
         .from('bills')
@@ -107,7 +104,6 @@ export default async function handler(req, res) {
         .select()
         .single())
     } else {
-      console.log('[bills:POST] inserting:', JSON.stringify(insertObj))
       ;({ data, error } = await supabaseAdmin
         .from('bills')
         .insert(insertObj)
@@ -120,7 +116,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: error.message, hint: error.hint })
     }
 
-    console.log(`[bills:POST] ${existing ? 'Updated' : 'Created'} bill "${data.name}" for ${userId}`)
     return res.status(200).json({ success: true, bill: data })
   }
 
@@ -157,7 +152,6 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to update bill' })
     }
 
-    console.log(`[bills:PATCH] Updated bill ${id} — fields: ${Object.keys(updates).join(', ')}`)
     return res.status(200).json({ bill })
   }
 
@@ -176,7 +170,6 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to delete bill' })
     }
 
-    console.log(`[bills:DELETE] Deleted bill ${id}`)
     return res.status(200).json({ success: true })
   }
 
