@@ -1037,27 +1037,95 @@
 
 .checkinSpacer { flex: 1; min-height: 12px; }
 
+/* Empty / initial state */
+.checkinEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 14px;
+  text-align: center;
+  padding: 40px 20px;
+}
+.checkinEmptyHeading {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #F0EAD6;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.checkinEmptySubtext {
+  font-size: 0.95rem;
+  color: rgba(240,234,214,0.5);
+  font-weight: 300;
+  line-height: 1.6;
+  margin: 0;
+}
+.checkinStartBtn {
+  background: #E8321A;
+  color: #F0EAD6;
+  border: none;
+  border-radius: 100px;
+  padding: 14px 32px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  width: 100%;
+  max-width: 320px;
+  transition: all 150ms ease-out;
+  margin-top: 8px;
+}
+.checkinStartBtn:hover { background: #F2572E; transform: scale(1.02); }
+.checkinStartBtn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* Session header */
+.checkinSessionHeader {
+  padding: 20px 0 0;
+  flex-shrink: 0;
+}
+.checkinSessionLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(240,234,214,0.28);
+  margin-bottom: 3px;
+}
+.checkinSessionPersona {
+  font-size: 0.78rem;
+  color: rgba(240,234,214,0.38);
+  font-weight: 400;
+  margin-bottom: 14px;
+}
+.checkinSessionDivider {
+  height: 1px;
+  background: linear-gradient(to right, rgba(232,50,26,0.5), rgba(232,50,26,0.05));
+  border: none;
+  margin: 0 0 4px;
+}
+
 /* AI bubble — left aligned */
 .checkinBubbleAI {
-  background: linear-gradient(135deg, rgba(255,200,120,0.04) 0%, rgba(255,77,28,0.02) 100%);
-  border: 1px solid rgba(255,200,120,0.1);
-  border-radius: 18px 18px 18px 4px;
+  background: #2A1810;
+  border: 1px solid rgba(232,50,26,0.12);
+  border-radius: 16px 16px 16px 4px;
   padding: 14px 18px;
-  color: var(--text-color, #f0ead6);
+  color: #F0EAD6;
   font-size: 1rem;
   line-height: 1.6;
   max-width: 82%;
   align-self: flex-start;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,200,120,0.06);
-  transition: all 0.2s ease;
 }
 
-/* User bubble — right aligned, brand red-orange */
+/* User bubble — right aligned */
 .checkinBubbleUser {
-  background: var(--accent);
-  border-radius: 18px 18px 4px 18px;
+  background: #E8321A;
+  border-radius: 16px 16px 4px 16px;
   padding: 12px 18px;
-  color: #110d06;
+  color: #F0EAD6;
   font-size: 0.95rem;
   font-weight: 500;
   line-height: 1.5;
@@ -1065,33 +1133,54 @@
   align-self: flex-end;
 }
 
-.checkinTyping {
+/* Fade-in for new messages */
+@keyframes checkinMsgIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.checkinMsgNew {
+  animation: checkinMsgIn 200ms ease-out forwards;
+}
+
+/* Typing indicator — 3 bouncing dots */
+.checkinTypingDots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 2px;
+}
+@keyframes checkinBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30%            { transform: translateY(-6px); }
+}
+.checkinDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FF6644;
   display: inline-block;
-  font-size: 1.2rem;
-  letter-spacing: 2px;
-  color: rgba(240,234,214,0.35);
-  animation: typingPulse 1.2s ease-in-out infinite;
 }
-@keyframes typingPulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
-}
+.checkinDot:nth-child(1) { animation: checkinBounce 900ms ease-in-out 0ms infinite; }
+.checkinDot:nth-child(2) { animation: checkinBounce 900ms ease-in-out 150ms infinite; }
+.checkinDot:nth-child(3) { animation: checkinBounce 900ms ease-in-out 300ms infinite; }
 
 /* Input row */
 .checkinForm {
   display: flex;
   gap: 0;
-  background: var(--card-bg, #1c1208);
-  border: 1px solid rgba(255,200,120,0.1);
+  background: #2A1810;
+  border: 1px solid rgba(232,50,26,0.15);
   border-radius: 100px;
   padding: 6px 6px 6px 22px;
   margin-bottom: 28px;
   margin-top: auto;
   flex-shrink: 0;
   transition: border-color 0.2s;
+  position: sticky;
+  bottom: 0;
 }
 .checkinForm:focus-within {
-  border-color: rgba(255,77,28,0.35);
+  border-color: rgba(232,50,26,0.5);
 }
 
 .checkinInput {
@@ -1099,13 +1188,13 @@
   background: transparent;
   border: none;
   outline: none;
-  color: var(--text-color, #f0ead6);
+  color: #F0EAD6;
   font-size: 0.95rem;
   font-family: 'Figtree', sans-serif;
   min-width: 0;
   padding-right: 8px;
 }
-.checkinInput::placeholder { color: rgba(240,234,214,0.25); }
+.checkinInput::placeholder { color: rgba(240,234,214,0.3); }
 
 .checkinSendBtn {
   background: var(--accent);
@@ -3009,5 +3098,61 @@
   .addTaskBtn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* ── Focus Tab Animations ── */
+@keyframes timerFlip {
+  from {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: rotateX(90deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes focusCompletionFlash {
+  from {
+    background: rgba(232,50,26,0.15);
+  }
+  to {
+    background: rgba(12,7,5,1);
+  }
+}
+
+@keyframes focusSessionStartScale {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUpModal {
+  from {
+    opacity: 0;
+    transform: translateY(400px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

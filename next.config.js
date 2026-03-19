@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // output: 'export', // Enabled for Capacitor builds only
   async headers() {
     return [
       {
