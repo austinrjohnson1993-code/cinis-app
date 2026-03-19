@@ -28,7 +28,10 @@ export default async function handler(req, res) {
   try {
     const { priceId } = req.body || {}
     const finalPriceId = priceId || process.env.STRIPE_PRO_PRICE_ID
-    console.log('[stripe] priceId received:', priceId)
+    const keyPrefix = (process.env.STRIPE_SECRET_KEY || '').substring(0, 20)
+    console.log('[stripe:diag] key_prefix:', keyPrefix)
+    console.log('[stripe:diag] priceId_received:', priceId)
+    console.log('[stripe:diag] finalPriceId:', finalPriceId)
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
