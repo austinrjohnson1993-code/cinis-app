@@ -3,7 +3,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --night: #0d1117;
+  --night: #0C0705;
   --deep: #1a1208;
   --card: #221608;
   --border: rgba(255,200,120,0.09);
@@ -27,11 +27,7 @@
 html { scroll-behavior: smooth; }
 
 body {
-  background: var(--night);
-  background-image:
-    radial-gradient(ellipse at top left, rgba(var(--accent-rgb), 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse at 20% 20%, rgba(101,60,10,0.35) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 80%, rgba(80,45,8,0.3) 0%, transparent 55%);
+  background: radial-gradient(ellipse at 50% 30%, #1A0A06 0%, #0C0705 60%, #080503 100%);
   color: var(--cream);
   font-family: 'Figtree', sans-serif;
   font-weight: 400;
