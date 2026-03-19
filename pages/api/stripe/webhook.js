@@ -40,12 +40,13 @@ export default async function handler(req, res) {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object
       const userId = session.metadata?.userId
+      const customerId = session.customer
       if (userId) {
         await supabaseAdmin
           .from('profiles')
-          .update({ subscription_status: 'pro' })
+          .update({ subscription_status: 'pro', stripe_customer_id: customerId })
           .eq('id', userId)
-        console.log(`[stripe/webhook] checkout.session.completed — set pro for user ${userId}`)
+        console.log(`[stripe/webhook] checkout.session.completed — set pro for user ${userId}, saved customer ID ${customerId}`)
       }
     }
 
@@ -68,14 +69,33 @@ export default async function handler(req, res) {
     if (event.type === 'customer.subscription.deleted') {
       const sub = event.data.object
       const customerId = sub.customer
-      const customer = await stripe.customers.retrieve(customerId)
-      const email = customer.email
-      if (email) {
+
+      // Try to look up by stripe_customer_id first (reliable method)
+      let { data: profiles } = await supabaseAdmin
+        .from('profiles')
+        .select('id, email')
+        .eq('stripe_customer_id', customerId)
+
+      // Fall back to email lookup if stripe_customer_id not found
+      if (!profiles || profiles.length === 0) {
+        const customer = await stripe.customers.retrieve(customerId)
+        const email = customer.email
+        if (email) {
+          ({ data: profiles } = await supabaseAdmin
+            .from('profiles')
+            .select('id, email')
+            .eq('email', email))
+        }
+      }
+
+      // Update subscription status for matching profile
+      if (profiles && profiles.length > 0) {
+        const userId = profiles[0].id
         await supabaseAdmin
           .from('profiles')
           .update({ subscription_status: 'cancelled' })
-          .eq('email', email)
-        console.log(`[stripe/webhook] subscription.deleted — set cancelled for ${email}`)
+          .eq('id', userId)
+        console.log(`[stripe/webhook] subscription.deleted — set cancelled for user ${userId}`)
       }
     }
 
