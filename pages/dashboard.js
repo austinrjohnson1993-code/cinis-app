@@ -280,7 +280,7 @@ const PERSONAS_LIST = [
 ]
 const PERSONA_BADGE = ['Primary', 'Supporting', 'Accent']
 
-const BILL_CATEGORIES = ['Housing', 'Utilities', 'Subscriptions', 'Insurance', 'Transport', 'Food', 'Health', 'Medical', 'Education', 'Entertainment', 'Other']
+const BILL_CATEGORIES = ['Housing', 'Utilities', 'Subscriptions', 'Insurance', 'Transport', 'Food', 'Health', 'Medical', 'Education', 'Entertainment', 'Childcare', 'Debt', 'Other']
 
 
 function getCheckinType() {
@@ -551,6 +551,7 @@ export default function Dashboard() {
   const [newBillFrequency, setNewBillFrequency] = useState('monthly')
   const [newBillCategory, setNewBillCategory] = useState('')
   const [newBillAutoTask, setNewBillAutoTask] = useState(true)
+  const [newBillAutopay, setNewBillAutopay] = useState(false)
   const [newBillNotes, setNewBillNotes] = useState('')
   const [newBillDate1, setNewBillDate1] = useState('')
   const [newBillDate2, setNewBillDate2] = useState('')
@@ -567,9 +568,10 @@ export default function Dashboard() {
   // Focus accordion section
   const [focusSection, setFocusSection] = useState('session')
   // Focus extras
-  const [focusShieldActive, setFocusShieldActive] = useState(false)
-  const [focusSessionsToday, setFocusSessionsToday] = useState(0)
-  const [focusMinutesToday, setFocusMinutesToday] = useState(0)
+  const [focusShieldActive, setFocusShieldActive] = useState(true)
+  const [focusSessionsToday, setFocusSessionsToday] = useState(null)
+  const [focusMinutesToday, setFocusMinutesToday] = useState(null)
+  const [focusStreakDays, setFocusStreakDays] = useState(null)
   const [focusTipIndex, setFocusTipIndex] = useState(0)
 
   // Progress time band
@@ -1718,7 +1720,7 @@ export default function Dashboard() {
       amount: parseFloat(newBillAmount),
       due_day: newBillDueDay ? parseInt(newBillDueDay) : null,
       frequency: newBillFrequency, category: newBillCategory || 'Other',
-      auto_task: newBillAutoTask, created_at: new Date().toISOString(),
+      auto_task: newBillAutoTask, autopay: newBillAutopay, created_at: new Date().toISOString(),
       bill_type: billType,
       ...(billInterestRate ? { interest_rate: parseFloat(billInterestRate) } : {}),
       ...(newBillNotes.trim() ? { notes: newBillNotes.trim() } : {}),
@@ -1728,7 +1730,7 @@ export default function Dashboard() {
     const { data } = await supabase.from('bills').insert(bill).select().single()
     if (data) setBills(prev => [data, ...prev])
     setNewBillName(''); setNewBillAmount(''); setNewBillDueDay(''); setNewBillNotes('')
-    setNewBillFrequency('monthly'); setNewBillCategory(''); setNewBillAutoTask(true)
+    setNewBillFrequency('monthly'); setNewBillCategory(''); setNewBillAutoTask(true); setNewBillAutopay(false)
     setBillType('bill'); setBillInterestRate(''); setNewBillDate1(''); setNewBillDate2('')
     setAddingBill(false); setShowAddBillModal(false)
   }
@@ -2931,14 +2933,14 @@ export default function Dashboard() {
                         return (
                         <div style={{ padding: '24px 0 8px', textAlign: 'center' }}>
                           {/* Label */}
-                          <p style={{ fontSize: '10px', color: '#E8321A', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>Focus Session</p>
+                          <p style={{ fontSize: '10px', color: '#FF6644', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>Focus Session</p>
                           {/* Task name */}
                           {topTask && <p style={{ fontSize: '12px', color: 'rgba(240,234,214,0.55)', margin: '0 0 16px', fontFamily: "'Figtree', sans-serif" }}>{topTask.title}</p>}
                           {/* Digits */}
                           <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 300, fontSize: '48px', color: '#F0EAD6', letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums', lineHeight: 1, marginBottom: '16px' }}>{formatTimer(focusTimeLeft)}</div>
                           {/* Progress bar */}
                           <div style={{ margin: '0 auto 6px', width: '100%', maxWidth: '280px', height: '5px', background: 'rgba(240,234,214,0.04)', borderRadius: '99px', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, #E8321A, #FF6644)', borderRadius: '99px', transition: 'width 0.5s linear' }} />
+                            <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, #FF6644, #FF8866)', borderRadius: '99px', transition: 'width 0.5s linear' }} />
                           </div>
                           {/* Time labels */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '280px', margin: '0 auto 24px', fontSize: '10px', color: 'rgba(240,234,214,0.25)', fontFamily: "'Figtree', sans-serif" }}>
@@ -2948,7 +2950,7 @@ export default function Dashboard() {
                           {/* Buttons */}
                           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
                             <button onClick={toggleFocusPause} style={{ background: 'transparent', border: '1px solid rgba(240,234,214,0.15)', borderRadius: '20px', padding: '10px 28px', color: 'rgba(240,234,214,0.7)', fontSize: '14px', cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>{focusRunning ? 'Pause' : 'Resume'}</button>
-                            <button onClick={handleAbandonSession} style={{ background: 'rgba(232,50,26,0.08)', border: '1px solid rgba(232,50,26,0.22)', borderRadius: '20px', padding: '10px 20px', color: '#E8321A', fontSize: '14px', cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>Got Stuck</button>
+                            <button onClick={handleAbandonSession} style={{ background: 'rgba(255,102,68,0.08)', border: '1px solid rgba(255,102,68,0.22)', borderRadius: '20px', padding: '10px 20px', color: '#FF6644', fontSize: '14px', cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>Got Stuck</button>
                           </div>
                           {showAbandonConfirm ? (
                             <div className={styles.abandonConfirmRow}>
@@ -2969,7 +2971,7 @@ export default function Dashboard() {
                             </div>
                             <button
                               onClick={() => setFocusShieldActive(v => !v)}
-                              style={{ width: '40px', height: '22px', borderRadius: '11px', border: 'none', cursor: 'pointer', background: focusShieldActive ? '#E8321A' : 'rgba(240,234,214,0.12)', position: 'relative', flexShrink: 0, transition: 'background 0.2s' }}
+                              style={{ width: '40px', height: '22px', borderRadius: '11px', border: 'none', cursor: 'pointer', background: focusShieldActive ? '#FF6644' : 'rgba(240,234,214,0.12)', position: 'relative', flexShrink: 0, transition: 'background 0.2s' }}
                             >
                               <span style={{ position: 'absolute', top: '3px', left: focusShieldActive ? '21px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#F0EAD6', transition: 'left 0.2s' }} />
                             </button>
@@ -2990,8 +2992,8 @@ export default function Dashboard() {
                           </div>
 
                           {/* Focus tip */}
-                          <div style={{ background: 'rgba(232,50,26,0.05)', border: '1px solid rgba(232,50,26,0.14)', borderRadius: '10px', padding: '12px 14px', textAlign: 'left' }}>
-                            <p style={{ fontSize: '10px', color: '#E8321A', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 5px', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>Focus tip</p>
+                          <div style={{ background: 'rgba(255,102,68,0.05)', border: '1px solid rgba(255,102,68,0.14)', borderRadius: '10px', padding: '12px 14px', textAlign: 'left' }}>
+                            <p style={{ fontSize: '10px', color: '#FF6644', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 5px', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>Focus tip</p>
                             <p style={{ fontSize: '12px', color: 'rgba(240,234,214,0.65)', fontFamily: "'Figtree', sans-serif", lineHeight: 1.6, margin: 0 }}>{focusTips[focusTipIndex % focusTips.length]}</p>
                           </div>
                         </div>
@@ -4170,7 +4172,13 @@ export default function Dashboard() {
                           {catBills.map(bill => (
                             <div key={bill.id} className={styles.billCard}>
                               <div className={styles.billInfo}>
-                                <span className={styles.billName}>{bill.name}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span className={styles.billName}>{bill.name}</span>
+                                  <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 6px', borderRadius: '3px', background: bill.autopay ? '#2A3F1F' : 'rgba(255,77,28,0.2)', color: bill.autopay ? '#7FCC6B' : '#FF6644' }}>
+                                    {bill.autopay ? 'Auto' : 'Manual'}
+                                  </span>
+                                </div>
+                                {bill.notes && <div style={{ fontSize: '12px', fontStyle: 'italic', color: 'rgba(240,234,214,0.6)', marginTop: '2px' }}>{bill.notes}</div>}
                                 <div className={styles.billMeta}>
                                   {bill.frequency === 'bimonthly' && (bill.first_date || bill.second_date) ? (
                                     <span className={styles.billDue}>
@@ -4891,6 +4899,15 @@ export default function Dashboard() {
                       className={`${styles.toggleBtn} ${newBillAutoTask ? styles.toggleBtnActive : ''}`}>Yes</button>
                     <button type="button" onClick={() => setNewBillAutoTask(false)}
                       className={`${styles.toggleBtn} ${!newBillAutoTask ? styles.toggleBtnActive : ''}`}>No</button>
+                  </div>
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Auto-pay</label>
+                  <div className={styles.toggleRow}>
+                    <button type="button" onClick={() => setNewBillAutopay(true)}
+                      className={`${styles.toggleBtn} ${newBillAutopay ? styles.toggleBtnActive : ''}`}>Yes</button>
+                    <button type="button" onClick={() => setNewBillAutopay(false)}
+                      className={`${styles.toggleBtn} ${!newBillAutopay ? styles.toggleBtnActive : ''}`}>No</button>
                   </div>
                 </div>
                 <button type="submit" disabled={addingBill || !newBillName.trim() || !newBillAmount} className={styles.modalSubmit}>

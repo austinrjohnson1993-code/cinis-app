@@ -39,6 +39,14 @@ a { color: inherit; text-decoration: none; }
 button { cursor: pointer; font-family: 'Figtree', sans-serif; }
 input, textarea { font-family: 'Figtree', sans-serif; }
 
+/* Hide number input spinners */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] { -moz-appearance: textfield; }
+
 .brand {
   font-family: 'Playfair Display', serif;
   font-weight: 900;

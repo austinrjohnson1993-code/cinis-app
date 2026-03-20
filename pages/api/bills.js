@@ -8,7 +8,7 @@ function getAdminClient() {
 }
 
 const VALID_FREQUENCIES = ['monthly', 'weekly', 'yearly', 'quarterly', 'one-time', 'bimonthly']
-const VALID_CATEGORIES = ['housing', 'utilities', 'subscriptions', 'insurance', 'debt', 'medical', 'transport', 'food', 'other']
+const VALID_CATEGORIES = ['housing', 'utilities', 'subscriptions', 'insurance', 'transport', 'food', 'health', 'medical', 'education', 'entertainment', 'childcare', 'debt', 'other']
 const VALID_BILL_TYPES = ['bill', 'loan', 'credit_card']
 
 const BILL_FIELDS = [
