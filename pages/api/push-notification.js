@@ -1,7 +1,7 @@
 // To generate VAPID keys run:
 //   npx web-push generate-vapid-keys
 // Then add to .env.local and Vercel env vars:
-//   NEXT_PUBLIC_VAPID_KEY=...   (public key, exposed to browser)
+//   VAPID_PUBLIC_KEY=...         (public key, server-side only)
 //   VAPID_PRIVATE_KEY=...       (private key, server only)
 
 import webpush from 'web-push';
@@ -9,7 +9,7 @@ import { createClient } from '@supabase/supabase-js';
 
 webpush.setVapidDetails(
   'mailto:ryan@cinis.app',
-  process.env.NEXT_PUBLIC_VAPID_KEY,
+  process.env.VAPID_PUBLIC_KEY,
   process.env.VAPID_PRIVATE_KEY
 );
 

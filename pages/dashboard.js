@@ -3496,7 +3496,7 @@ export default function Dashboard() {
             const totalXp = profile?.total_xp || 0
             const XP_MILESTONES = [
               { xp: 1000, label: 'Sticker pack' },
-              { xp: 5000, label: 'Journal' },
+              { xp: 5000, label: 'Physical journal' },
               { xp: 25000, label: 'Lifetime Pro' },
             ]
             const nextMilestone = XP_MILESTONES.find(m => m.xp > totalXp)
