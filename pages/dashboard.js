@@ -594,6 +594,11 @@ export default function Dashboard() {
   const [voiceFabState, setVoiceFabState] = useState('idle') // 'idle' | 'recording' | 'processing'
   const voiceFabRecognitionRef = useRef(null)
 
+  // Check-in voice input
+  const [checkinVoiceListening, setCheckinVoiceListening] = useState(false)
+  const checkinVoiceRecognitionRef = useRef(null)
+  const checkinVoiceSilenceTimerRef = useRef(null)
+
   // Calendar
   const [calView, setCalView] = useState('month')
   const [calMonth, setCalMonth] = useState(() => {
@@ -1598,6 +1603,72 @@ export default function Dashboard() {
       libShowToast('Undone.', { type: 'success', duration: 2000 })
     } catch {
       libShowToast('Could not undo. Try again.', { type: 'error' })
+    }
+  }
+
+  // ── Check-in voice input ───────────────────────────────────────────────────
+
+  const startCheckinVoice = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      libShowToast('Voice input not supported in this browser.', { type: 'error' })
+      return
+    }
+    const recognition = new SpeechRecognition()
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.lang = 'en-US'
+
+    let isFirstResult = true
+    let silenceTimeout
+
+    recognition.onstart = () => setCheckinVoiceListening(true)
+
+    recognition.onresult = (event) => {
+      let interimTranscript = ''
+      let finalTranscript = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' '
+        } else {
+          interimTranscript += transcript
+        }
+      }
+      if (finalTranscript) {
+        setCheckinInput(prev => (prev + ' ' + finalTranscript).trim())
+        isFirstResult = false
+        // Reset silence timer when we get final results
+        clearTimeout(silenceTimeout)
+        silenceTimeout = setTimeout(() => {
+          recognition.stop()
+        }, 1500)
+      }
+    }
+
+    recognition.onerror = () => {
+      setCheckinVoiceListening(false)
+      libShowToast('Could not hear you. Try again.', { type: 'error' })
+    }
+
+    recognition.onend = () => {
+      setCheckinVoiceListening(false)
+      clearTimeout(silenceTimeout)
+    }
+
+    checkinVoiceRecognitionRef.current = recognition
+    recognition.start()
+  }
+
+  const stopCheckinVoice = () => {
+    checkinVoiceRecognitionRef.current?.stop()
+  }
+
+  const handleCheckinVoiceClick = () => {
+    if (checkinVoiceListening) {
+      stopCheckinVoice()
+    } else {
+      startCheckinVoice()
     }
   }
 
@@ -3011,6 +3082,30 @@ export default function Dashboard() {
                     className={styles.ciInput}
                     autoFocus
                   />
+                  {(window.SpeechRecognition || window.webkitSpeechRecognition) && (
+                    <button
+                      type="button"
+                      onClick={handleCheckinVoiceClick}
+                      disabled={checkinLoading}
+                      className={styles.ciMicBtn}
+                      style={{
+                        background: checkinVoiceListening ? '#FF6644' : 'transparent',
+                        opacity: checkinLoading ? 0.5 : 1,
+                        cursor: checkinLoading ? 'not-allowed' : 'pointer'
+                      }}
+                      aria-label={checkinVoiceListening ? 'Stop listening' : 'Start voice input'}
+                      title={checkinVoiceListening ? 'Stop listening' : 'Start voice input'}
+                    >
+                      <span style={{
+                        fontSize: 18,
+                        lineHeight: 1,
+                        color: checkinVoiceListening ? '#211A14' : '#F0EAD6',
+                        animation: checkinVoiceListening ? 'pulse 1.5s infinite' : 'none'
+                      }}>
+                        🎤
+                      </span>
+                    </button>
+                  )}
                   <button type="submit" disabled={checkinLoading || !checkinInput.trim()} className={styles.ciSendBtn}>
                     {checkinLoading
                       ? <span className={styles.ciSendSpinner} />

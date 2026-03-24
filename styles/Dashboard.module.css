@@ -4046,6 +4046,28 @@
   to { transform: rotate(360deg); }
 }
 
+.ciMicBtn {
+  background: transparent;
+  color: #F0EAD6;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  font-size: 16px;
+}
+.ciMicBtn:hover:not(:disabled) { transform: scale(1.05); }
+.ciMicBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 /* ════════════════════════════════════════════
    CALENDAR S17 REBUILD
    ════════════════════════════════════════════ */
