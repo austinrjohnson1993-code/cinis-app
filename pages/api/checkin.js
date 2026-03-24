@@ -33,7 +33,13 @@ When the user confirms a time, date, or scheduling decision during conversation,
 - User says "add that to my list" → call create_task immediately
 - User says "mark that done" → call complete_task immediately
 - User says "push it to tomorrow" → call reschedule_task with tomorrow's date
-Never say "I'll add that" or "I've scheduled that" without actually calling the tool. Talk is not action. Use the tool.`
+Never say "I'll add that" or "I've scheduled that" without actually calling the tool. Talk is not action. Use the tool.
+
+TIME CONVERSION — MANDATORY:
+All datetime values in tool calls must be in UTC (ISO 8601). The user's local time and UTC offset are in the context above.
+Convert before calling: user says "6pm" → look up their UTC offset → compute UTC time → use that in the tool call.
+WRONG: due_time: "2026-03-24T18:00:00.000Z" when user is UTC-5 and says "6pm" (that would show as 1pm local)
+RIGHT: due_time: "2026-03-24T23:00:00.000Z" (18:00 local + 5 hours = 23:00 UTC)`
 
 const TOOLS = [
   {
@@ -580,7 +586,17 @@ export default async function handler(req, res) {
     .map(p => p.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))
     .join(', ')
 
-  const liveContext = `\n\nCurrent context:\n- Tasks today (use id field when calling tools):${taskSummary}\n- Overdue: ${overdueCount} task${overdueCount !== 1 ? 's' : ''}\n- Streak: ${currentStreak} day${currentStreak !== 1 ? 's' : ''}\n- Coaching persona: ${personaBlendLabel}`
+  // Compute user's local time and UTC offset for timezone-aware scheduling
+  const tz = timezone || 'America/Chicago'
+  const nowDate = new Date()
+  const localTimeStr = nowDate.toLocaleString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true })
+  const tzAbbrStr = nowDate.toLocaleString('en-US', { timeZone: tz, timeZoneName: 'short' }).split(' ').slice(-1)[0]
+  const utcMs = new Date(nowDate.toLocaleString('en-US', { timeZone: 'UTC' })).getTime()
+  const localMs = new Date(nowDate.toLocaleString('en-US', { timeZone: tz })).getTime()
+  const utcOffsetHours = Math.round((localMs - utcMs) / 3600000)
+  const utcOffsetStr = utcOffsetHours >= 0 ? `UTC+${utcOffsetHours}` : `UTC${utcOffsetHours}`
+
+  const liveContext = `\n\nCurrent context:\n- Tasks today (use id field when calling tools):${taskSummary}\n- Overdue: ${overdueCount} task${overdueCount !== 1 ? 's' : ''}\n- Streak: ${currentStreak} day${currentStreak !== 1 ? 's' : ''}\n- Coaching persona: ${personaBlendLabel}\n- User's local time: ${localTimeStr} ${tzAbbrStr} (${utcOffsetStr})\n- TIMEZONE RULE: All tool calls use UTC. Convert user's stated time before calling. Example: 6pm ${tzAbbrStr} = ${(18 - utcOffsetHours) % 24}:00 UTC. Never store user-stated times as-is.`
 
   const baselineContext = profile?.baseline_profile ? `USER COACHING PROFILE:\n${profile.baseline_profile}\n\n` : ''
   const isPro = profile.subscription_status === 'pro' ||
