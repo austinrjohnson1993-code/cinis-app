@@ -1637,7 +1637,7 @@
 }
 .billCard:hover { border-color: rgba(240,234,214,0.16); box-shadow: 0 4px 16px rgba(0,0,0,0.4); transform: translateY(-1px); }
 .billInfo { flex: 1; min-width: 0; }
-.billName { display: block; font-size: 0.92rem; color: #f0ead6; font-weight: 500; margin-bottom: 3px; }
+.billName { display: block; font-size: 15px; color: #F0EAD6; font-weight: 600; font-family: 'Figtree', sans-serif; margin-bottom: 6px; }
 .billMeta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .billDue { font-size: 0.75rem; color: rgba(240,234,214,0.38); }
 .billDueSoon { color: var(--accent) !important; }
@@ -1658,7 +1658,7 @@
   background: transparent; border: 1px solid rgba(240,234,214,0.08); border-radius: 100px; padding: 2px 8px;
 }
 .billRight { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.billAmount { font-size: 1.15rem; font-weight: 600; font-family: 'Sora', sans-serif; color: #F0EAD6; }
+.billAmount { font-size: 20px; font-weight: 600; font-family: 'Sora', sans-serif; color: #FF6644; }
 .billDelete {
   background: transparent; border: 1px solid rgba(255,200,120,0.08); border-radius: 8px;
   width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
@@ -5382,10 +5382,10 @@
   margin-bottom: 6px;
 }
 .dailyHeroAmount {
-  font-size: 2.6rem;
-  font-weight: 700;
+  font-size: 56px;
+  font-weight: 300;
   font-family: 'Sora', sans-serif;
-  color: #FF6644;
+  color: #F0EAD6;
   line-height: 1;
   margin-bottom: 6px;
 }
@@ -5561,4 +5561,81 @@
   color: rgba(240,234,214,0.55);
   font-family: 'Figtree', sans-serif;
   line-height: 1.5;
+}
+
+/* ── BUDGET PLAN PILLS ── */
+.budgetPlanPills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.budgetPlanPill {
+  background: transparent;
+  border: 1px solid rgba(240,234,214,0.15);
+  border-radius: 100px;
+  padding: 6px 14px;
+  color: rgba(240,234,214,0.45);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.budgetPlanPill:hover { border-color: rgba(240,234,214,0.3); color: rgba(240,234,214,0.7); }
+.budgetPlanPillActive {
+  background: rgba(255,102,68,0.12);
+  border: 1px solid rgba(255,102,68,0.45);
+  border-radius: 100px;
+  padding: 6px 14px;
+  color: #FF6644;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+/* Impulse toggle amber state */
+.spendImpulseActive {
+  background: rgba(255,184,0,0.12) !important;
+  border-color: rgba(255,184,0,0.45) !important;
+  color: #FFB800 !important;
+}
+
+/* Spend entry time */
+.spendEntryTime {
+  font-size: 0.72rem;
+  color: rgba(240,234,214,0.28);
+  font-family: 'Figtree', sans-serif;
+  white-space: nowrap;
+}
+
+/* Spend today total */
+.spendTodayTotal {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(240,234,214,0.45);
+  font-family: 'Figtree', sans-serif;
+  text-align: right;
+  padding: 8px 0 0;
+  border-top: 1px solid rgba(240,234,214,0.06);
+  margin-top: 4px;
+}
+
+/* Plan calculator bar */
+.planCalcBar {
+  height: 8px;
+  background: rgba(240,234,214,0.08);
+  border-radius: 4px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+.planCalcBarFill {
+  height: 100%;
+  background: #FF6644;
+  border-radius: 4px;
+  transition: width 0.4s ease;
 }
