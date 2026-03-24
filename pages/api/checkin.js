@@ -831,7 +831,7 @@ export default async function handler(req, res) {
   const utcOffsetHours = Math.round((localMs - utcMs) / 3600000)
   const utcOffsetStr = utcOffsetHours >= 0 ? `UTC+${utcOffsetHours}` : `UTC${utcOffsetHours}`
 
-  const liveContext = `\n\nCurrent context:\n- Tasks today (use id field when calling tools):${taskSummary}\n- Bills (use id field with update_bill tool):${billSummary}\n- Overdue: ${overdueCount} task${overdueCount !== 1 ? 's' : ''}\n- Streak: ${currentStreak} day${currentStreak !== 1 ? 's' : ''}\n- Coaching persona: ${personaBlendLabel}\n- User's local time: ${localTimeStr} ${tzAbbrStr} (${utcOffsetStr})\n- TIMEZONE RULE: All tool calls use UTC. Convert user's stated time before calling. Example: 6pm ${tzAbbrStr} = ${(18 - utcOffsetHours) % 24}:00 UTC. Never store user-stated times as-is.`
+  const liveContext = `\n\nCurrent context:\n- Tasks today (use id field when calling tools):${taskSummary}\n- Bills (use id field with update_bill tool):${billSummary}\n- Overdue: ${overdueCount} task${overdueCount !== 1 ? 's' : ''}\n- Streak: ${currentStreak} day${currentStreak !== 1 ? 's' : ''}\n- Coaching persona: ${personaBlendLabel}\n- User's local time: ${localTimeStr} ${tzAbbrStr} (${utcOffsetStr})\n- TIMEZONE RULE: All tool calls use UTC. Convert user's stated time before calling. Example: 6pm ${tzAbbrStr} = ${(18 - utcOffsetHours) % 24}:00 UTC. Never store user-stated times as-is.${crewContextStr}`
 
   const baselineContext = profile?.baseline_profile ? `USER COACHING PROFILE:\n${profile.baseline_profile}\n\n` : ''
   const isPro = profile.subscription_status === 'pro' ||
