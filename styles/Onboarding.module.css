@@ -46,6 +46,15 @@
 
 /* ── Saving screen ── */
 
+@keyframes pulseGently {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
 .savingContainer {
   flex: 1;
   display: flex;
@@ -54,6 +63,26 @@
   align-items: center;
   gap: 24px;
   min-height: 100vh;
+}
+
+.buildingContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  min-height: 100vh;
+}
+
+.buildingMark {
+  animation: pulseGently 2s ease-in-out infinite;
+}
+
+.buildingText {
+  font-size: 1.1rem;
+  color: rgba(240,234,214,0.6);
+  text-align: center;
 }
 
 .savingLogo {
@@ -195,17 +224,54 @@
 }
 
 .questionWrap {
-  animation: slideIn 0.28s ease;
+  animation: slideInFromRight 0.3s ease;
 }
 
-@keyframes slideIn {
+.questionWrapBackward {
+  animation: slideInFromLeft 0.3s ease;
+}
+
+@keyframes slideInFromRight {
   from {
     opacity: 0;
-    transform: translateX(28px);
+    transform: translateX(100%);
   }
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@keyframes slideOutToLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
   }
 }
 
@@ -578,9 +644,22 @@
   border-color: rgba(255,77,28,0.2);
 }
 
+@keyframes chipPop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .mhCardSelected {
-  border-color: var(--accent);
-  background: rgba(255,77,28,0.08);
+  border-color: #ff4d1c;
+  background: rgba(255,77,28,0.1);
+  animation: chipPop 0.3s ease;
 }
 
 .mhCardEmoji {

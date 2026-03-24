@@ -52,6 +52,24 @@ input, textarea { font-family: 'Figtree', sans-serif; }
 .brand .focus { color: var(--cream); }
 .brand .buddy { color: var(--accent); }
 
+/* ── MIDNIGHT theme — pure dark palette ── */
+[data-theme="midnight"] {
+  --bg-color: #0D0D12;
+  --card-bg: #1A1A24;
+  --accent: #FF6644;
+  --accent-intense: #E8321A;
+  --text-color: #E8E6F0;
+}
+
+/* ── WARM theme — warm browns & creams ── */
+[data-theme="warm"] {
+  --bg-color: #1C1208;
+  --card-bg: #2E1F0F;
+  --accent: #FF6644;
+  --accent-intense: #E8321A;
+  --text-color: #F5ECD6;
+}
+
 /* ── Paper theme overrides — light background, dark text ── */
 [data-theme="paper"] body {
   background: #f5f0e8;

@@ -180,13 +180,14 @@ const RANK_ITEMS_DEFAULT = ['Deep focus work', 'Quick wins', 'External commitmen
 export default function Onboarding() {
   const router = useRouter()
   const [user, setUser] = useState(null)
-  const [phase, setPhase] = useState('context') // context | intro | questions | rankq | analyzing | reveal | saving
+  const [phase, setPhase] = useState('context') // context | intro | questions | rankq | analyzing | reveal | building
   const [mentalHealthContext, setMentalHealthContext] = useState(null)
   const [name, setName] = useState('')
   const [checkinTimes, setCheckinTimes] = useState(['morning', 'evening'])
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState(Array(QUESTIONS.length).fill(null))
   const [animKey, setAnimKey] = useState(0)
+  const [slideDirection, setSlideDirection] = useState('forward') // forward | backward
   const [personaBlend, setPersonaBlend] = useState([])
   const [personaVoice, setPersonaVoice] = useState('warm_gentle')
   const [rankItems, setRankItems] = useState([...RANK_ITEMS_DEFAULT])
@@ -218,6 +219,7 @@ export default function Onboarding() {
     setAnswers(newAnswers)
 
     if (currentQ < QUESTIONS.length - 1) {
+      setSlideDirection('forward')
       setAnimKey(k => k + 1)
       setCurrentQ(q => q + 1)
     } else {
@@ -228,6 +230,7 @@ export default function Onboarding() {
 
   const handleBack = () => {
     if (currentQ > 0) {
+      setSlideDirection('backward')
       setAnimKey(k => k + 1)
       setCurrentQ(q => q - 1)
     } else {
@@ -244,7 +247,7 @@ export default function Onboarding() {
   }
 
   const handleConfirm = async () => {
-    setPhase('saving')
+    setPhase('building')
     const upsertData = {
       id: user.id,
       email: user.email,
@@ -402,7 +405,7 @@ export default function Onboarding() {
   // ── Questions ─────────────────────────────────────────────────────────────
   if (phase === 'questions') {
     const q = QUESTIONS[currentQ]
-    const progress = ((currentQ + 1) / (QUESTIONS.length + 1)) * 100
+    const progress = ((currentQ + 2) / 13) * 100
 
     return (
       <>
@@ -418,7 +421,7 @@ export default function Onboarding() {
               <span className={styles.questionCount}>{currentQ + 1} of {QUESTIONS.length + 1}</span>
             </div>
 
-            <div key={animKey} className={styles.questionWrap}>
+            <div key={animKey} className={`${styles.questionWrap} ${slideDirection === 'backward' ? styles.questionWrapBackward : ''}`}>
               <h2 className={styles.questionText}>{q.text}</h2>
               <div className={styles.optionsGrid}>
                 {q.options.map(opt => {
@@ -444,7 +447,7 @@ export default function Onboarding() {
 
   // ── Rank question ─────────────────────────────────────────────────────────
   if (phase === 'rankq') {
-    const progress = (QUESTIONS.length / (QUESTIONS.length + 1)) * 100
+    const progress = (13 / 13) * 100
     return (
       <>
         <Head><title>Getting Started — Cinis</title></Head>

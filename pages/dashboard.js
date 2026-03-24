@@ -13,7 +13,7 @@ import { CheckSquare, ChatCircle, Target, CalendarBlank, Notebook, Wallet, Chart
 import { showToast as libShowToast, ToastContainer } from '../lib/toast.js'
 
 const THEMES = [
-  { id: 'orange-bronze', name: 'Classic', accent: '#FF6644', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#FF6644' },
+  { id: 'orange-bronze', name: 'Classic', accent: '#FF6644', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#FF6644', dataTheme: 'classic' },
   { id: 'teal-ocean', name: 'Ocean', accent: '#2dd4bf', gradient: 'radial-gradient(ellipse at top left, rgba(15,80,90,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(10,60,70,0.35) 0%, transparent 60%)', logo: '#2dd4bf' },
   { id: 'purple-cosmos', name: 'Cosmos', accent: '#8b5cf6', gradient: 'radial-gradient(ellipse at top left, rgba(60,20,120,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(40,10,90,0.35) 0%, transparent 60%)', logo: '#8b5cf6' },
   { id: 'blue-arctic', name: 'Arctic', accent: '#3b82f6', gradient: 'radial-gradient(ellipse at top left, rgba(15,40,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(10,30,80,0.35) 0%, transparent 60%)', logo: '#3b82f6' },
@@ -23,7 +23,8 @@ const THEMES = [
   { id: 'cyan-electric', name: 'Electric', accent: '#06b6d4', gradient: 'radial-gradient(ellipse at top left, rgba(5,70,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(5,50,80,0.35) 0%, transparent 60%)', logo: '#06b6d4' },
   { id: 'indigo-night', name: 'Night', accent: '#6366f1', gradient: 'radial-gradient(ellipse at top left, rgba(30,20,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(20,15,80,0.35) 0%, transparent 60%)', logo: '#6366f1' },
   { id: 'drill-sergeant', name: 'Command', accent: '#ef4444', gradient: 'radial-gradient(ellipse at top left, rgba(100,10,10,0.5) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,5,5,0.4) 0%, transparent 60%)', logo: '#ef4444' },
-  { id: 'midnight', name: 'Midnight', accent: '#ffffff', gradient: 'radial-gradient(ellipse at top left, rgba(40,40,40,0.5) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(20,20,20,0.4) 0%, transparent 60%)', logo: '#ffffff', bg: '#000000' },
+  { id: 'midnight', name: 'Midnight', accent: '#FF6644', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#FF6644', dataTheme: 'midnight' },
+  { id: 'warm', name: 'Warm', accent: '#FF6644', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#FF6644', dataTheme: 'warm' },
 ]
 
 function applyTheme(theme) {
@@ -32,10 +33,15 @@ function applyTheme(theme) {
   root.style.setProperty('--accent', theme.accent)
   root.style.setProperty('--accent-gradient', theme.gradient)
   root.style.setProperty('--logo-color', theme.logo)
+  // Set data-theme attribute to enable CSS variable sets for midnight/warm
+  if (theme.dataTheme) {
+    root.setAttribute('data-theme', theme.dataTheme)
+  } else {
+    root.removeAttribute('data-theme')
+  }
   // Override background/text for themes that need it (Midnight)
   root.style.setProperty('--night', theme.bg || '#0d1117')
   root.style.setProperty('--cream', theme.textColor || '#f0ead6')
-  root.removeAttribute('data-theme')
   root.style.setProperty('--bg-color', '#110d06')
   root.style.setProperty('--card-bg', '#221608')
   root.style.setProperty('--text-color', '#f0ead6')
@@ -3993,8 +3999,8 @@ export default function Dashboard() {
                   <div className={styles.stgThemeChips}>
                     {[
                       { id: 'orange-bronze', label: 'Classic', locked: false },
-                      { id: 'midnight', label: 'Midnight', locked: true },
-                      { id: 'warm', label: 'Warm', locked: true },
+                      { id: 'midnight', label: 'Midnight', locked: false },
+                      { id: 'warm', label: 'Warm', locked: false },
                     ].map(({ id, label, locked }) => {
                       const isActive = activeTheme?.id === id
                       return (

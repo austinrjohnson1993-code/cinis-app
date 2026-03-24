@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { buildPersonaPrompt } from '../../../lib/persona'
 import { coachingMessage } from '../../../lib/anthropic'
+import { sendPushNotification } from '../../../lib/sendPush'
 
 function getAdminClient() {
   return createClient(
@@ -76,6 +77,19 @@ export default async function handler(req, res) {
 
       pregenerated++
       console.log(`[morning-checkin] Pre-generated for ${name}`)
+
+      if (profile.push_notifications_enabled && profile.push_subscription) {
+        try {
+          await sendPushNotification(
+            profile.push_subscription,
+            `Good morning, ${name}`,
+            message.length > 120 ? message.slice(0, 117) + '…' : message
+          )
+          console.log(`[morning-checkin] Push sent to ${name}`)
+        } catch (pushErr) {
+          console.error(`[morning-checkin] Push failed for ${profile.id}:`, pushErr.message)
+        }
+      }
     } catch (err) {
       console.error(`[morning-checkin] Pre-gen failed for ${profile.id}:`, err.message)
     }
