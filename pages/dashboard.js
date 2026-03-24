@@ -3104,6 +3104,49 @@ export default function Dashboard() {
                   )}
                 </div>
 
+                {/* ── FOCUS STATS ── */}
+                <div className={styles.focusStatsContainer}>
+                  <div className={styles.focusStatCard}>
+                    <div className={styles.focusStatLabel}>Day streak</div>
+                    <div className={styles.focusStatValue}>{(() => {
+                      const today = new Date()
+                      const todayStr = localDateStr(today)
+                      const yesterdayStr = localDateStr(new Date(today.getTime() - 86400000))
+                      const todayCompleted = tasks.filter(t => t.completed && localDateStr(new Date(t.updated_at || t.created_at)) === todayStr).length
+                      const yesterdayCompleted = tasks.filter(t => t.completed && localDateStr(new Date(t.updated_at || t.created_at)) === yesterdayStr).length
+                      if (todayCompleted === 0 && yesterdayCompleted === 0) return '0'
+                      let streak = todayCompleted > 0 ? 1 : 0
+                      let checkDate = yesterdayStr
+                      for (let i = 1; i < 365; i++) {
+                        const checkDateObj = new Date(today.getTime() - i * 86400000)
+                        const checkDateStr = localDateStr(checkDateObj)
+                        const completed = tasks.filter(t => t.completed && localDateStr(new Date(t.updated_at || t.created_at)) === checkDateStr).length
+                        if (completed > 0) streak++
+                        else break
+                      }
+                      return streak
+                    })()}</div>
+                  </div>
+                  <div className={styles.focusStatCard}>
+                    <div className={styles.focusStatLabel}>Total focus time</div>
+                    <div className={styles.focusStatValue}>{(() => {
+                      const totalMinutes = tasks.reduce((sum, t) => sum + (t.estimated_minutes || 0), 0)
+                      if (totalMinutes < 60) return `${totalMinutes}m`
+                      const hours = Math.floor(totalMinutes / 60)
+                      const mins = totalMinutes % 60
+                      return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
+                    })()}</div>
+                  </div>
+                  <div className={styles.focusStatCard}>
+                    <div className={styles.focusStatLabel}>Sessions today</div>
+                    <div className={styles.focusStatValue}>{(() => {
+                      const today = new Date()
+                      const todayStr = localDateStr(today)
+                      return tasks.filter(t => t.completed && localDateStr(new Date(t.updated_at || t.created_at)) === todayStr).length
+                    })()}</div>
+                  </div>
+                </div>
+
                 {/* ── 🥗 FUEL ── */}
                 <div className={`${styles.focusAccordionCard} ${focusSection === 'fuel' ? styles.focusAccordionCardOpen : ''}`}>
                   <div className={styles.focusAccordionHeader} onClick={() => setFocusSection(focusSection === 'fuel' ? null : 'fuel')}>
