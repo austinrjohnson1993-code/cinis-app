@@ -125,6 +125,53 @@ const TOOLS = [
       },
       required: ['title']
     }
+  },
+  {
+    name: 'add_crew_task',
+    description: 'Add a task to a crew member\'s task list. Use when the user wants to delegate a task to a family or work crew member.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        crew_id: { type: 'string', description: 'The crew ID to add the task to' },
+        assignee_id: { type: 'string', description: 'The UUID of the crew member to assign the task to' },
+        title: { type: 'string', description: 'The task title' },
+        due_date: { type: 'string', description: 'Optional ISO date string for the due date' }
+      },
+      required: ['crew_id', 'assignee_id', 'title']
+    }
+  },
+  {
+    name: 'get_crew_status',
+    description: 'Get the current task status for a crew. Returns count of open, claimed, and done tasks per member.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        crew_id: { type: 'string', description: 'The crew ID to get status for' }
+      },
+      required: ['crew_id']
+    }
+  },
+  {
+    name: 'update_bill',
+    description: 'Update a bill\'s details like due day, amount, or autopay status.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        bill_id: { type: 'string', description: 'The bill ID to update' },
+        due_day: { type: 'integer', description: 'Day of month bill is due (1-31)' },
+        amount: { type: 'number', description: 'Bill amount in dollars' },
+        autopay: { type: 'boolean', description: 'Whether bill autopays' }
+      },
+      required: ['bill_id']
+    }
+  },
+  {
+    name: 'get_bills',
+    description: 'Get all bills for the user. Returns array of bills with their details.',
+    input_schema: {
+      type: 'object',
+      properties: {}
+    }
   }
 ]
 
@@ -376,6 +423,156 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
     return { result: 'created', task_id: data.id, title: data.title }
   }
 
+  if (toolName === 'add_crew_task') {
+    const { crew_id, assignee_id, title, due_date } = input
+    console.log(`[checkin:tool] add_crew_task — crew_id: ${crew_id}, assignee_id: ${assignee_id}, title: ${title}`)
+
+    // INSERT into crew_tasks
+    const { data: crewTask, error: crewError } = await supabaseAdmin
+      .from('crew_tasks')
+      .insert({
+        crew_id,
+        added_by: userId,
+        assigned_to: assignee_id,
+        title,
+        due_date,
+        status: 'open'
+      })
+      .select()
+      .single()
+
+    if (crewError) {
+      console.error('[checkin:tool] add_crew_task crew_tasks insert error:', JSON.stringify(crewError))
+      return { result: 'error', error: crewError.message }
+    }
+
+    // Also INSERT into tasks for the assignee so it appears in their Tasks tab
+    const assigneeTask = await supabaseAdmin
+      .from('tasks')
+      .insert({
+        user_id: assignee_id,
+        title: `${title} (Added by ${userId})`,
+        scheduled_for: new Date().toISOString().slice(0, 10),
+        completed: false,
+        archived: false
+      })
+      .select()
+      .single()
+      .catch(err => {
+        console.error('[checkin:tool] add_crew_task tasks insert failed:', JSON.stringify(err))
+        return { data: null, error: err }
+      })
+
+    console.log('[checkin:executeTool] add_crew_task success:', crewTask.id)
+    return { result: 'added', crew_task_id: crewTask.id, assignee_task_id: assigneeTask?.data?.id }
+  }
+
+  if (toolName === 'get_crew_status') {
+    const { crew_id } = input
+    console.log(`[checkin:tool] get_crew_status — crew_id: ${crew_id}`)
+
+    // Query crew_tasks grouped by assigned_to and status
+    const { data: tasks, error: tasksError } = await supabaseAdmin
+      .from('crew_tasks')
+      .select('assigned_to, status')
+      .eq('crew_id', crew_id)
+
+    if (tasksError) {
+      console.error('[checkin:tool] get_crew_status query error:', JSON.stringify(tasksError))
+      return { result: 'error', error: tasksError.message }
+    }
+
+    // Count by assigned_to and status
+    const statusMap = {}
+    tasks.forEach(task => {
+      if (!statusMap[task.assigned_to]) {
+        statusMap[task.assigned_to] = { open: 0, claimed: 0, done: 0 }
+      }
+      statusMap[task.assigned_to][task.status]++
+    })
+
+    // Get crew member names for context
+    const { data: members, error: membersError } = await supabaseAdmin
+      .from('crew_members')
+      .select('user_id, profiles(full_name)')
+      .eq('crew_id', crew_id)
+
+    if (membersError) {
+      console.error('[checkin:tool] get_crew_status members query error:', JSON.stringify(membersError))
+      return { result: 'error', error: membersError.message }
+    }
+
+    // Format response with member names
+    const status = members.map(m => ({
+      member_id: m.user_id,
+      member_name: m.profiles?.full_name || 'Unknown',
+      tasks: statusMap[m.user_id] || { open: 0, claimed: 0, done: 0 }
+    }))
+
+    console.log('[checkin:executeTool] get_crew_status success:', JSON.stringify(status))
+    return { result: 'retrieved', crew_id, status }
+  }
+
+  if (toolName === 'update_bill') {
+    const { bill_id, due_day, amount, autopay } = input
+    console.log(`[checkin:tool] update_bill — bill_id: ${bill_id}`, { due_day, amount, autopay })
+
+    const updates = {}
+    if (due_day !== undefined) updates.due_day = due_day
+    if (amount !== undefined) updates.amount = amount
+    if (autopay !== undefined) updates.autopay = autopay
+
+    if (Object.keys(updates).length === 0) {
+      return { result: 'error', error: 'No fields to update' }
+    }
+
+    let updated = null
+    let updateErr = null
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('bills').update(updates).eq('id', bill_id).eq('user_id', userId).select().single()
+      updateErr = error
+      updated = data
+      console.log('[executeTool] update_bill result:', JSON.stringify(data), JSON.stringify(error))
+    } catch (e) {
+      console.error('[checkin:tool] update_bill threw:', e)
+      return { result: 'error', error: e.message }
+    }
+
+    if (updateErr) {
+      console.error('[checkin:tool] update_bill error:', JSON.stringify(updateErr))
+      return { result: 'error', error: updateErr.message }
+    }
+
+    console.log(`[checkin:executeTool:success] update_bill executed for bill ${bill_id}`)
+    return { result: 'updated', bill_id, updatedBill: updated }
+  }
+
+  if (toolName === 'get_bills') {
+    console.log(`[checkin:tool] get_bills for user: ${userId}`)
+
+    let bills = null
+    let billsErr = null
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('bills').select('*').eq('user_id', userId)
+      billsErr = error
+      bills = data
+      console.log('[executeTool] get_bills result:', JSON.stringify(data), JSON.stringify(error))
+    } catch (e) {
+      console.error('[checkin:tool] get_bills threw:', e)
+      return { result: 'error', error: e.message }
+    }
+
+    if (billsErr) {
+      console.error('[checkin:tool] get_bills error:', JSON.stringify(billsErr))
+      return { result: 'error', error: billsErr.message }
+    }
+
+    console.log(`[checkin:executeTool:success] get_bills retrieved ${bills?.length || 0} bills`)
+    return { result: 'retrieved', bills: bills || [] }
+  }
+
   console.warn('[checkin:tool] unknown tool:', toolName)
   return null
 }
@@ -565,9 +762,41 @@ export default async function handler(req, res) {
     return res.status(404).json({ error: 'Profile not found' })
   }
 
-  // ── Fetch tasks early so live context can be injected into system prompt ────
+  // ── Fetch tasks and crews early so live context can be injected into system prompt ────
   const { data: allTasks = [] } = await supabaseAdmin
     .from('tasks').select('*').eq('user_id', userId).eq('archived', false)
+
+  // Fetch bills for injection with IDs so AI can call update_bill
+  const { data: allBills = [] } = await supabaseAdmin
+    .from('bills').select('*').eq('user_id', userId)
+
+  // Fetch user's crews (where they're owner or member)
+  const { data: userCrews = [] } = await supabaseAdmin
+    .from('crews')
+    .select('id, name, type, owner_id')
+    .or(`owner_id.eq.${userId},crew_members(crew_id,user_id).eq.user_id,${userId}`)
+
+  // Fetch crew members for each crew
+  let crewContextStr = ''
+  if (userCrews && userCrews.length > 0) {
+    const crewsList = []
+    for (const crew of userCrews) {
+      const { data: members = [] } = await supabaseAdmin
+        .from('crew_members')
+        .select('user_id, profiles(id, full_name)')
+        .eq('crew_id', crew.id)
+
+      crewsList.push({
+        id: crew.id,
+        name: crew.name,
+        type: crew.type,
+        members: members.map(m => ({ id: m.user_id, name: m.profiles?.full_name || 'Unknown' }))
+      })
+    }
+    if (crewsList.length > 0) {
+      crewContextStr = `\n- Your crews: ${JSON.stringify(crewsList)}`
+    }
+  }
 
   const allPending = (allTasks || []).filter(t => !t.completed)
   const allCompleted = (allTasks || []).filter(t => t.completed)
@@ -579,6 +808,12 @@ export default async function handler(req, res) {
     return label
   })
   const taskSummary = taskLines.length > 0 ? '\n' + taskLines.join('\n') : 'none'
+
+  // Format bills with IDs for AI tool calls
+  const billLines = allBills.slice(0, 8).map(b => {
+    return `- "${b.name}" | id:${b.id} | amount:$${(b.amount || 0).toFixed(2)} | due_day:${b.due_day} | frequency:${b.frequency || 'monthly'} | autopay:${b.autopay ? 'yes' : 'no'}`
+  })
+  const billSummary = billLines.length > 0 ? '\n' + billLines.join('\n') : 'none'
 
   // Resolve persona blend before liveContext so the label can be included
   const personaBlend = profile?.persona_blend || ['coach']
@@ -596,7 +831,7 @@ export default async function handler(req, res) {
   const utcOffsetHours = Math.round((localMs - utcMs) / 3600000)
   const utcOffsetStr = utcOffsetHours >= 0 ? `UTC+${utcOffsetHours}` : `UTC${utcOffsetHours}`
 
-  const liveContext = `\n\nCurrent context:\n- Tasks today (use id field when calling tools):${taskSummary}\n- Overdue: ${overdueCount} task${overdueCount !== 1 ? 's' : ''}\n- Streak: ${currentStreak} day${currentStreak !== 1 ? 's' : ''}\n- Coaching persona: ${personaBlendLabel}\n- User's local time: ${localTimeStr} ${tzAbbrStr} (${utcOffsetStr})\n- TIMEZONE RULE: All tool calls use UTC. Convert user's stated time before calling. Example: 6pm ${tzAbbrStr} = ${(18 - utcOffsetHours) % 24}:00 UTC. Never store user-stated times as-is.`
+  const liveContext = `\n\nCurrent context:\n- Tasks today (use id field when calling tools):${taskSummary}\n- Bills (use id field with update_bill tool):${billSummary}\n- Overdue: ${overdueCount} task${overdueCount !== 1 ? 's' : ''}\n- Streak: ${currentStreak} day${currentStreak !== 1 ? 's' : ''}\n- Coaching persona: ${personaBlendLabel}\n- User's local time: ${localTimeStr} ${tzAbbrStr} (${utcOffsetStr})\n- TIMEZONE RULE: All tool calls use UTC. Convert user's stated time before calling. Example: 6pm ${tzAbbrStr} = ${(18 - utcOffsetHours) % 24}:00 UTC. Never store user-stated times as-is.`
 
   const baselineContext = profile?.baseline_profile ? `USER COACHING PROFILE:\n${profile.baseline_profile}\n\n` : ''
   const isPro = profile.subscription_status === 'pro' ||
