@@ -76,3 +76,57 @@ permission model changes only. No rebuild. Pure extension.
 *Captured Session 25 · March 24, 2026*
 *This is the moat. Single-player productivity apps cannot compete
 with a multiplayer coordination layer.*
+
+---
+
+## The Ambient Intelligence Layer — V2.0+
+
+Cinis stops being an app you open and becomes a presence that runs
+alongside your life. The user takes an action in the real world —
+Cinis detects it and acts automatically.
+
+### The Vacation Example
+User books a flight online.
+Email integration detects the confirmation.
+Cinis automatically creates:
+- "Flight to Miami · Mar 15" as a calendar appointment
+- "Pack for Miami" task — auto-scheduled 2 days before departure
+- "Check in for flight" task — auto-scheduled 24hrs before
+- "Confirm hotel" task — if no hotel booking detected yet
+- Morning check-in on departure day references the trip
+Zero user input required after the original booking.
+
+### Integration Roadmap
+Phase 1 — Calendar Sync (V1.3)
+Google Calendar two-way sync. Cinis reads events, creates tasks,
+coach references upcoming events in every check-in.
+
+Phase 2 — Email Parsing (V2.0)
+Connect Gmail. Cinis reads confirmation emails — flights, hotels,
+packages, medical appointments — and auto-creates the right tasks.
+"Your Amazon order arrives Thursday" → delivery task created.
+"Dentist Tuesday at 2pm" → appointment + reminder task created.
+
+Phase 3 — Ambient Proactive Coach (V2.5)
+Cinis acts without being asked.
+- Trip detected → packing checklist generated automatically
+- Bill due in 3 days, no autopay → morning check-in flags it
+- No tasks logged in 2 days → coach proactively reaches out
+- Recurring pattern detected → coach suggests building a habit
+
+### Why This Is a Moat
+Every integration makes Cinis harder to replace.
+After 6 months, Cinis knows your travel patterns, your bill schedule,
+your work cadence, your family's routines, and what actually gets
+you unstuck. No competitor can replicate that context overnight.
+The switching cost isn't the app — it's the relationship.
+
+### The North Star
+A user should be able to wake up, say "Cinis, what do I need to
+handle today?" and get a complete, accurate, personalized answer
+that accounts for their tasks, their bills, their calendar, their
+family, and their patterns.
+No app switching. No logging. Just a conversation.
+
+---
+*Ambient layer vision captured Session 25 · March 24, 2026*
