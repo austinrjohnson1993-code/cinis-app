@@ -64,7 +64,6 @@ const NAV_ITEMS = [
   { id: 'focus', label: 'Focus', icon: <Target size={22} /> },
   { id: 'calendar', label: 'Calendar', icon: <CalendarBlank size={22} /> },
   { id: 'habits', label: 'Habits', icon: <ArrowCounterClockwise size={22} /> },
-  { id: 'journal', label: 'Journal', icon: <Notebook size={22} /> },
   { id: 'tagteam', label: 'Tag Team', icon: <UsersThree size={22} /> },
   { id: 'finance', label: 'Finance', icon: <Wallet size={22} /> },
   { id: 'progress', label: 'Progress', icon: <ChartLineUp size={22} /> },
@@ -73,7 +72,7 @@ const NAV_ITEMS = [
 ]
 
 const NAV_PRIMARY_IDS = ['tasks', 'checkin', 'focus', 'calendar']
-const NAV_MORE_IDS = ['habits', 'journal', 'tagteam', 'finance', 'progress', 'guide', 'settings']
+const NAV_MORE_IDS = ['habits', 'tagteam', 'finance', 'progress', 'guide', 'settings']
 
 // ── GUIDE TAB STRATEGIES ────────────────────────────────────────────────────────
 const GUIDE_STRATEGIES = [
