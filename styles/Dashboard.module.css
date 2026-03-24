@@ -4926,3 +4926,323 @@
   margin-top: 4px;
 }
 .errorRetryBtn:hover { background: rgba(255,102,68,0.1); border-color: rgba(255,102,68,0.55); }
+
+/* ── TAG TEAM ── */
+.ttView { min-height: 100%; }
+
+/* Empty state */
+.ttEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 56px 28px 80px;
+  gap: 0;
+}
+.ttEmptyIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: rgba(255,102,68,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.ttEmptyHeadline {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #F0EAD6;
+  font-family: 'Figtree', sans-serif;
+  margin: 0 0 8px;
+}
+.ttEmptySub {
+  font-size: 0.9rem;
+  color: rgba(240,234,214,0.45);
+  font-family: 'Figtree', sans-serif;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+.ttEmptyBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 280px;
+}
+
+/* Shared buttons */
+.ttPrimaryBtn {
+  background: #FF6644;
+  border: none;
+  border-radius: 100px;
+  padding: 12px 24px;
+  color: #211A14;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.ttPrimaryBtn:hover { background: #ff7a5c; }
+.ttGhostBtn {
+  background: transparent;
+  border: 1px solid rgba(240,234,214,0.2);
+  border-radius: 100px;
+  padding: 12px 24px;
+  color: rgba(240,234,214,0.65);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.ttGhostBtn:hover { border-color: rgba(240,234,214,0.4); color: #F0EAD6; }
+
+/* Crew header */
+.ttCrewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ttCrewName {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #F0EAD6;
+  font-family: 'Figtree', sans-serif;
+  margin-bottom: 4px;
+}
+.ttCrewTypeBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #FF6644;
+  background: rgba(255,102,68,0.12);
+  border: 1px solid rgba(255,102,68,0.25);
+  border-radius: 100px;
+  padding: 2px 10px;
+}
+.ttNudgeBtn {
+  background: rgba(255,102,68,0.1);
+  border: 1px solid rgba(255,102,68,0.25);
+  border-radius: 100px;
+  padding: 8px 16px;
+  color: #FF6644;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.ttNudgeBtn:hover:not(:disabled) { background: rgba(255,102,68,0.2); }
+.ttNudgeBtn:disabled { opacity: 0.5; cursor: default; }
+
+/* Invite code block */
+.ttInviteBlock {
+  background: rgba(240,234,214,0.04);
+  border: 1px solid rgba(240,234,214,0.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+}
+.ttInviteLabel {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(240,234,214,0.4);
+  font-family: 'Figtree', sans-serif;
+  margin-bottom: 8px;
+}
+.ttInviteRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ttInviteCode {
+  font-family: 'Sora', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #F0EAD6;
+}
+.ttCopyBtn {
+  background: rgba(255,102,68,0.1);
+  border: 1px solid rgba(255,102,68,0.25);
+  border-radius: 100px;
+  padding: 5px 14px;
+  color: #FF6644;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.ttCopyBtn:hover { background: rgba(255,102,68,0.2); }
+
+/* Section label */
+.ttSection { margin-bottom: 20px; }
+.ttSectionLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(240,234,214,0.35);
+  font-family: 'Figtree', sans-serif;
+  margin-bottom: 10px;
+}
+
+/* Member list */
+.ttMemberList { display: flex; flex-direction: column; gap: 2px; }
+.ttMember {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(240,234,214,0.05);
+}
+.ttMember:last-child { border-bottom: none; }
+.ttAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255,102,68,0.15);
+  border: 1px solid rgba(255,102,68,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #FF6644;
+  font-family: 'Figtree', sans-serif;
+  flex-shrink: 0;
+}
+.ttMemberName {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #F0EAD6;
+  font-family: 'Figtree', sans-serif;
+}
+.ttOwnerBadge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(240,234,214,0.35);
+  background: rgba(240,234,214,0.06);
+  border: 1px solid rgba(240,234,214,0.1);
+  border-radius: 100px;
+  padding: 2px 8px;
+}
+
+/* Activity feed */
+.ttActivityFeed { display: flex; flex-direction: column; gap: 2px; }
+.ttActivityItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(240,234,214,0.05);
+}
+.ttActivityItem:last-child { border-bottom: none; }
+.ttActivityText {
+  font-size: 0.88rem;
+  color: rgba(240,234,214,0.7);
+  font-family: 'Figtree', sans-serif;
+  line-height: 1.45;
+  flex: 1;
+}
+.ttActivityTime {
+  font-size: 0.75rem;
+  color: rgba(240,234,214,0.3);
+  font-family: 'Figtree', sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+/* Overlays */
+.ttOverlayBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(33,26,20,0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.ttOverlayCard {
+  background: #2a221b;
+  border: 1px solid rgba(240,234,214,0.1);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 36px;
+  width: 100%;
+  max-width: 480px;
+}
+.ttOverlayTitle {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #F0EAD6;
+  font-family: 'Figtree', sans-serif;
+  margin: 0 0 4px;
+}
+.ttOverlaySub {
+  font-size: 0.88rem;
+  color: rgba(240,234,214,0.45);
+  font-family: 'Figtree', sans-serif;
+  margin: 0 0 16px;
+}
+.ttInput {
+  width: 100%;
+  background: #3E3228;
+  border: 1px solid rgba(240,234,214,0.12);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  color: #F0EAD6;
+  font-family: 'Figtree', sans-serif;
+  box-sizing: border-box;
+  outline: none;
+}
+.ttInput::placeholder { color: rgba(240,234,214,0.3); }
+.ttInput:focus { border-color: rgba(255,102,68,0.45); }
+.ttTypePills { display: flex; gap: 8px; }
+.ttTypePill {
+  flex: 1;
+  background: transparent;
+  border: 1px solid rgba(240,234,214,0.15);
+  border-radius: 100px;
+  padding: 9px 0;
+  color: rgba(240,234,214,0.5);
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ttTypePill:hover { border-color: rgba(240,234,214,0.3); color: rgba(240,234,214,0.8); }
+.ttTypePillActive {
+  flex: 1;
+  background: rgba(255,102,68,0.12);
+  border: 1px solid rgba(255,102,68,0.45);
+  border-radius: 100px;
+  padding: 9px 0;
+  color: #FF6644;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
