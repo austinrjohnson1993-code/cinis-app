@@ -815,6 +815,38 @@ export default async function handler(req, res) {
   })
   const billSummary = billLines.length > 0 ? '\n' + billLines.join('\n') : 'none'
 
+  // Calculate full finance context
+  const monthlyTotal = (allBills || []).reduce((sum, b) => sum + (b.amount || 0), 0)
+  const monthlyIncome = profile?.monthly_income || null
+  const dailyNumber = monthlyIncome ? ((monthlyIncome - monthlyTotal) / 30).toFixed(2) : null
+
+  // Find bills due within next 7 days
+  const now = new Date()
+  const today = now.getDate()
+  const nextWeekDay = (today + 7) % 31 || 31
+  const upcomingBills = (allBills || [])
+    .filter(b => {
+      const dueDay = b.due_day || 1
+      // Bill is upcoming if due_day is between today and today+7
+      if (today <= 24) {
+        // Simple case: today + 7 doesn't wrap month
+        return dueDay > today && dueDay <= today + 7
+      } else {
+        // Wrap case: bills due in next 7 days includes next month start
+        return dueDay > today || dueDay <= nextWeekDay
+      }
+    })
+    .map(b => `${b.name} (due day ${b.due_day}, $${(b.amount || 0).toFixed(2)})`)
+
+  let financeContextStr = ''
+  if (monthlyTotal > 0 || monthlyIncome) {
+    financeContextStr = `\n\nFinancial context:\n- Monthly bills total: $${monthlyTotal.toFixed(2)}\n- Daily budget: $${dailyNumber || 'not set'}`
+    if (upcomingBills.length > 0) {
+      financeContextStr += `\n- Upcoming bills (next 7 days): ${upcomingBills.join(', ')}`
+    }
+    financeContextStr += `\n- Bills (full list with IDs for tool calls):${billSummary}`
+  }
+
   // Resolve persona blend before liveContext so the label can be included
   const personaBlend = profile?.persona_blend || ['coach']
   const personaBlendLabel = personaBlend
@@ -831,7 +863,7 @@ export default async function handler(req, res) {
   const utcOffsetHours = Math.round((localMs - utcMs) / 3600000)
   const utcOffsetStr = utcOffsetHours >= 0 ? `UTC+${utcOffsetHours}` : `UTC${utcOffsetHours}`
 
-  const liveContext = `\n\nCurrent context:\n- Tasks today (use id field when calling tools):${taskSummary}\n- Bills (use id field with update_bill tool):${billSummary}\n- Overdue: ${overdueCount} task${overdueCount !== 1 ? 's' : ''}\n- Streak: ${currentStreak} day${currentStreak !== 1 ? 's' : ''}\n- Coaching persona: ${personaBlendLabel}\n- User's local time: ${localTimeStr} ${tzAbbrStr} (${utcOffsetStr})\n- TIMEZONE RULE: All tool calls use UTC. Convert user's stated time before calling. Example: 6pm ${tzAbbrStr} = ${(18 - utcOffsetHours) % 24}:00 UTC. Never store user-stated times as-is.${crewContextStr}`
+  const liveContext = `\n\nCurrent context:\n- Tasks today (use id field when calling tools):${taskSummary}\n- Overdue: ${overdueCount} task${overdueCount !== 1 ? 's' : ''}\n- Streak: ${currentStreak} day${currentStreak !== 1 ? 's' : ''}\n- Coaching persona: ${personaBlendLabel}\n- User's local time: ${localTimeStr} ${tzAbbrStr} (${utcOffsetStr})\n- TIMEZONE RULE: All tool calls use UTC. Convert user's stated time before calling. Example: 6pm ${tzAbbrStr} = ${(18 - utcOffsetHours) % 24}:00 UTC. Never store user-stated times as-is.${financeContextStr}${crewContextStr}`
 
   const baselineContext = profile?.baseline_profile ? `USER COACHING PROFILE:\n${profile.baseline_profile}\n\n` : ''
   const isPro = profile.subscription_status === 'pro' ||
