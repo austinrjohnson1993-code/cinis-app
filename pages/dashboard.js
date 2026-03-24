@@ -953,8 +953,8 @@ export default function Dashboard() {
   useEffect(() => {
     if (activeTab === 'checkin' && !checkinInitialized && user) {
       setCheckinInitialized(true)
-      const todayKey = `cinis_checkin_${user.id}_${new Date().toLocaleDateString('en-CA')}`
-      const saved = loadChatHistory(todayKey)
+      const chatKey = `cinis_checkin_${user.id}`
+      const saved = loadChatHistory(chatKey)
       if (saved && saved.length > 0) {
         setCheckinMessages(saved)
         return
@@ -974,7 +974,7 @@ export default function Dashboard() {
           if (data.message) {
             const msgs = [{ role: 'assistant', content: data.message }]
             setCheckinMessages(msgs)
-            saveChatHistory(todayKey, msgs)
+            saveChatHistory(chatKey, msgs)
             setCiAiRateLocal(prev => (prev ?? (profile?.ai_interactions_today || 0)) + 1)
           }
           fetchTasks(user.id)
@@ -1711,7 +1711,7 @@ export default function Dashboard() {
 
   const sendCheckinMsg = async (text) => {
     if (!text.trim() || checkinLoading || !user) return
-    const todayKey = `cinis_checkin_${user.id}_${new Date().toLocaleDateString('en-CA')}`
+    const chatKey = `cinis_checkin_${user.id}`
     const userMsg = { role: 'user', content: text.trim() }
     const updated = [...checkinMessages, userMsg]
     setCheckinMessages(updated)
@@ -1730,12 +1730,12 @@ export default function Dashboard() {
       } else if (data.message) {
         setCheckinMessages(prev => {
           const next = [...prev, { role: 'assistant', content: data.message }]
-          saveChatHistory(todayKey, next)
+          saveChatHistory(chatKey, next)
           return next
         })
         setCiAiRateLocal(prev => (prev ?? (profile?.ai_interactions_today || 0)) + 1)
       } else {
-        saveChatHistory(todayKey, updated)
+        saveChatHistory(chatKey, updated)
       }
       fetchTasks(user.id)
       if (billsLoaded) fetchBills(user.id)
@@ -3116,7 +3116,7 @@ export default function Dashboard() {
                 {/* Clear history */}
                 {checkinMessages.length > 1 && (
                   <button className={styles.clearHistoryBtn} onClick={() => {
-                    try { localStorage.removeItem(`cinis_checkin_${user.id}_${new Date().toLocaleDateString('en-CA')}`) } catch {}
+                    try { localStorage.removeItem(`cinis_checkin_${user.id}`) } catch {}
                     setCheckinMessages([])
                     setCheckinInitialized(false)
                     setCiRateLimitMsg(null)
