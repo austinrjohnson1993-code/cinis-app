@@ -4159,43 +4159,12 @@ export default function Dashboard() {
               <div className={styles.stgSection}>
                 <p className={styles.stgLabel}>Danger Zone</p>
                 <div className={styles.stgDangerCard}>
-                  {!deleteConfirm ? (
-                    <div className={styles.stgRow}>
-                      <span className={styles.stgDangerRowLabel}>Delete account</span>
-                      <button className={styles.stgDangerBtn} onClick={() => setDeleteConfirm(true)}>
-                        Delete account
-                      </button>
-                    </div>
-                  ) : (
-                    <div className={styles.stgDeleteConfirm}>
-                      <p className={styles.stgDeleteMsg}>This is permanent. All your data will be deleted.</p>
-                      <div className={styles.stgDeleteActions}>
-                        <button
-                          className={styles.stgDeleteConfirmBtn}
-                          disabled={deletingAccount}
-                          onClick={async () => {
-                            setDeletingAccount(true)
-                            try {
-                              const res = await loggedFetch('/api/delete-account', { method: 'POST' })
-                              if (res.ok) {
-                                await supabase.auth.signOut()
-                                router.push('/login')
-                              }
-                            } catch {}
-                            setDeletingAccount(false)
-                          }}
-                        >
-                          {deletingAccount ? 'Deleting…' : 'Yes, delete everything'}
-                        </button>
-                        <button
-                          className={styles.stgDeleteCancelBtn}
-                          onClick={() => setDeleteConfirm(false)}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <div className={styles.stgRow}>
+                    <span className={styles.stgDangerRowLabel}>Delete account</span>
+                    <button className={styles.stgDangerBtn} onClick={() => setDeleteConfirm(true)}>
+                      Delete account
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -4209,6 +4178,46 @@ export default function Dashboard() {
 
             </div>
           </TabErrorBoundary>
+          )}
+
+          {/* Delete account confirmation overlay */}
+          {deleteConfirm && (
+            <div className={styles.stgDeleteOverlay} onClick={() => !deletingAccount && setDeleteConfirm(false)}>
+              <div className={styles.stgDeleteOverlayCard} onClick={e => e.stopPropagation()}>
+                <div className={styles.stgDeleteOverlayTitle}>Delete Account</div>
+                <div className={styles.stgDeleteOverlayMsg}>
+                  This will permanently delete all your data. This cannot be undone.
+                </div>
+                <div className={styles.stgDeleteOverlayActions}>
+                  <button
+                    className={styles.stgDeleteConfirmBtn}
+                    disabled={deletingAccount}
+                    onClick={async () => {
+                      setDeletingAccount(true)
+                      try {
+                        const res = await loggedFetch('/api/delete-account', { method: 'DELETE' })
+                        if (res.ok) {
+                          await supabase.auth.signOut()
+                          router.push('/login')
+                        }
+                      } catch (err) {
+                        console.error('Delete account failed:', err)
+                      }
+                      setDeletingAccount(false)
+                    }}
+                  >
+                    {deletingAccount ? 'Deleting…' : 'Yes, delete everything'}
+                  </button>
+                  <button
+                    className={styles.stgDeleteCancelBtn}
+                    disabled={deletingAccount}
+                    onClick={() => setDeleteConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* ── FINANCE ── */}
