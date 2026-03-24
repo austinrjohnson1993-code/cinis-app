@@ -4698,7 +4698,7 @@ export default function Dashboard() {
                         {/* AI reply */}
                         {habitJournalAiReply && (
                           <div className={styles.habitsJournalAiReply}>
-                            <span className={styles.habitsJournalAiIcon}>✦</span>
+                            <span className={styles.habitsJournalAiLabel}>YOUR COACH</span>
                             <p>{habitJournalAiReply}</p>
                           </div>
                         )}

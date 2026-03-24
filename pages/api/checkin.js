@@ -506,6 +506,22 @@ export default async function handler(req, res) {
     return res.status(404).json({ error: 'Profile not found' })
   }
 
+  // ── Fetch tasks early so live context can be injected into system prompt ────
+  const { data: allTasks = [] } = await supabaseAdmin
+    .from('tasks').select('*').eq('user_id', userId).eq('archived', false)
+
+  const allPending = (allTasks || []).filter(t => !t.completed)
+  const allCompleted = (allTasks || []).filter(t => t.completed)
+  const overdueCount = allPending.filter(t => t.scheduled_for && t.scheduled_for.slice(0, 10) < todayStr).length
+  const currentStreak = profile.current_streak || 0
+  const taskSummary = allPending.slice(0, 12).map(t => {
+    let label = `"${t.title}"`
+    if ((t.rollover_count || 0) > 0) label += ` [rolled ${t.rollover_count}×]`
+    return label
+  }).join(', ') || 'none'
+
+  const liveContext = `\n\nCurrent context:\n- Tasks today: ${taskSummary}\n- Overdue: ${overdueCount} task${overdueCount !== 1 ? 's' : ''}\n- Streak: ${currentStreak} day${currentStreak !== 1 ? 's' : ''}`
+
   const baselineContext = profile?.baseline_profile ? `USER COACHING PROFILE:\n${profile.baseline_profile}\n\n` : ''
   const isPro = profile.subscription_status === 'pro' ||
                 profile.subscription_status === 'pro_sms' ||
@@ -518,7 +534,9 @@ export default async function handler(req, res) {
   const personaPriority = isDrillSergeant
     ? `PRIMARY PERSONA: DRILL SERGEANT. HARD RULES — NO EXCEPTIONS:\n- NEVER open with praise, "nice work", "good job", or any positive affirmation\n- NEVER end with a question — give a command instead\n- Use SHORT sentences. Maximum 8 words per sentence.\n- ALWAYS start with the task status or next action, not acknowledgment\n- WRONG: "Nice work on the dentist call. What's next?"\n- RIGHT: "Dentist done. Insurance call is overdue. Make it now."\n\n`
     : `The user's PRIMARY persona is ${personaBlend[0]} — this voice must dominate. Secondary personas add subtle flavor only.\n\n`
-  const systemPrompt = baselineContext + memoryContext + personaPriority + PERSONA_VOICE_INSTRUCTION + '\n\n' + buildPersonaPrompt(profile)
+  const systemPrompt = baselineContext + liveContext + memoryContext + personaPriority + PERSONA_VOICE_INSTRUCTION + '\n\n' + buildPersonaPrompt(profile)
+
+  console.log('[checkin:systemPrompt first 500]', systemPrompt.slice(0, 500))
 
   // ── Continuing conversation ────────────────────────────────────────────────
   if (messages && messages.length > 0) {
@@ -543,11 +561,9 @@ export default async function handler(req, res) {
   }
 
   // ── Opening message ────────────────────────────────────────────────────────
-  const { data: tasks = [] } = await supabaseAdmin
-    .from('tasks').select('*').eq('user_id', userId).eq('archived', false)
-
-  const pending = (tasks || []).filter(t => !t.completed)
-  const completed = (tasks || []).filter(t => t.completed)
+  // Tasks already fetched above for live context injection — reuse here
+  const pending = allPending
+  const completed = allCompleted
   const type = checkInType || 'morning'
   const isFirstCheckin = !profile.last_checkin_at
   const actionsExecuted = []
