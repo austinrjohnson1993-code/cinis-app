@@ -457,6 +457,26 @@ ${pendingLines}${firstFlag}
 Write the evening check-in. 2-3 sentences. One specific win or honest acknowledgment, confirm what moves to tomorrow by name, one closing line.${dateContext}`
 }
 
+// ── Logging helper ───────────────────────────────────────────────────────────
+
+async function logCheckinMessage(supabaseAdmin, userId, role, content, personaBlend) {
+  try {
+    const { error } = await supabaseAdmin.from('checkin_logs').insert({
+      user_id: userId,
+      role,
+      content,
+      persona_blend: role === 'assistant' ? personaBlend : null
+    })
+    if (error) {
+      console.error('[checkin:logging] insert error:', JSON.stringify(error))
+    } else {
+      console.log(`[checkin:logging] logged ${role} message`)
+    }
+  } catch (err) {
+    console.error('[checkin:logging] exception:', err.message)
+  }
+}
+
 // ── Handler ──────────────────────────────────────────────────────────────────
 
 export const config = { maxDuration: 30 }
@@ -584,6 +604,12 @@ export default async function handler(req, res) {
       const actions = await Promise.all(
         toolUses.map(tu => executeTool(tu.name, tu.input, supabaseAdmin, userId))
       )
+      // Log user message if it exists
+      if (userMessage) {
+        logCheckinMessage(supabaseAdmin, userId, 'user', userMessage, null).catch(() => {})
+      }
+      // Log AI response
+      logCheckinMessage(supabaseAdmin, userId, 'assistant', text, personaBlend).catch(() => {})
       // Fire-and-forget memory compression after 3+ message exchanges (6+ total messages)
       if (isPro && messages && messages.length >= 6) {
         compressAndSaveMemory(userId, messages, profile.rolling_memory_summary).catch(err => console.error('Memory compression failed:', err))
@@ -652,6 +678,8 @@ export default async function handler(req, res) {
       toolUses.map(tu => executeTool(tu.name, tu.input, supabaseAdmin, userId))
     )
     console.log(`[checkin] ${type} for ${userId}: ${toolActions.length + actionsExecuted.length} actions executed`)
+    // Log AI response for opening messages
+    logCheckinMessage(supabaseAdmin, userId, 'assistant', text, personaBlend).catch(() => {})
     // Fire-and-forget memory compression for opening messages after 3+ exchanges (6+ total)
     if (isPro && conversationHistory && conversationHistory.length >= 6) {
       compressAndSaveMemory(userId, conversationHistory, profile.rolling_memory_summary).catch(err => console.error('Memory compression failed:', err))
