@@ -3119,13 +3119,14 @@
   display: flex; flex-direction: column; gap: 6px;
   background: rgba(255,102,68,0.08);
   border-left: 2px solid #FF6644;
-  border-radius: 0 8px 8px 0; padding: 10px 14px;
+  border-radius: 8px; padding: 12px;
+  margin-top: 12px;
 }
 .habitsJournalAiLabel {
   font-family: 'Figtree', sans-serif;
   font-size: 10px; font-weight: 700;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  color: #FF6644;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: #FF6644; margin-bottom: 6px;
 }
 .habitsJournalAiReply p { font-size: 13px; color: #F0EAD6; line-height: 1.6; margin: 0; font-family: 'Figtree', sans-serif; }
 
@@ -3212,8 +3213,8 @@
 .habitHeatRow { display: flex; align-items: center; gap: 4px; }
 .habitHeatDot {
   width: 10px; height: 10px; border-radius: 50%;
-  background: rgba(255,200,120,0.1);
-  border: 1px solid rgba(255,200,120,0.12);
+  background: rgba(240,234,214,0.15);
+  border: 1px solid rgba(240,234,214,0.12);
   transition: background 0.2s;
 }
 .habitHeatDotFilled {
