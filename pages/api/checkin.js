@@ -39,7 +39,14 @@ TIME CONVERSION — MANDATORY:
 All datetime values in tool calls must be in UTC (ISO 8601). The user's local time and UTC offset are in the context above.
 Convert before calling: user says "6pm" → look up their UTC offset → compute UTC time → use that in the tool call.
 WRONG: due_time: "2026-03-24T18:00:00.000Z" when user is UTC-5 and says "6pm" (that would show as 1pm local)
-RIGHT: due_time: "2026-03-24T23:00:00.000Z" (18:00 local + 5 hours = 23:00 UTC)`
+RIGHT: due_time: "2026-03-24T23:00:00.000Z" (18:00 local + 5 hours = 23:00 UTC)
+
+FINANCE RULES — MANDATORY:
+When the user asks about their finances, bills, spending, or daily budget — always call get_bills, get_daily_number, or log_spend before responding. Never estimate or guess financial figures. Always get live data. Examples:
+- User says "how much have I spent today?" → call get_daily_number first
+- User says "what bills are coming up?" → call get_bills first
+- User says "I just spent $50 on coffee" → call log_spend immediately
+- User says "can I afford this?" → call get_daily_number to check remaining budget`
 
 const TOOLS = [
   {
@@ -168,6 +175,44 @@ const TOOLS = [
   {
     name: 'get_bills',
     description: 'Get all bills for the user. Returns array of bills with their details.',
+    input_schema: {
+      type: 'object',
+      properties: {}
+    }
+  },
+  {
+    name: 'add_bill',
+    description: 'Create a new recurring bill. Use when user wants to add a new monthly/recurring expense.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Bill name (e.g., "Netflix", "Rent")' },
+        amount: { type: 'number', description: 'Amount in dollars' },
+        due_day: { type: 'integer', description: 'Day of month due (1-31)' },
+        frequency: { type: 'string', description: 'Frequency (monthly, weekly, annual, etc.)' },
+        category: { type: 'string', description: 'Category (entertainment, housing, utilities, etc.)' },
+        autopay: { type: 'boolean', description: 'Whether bill autopays', default: false }
+      },
+      required: ['name', 'amount', 'due_day', 'frequency']
+    }
+  },
+  {
+    name: 'log_spend',
+    description: 'Log a spending transaction. Use when user mentions spending money or making a purchase.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        amount: { type: 'number', description: 'Amount spent in dollars' },
+        category: { type: 'string', description: 'Spending category (food, transport, shopping, etc.)' },
+        description: { type: 'string', description: 'Brief description of what was spent on' },
+        impulse: { type: 'boolean', description: 'Whether this was an impulse purchase', default: false }
+      },
+      required: ['amount']
+    }
+  },
+  {
+    name: 'get_daily_number',
+    description: 'Get calculated daily budget. Returns (monthly_income - monthly_bills) / 30 minus today\'s spending.',
     input_schema: {
       type: 'object',
       properties: {}
@@ -573,6 +618,95 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
     return { result: 'retrieved', bills: bills || [] }
   }
 
+  if (toolName === 'add_bill') {
+    const { name, amount, due_day, frequency, category, autopay } = input
+    console.log(`[checkin:tool] add_bill — name: ${name}, amount: ${amount}, due_day: ${due_day}, frequency: ${frequency}`)
+
+    const { data, error } = await supabaseAdmin
+      .from('bills')
+      .insert({
+        user_id: userId,
+        name,
+        amount,
+        due_day,
+        frequency,
+        category,
+        autopay: autopay || false
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('[checkin:tool] add_bill error:', JSON.stringify(error))
+      return { result: 'error', error: error.message }
+    }
+
+    console.log(`[checkin:executeTool:success] add_bill created: ${data.id}`)
+    return { result: 'created', bill_id: data.id, bill: data }
+  }
+
+  if (toolName === 'log_spend') {
+    const { amount, category, description, impulse } = input
+    console.log(`[checkin:tool] log_spend — amount: ${amount}, category: ${category}, impulse: ${impulse}`)
+
+    const { data, error } = await supabaseAdmin
+      .from('spend_log')
+      .insert({
+        user_id: userId,
+        amount,
+        category,
+        description,
+        impulse: impulse || false
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('[checkin:tool] log_spend error:', JSON.stringify(error))
+      return { result: 'error', error: error.message }
+    }
+
+    console.log(`[checkin:executeTool:success] log_spend recorded: ${data.id}`)
+    return { result: 'logged', spend_id: data.id, amount }
+  }
+
+  if (toolName === 'get_daily_number') {
+    console.log(`[checkin:tool] get_daily_number for user: ${userId}`)
+
+    // Fetch all bills and today's spending
+    const { data: allBills, error: billsErr } = await supabaseAdmin
+      .from('bills').select('amount').eq('user_id', userId)
+
+    const todayStr = new Date().toLocaleDateString('en-CA')
+    const { data: todaySpending, error: spendErr } = await supabaseAdmin
+      .from('spend_log')
+      .select('amount')
+      .eq('user_id', userId)
+      .gte('created_at', `${todayStr}T00:00:00`)
+      .lt('created_at', `${todayStr}T23:59:59`)
+
+    if (billsErr || spendErr) {
+      console.error('[checkin:tool] get_daily_number errors:', billsErr, spendErr)
+      return { result: 'error', error: 'Failed to calculate daily number' }
+    }
+
+    const monthlyIncome = 5000 // TODO: fetch from profile.monthly_income
+    const monthlyBills = (allBills || []).reduce((sum, b) => sum + (b.amount || 0), 0)
+    const todaySpent = (todaySpending || []).reduce((sum, s) => sum + (s.amount || 0), 0)
+    const baseDaily = ((monthlyIncome - monthlyBills) / 30).toFixed(2)
+    const remaining = (baseDaily - todaySpent).toFixed(2)
+
+    console.log(`[checkin:executeTool:success] get_daily_number: base=$${baseDaily}, spent=$${todaySpent}, remaining=$${remaining}`)
+    return {
+      result: 'calculated',
+      monthly_income: monthlyIncome,
+      monthly_bills: monthlyBills.toFixed(2),
+      base_daily: baseDaily,
+      today_spent: todaySpent.toFixed(2),
+      remaining: remaining
+    }
+  }
+
   console.warn('[checkin:tool] unknown tool:', toolName)
   return null
 }
@@ -820,10 +954,32 @@ export default async function handler(req, res) {
   const monthlyIncome = profile?.monthly_income || null
   const dailyNumber = monthlyIncome ? ((monthlyIncome - monthlyTotal) / 30).toFixed(2) : null
 
-  // Find bills due within next 7 days
+  // Fetch today's spending
+  const todayLocalStr = new Date().toLocaleDateString('en-CA', { timeZone: timezone || 'America/Chicago' })
+  const { data: todaySpends = [] } = await supabaseAdmin
+    .from('spend_log')
+    .select('*')
+    .eq('user_id', userId)
+    .gte('created_at', `${todayLocalStr}T00:00:00`)
+    .lt('created_at', `${todayLocalStr}T23:59:59`)
+
+  const totalTodaySpent = (todaySpends || []).reduce((sum, s) => sum + (s.amount || 0), 0)
+  const remainingToday = dailyNumber ? (dailyNumber - totalTodaySpent).toFixed(2) : null
+
+  // Format today's spending
+  let todaySpendStr = ''
+  if (todaySpends.length > 0) {
+    const spendLines = todaySpends.map(s => `- $${(s.amount || 0).toFixed(2)} on ${s.category || 'uncategorized'}${s.description ? ': ' + s.description : ''}${s.impulse ? ' (impulse)' : ''}`)
+    todaySpendStr = `\n- Today's spending ($${totalTodaySpent.toFixed(2)}):${spendLines.length > 0 ? '\n  ' + spendLines.join('\n  ') : ' none yet'}`
+  }
+
+  // Find bills due within next 7 days with exact dates
   const now = new Date()
+  const currentMonth = now.getMonth()
+  const currentYear = now.getFullYear()
   const today = now.getDate()
   const nextWeekDay = (today + 7) % 31 || 31
+
   const upcomingBills = (allBills || [])
     .filter(b => {
       const dueDay = b.due_day || 1
@@ -836,11 +992,17 @@ export default async function handler(req, res) {
         return dueDay > today || dueDay <= nextWeekDay
       }
     })
-    .map(b => `${b.name} (due day ${b.due_day}, $${(b.amount || 0).toFixed(2)})`)
+    .map(b => {
+      let dueDate = new Date(currentYear, currentMonth, b.due_day || 1)
+      // Handle month wrap
+      if (dueDate < now) dueDate = new Date(currentYear, currentMonth + 1, b.due_day || 1)
+      const dueDateStr = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      return `${b.name} due ${dueDateStr} ($${(b.amount || 0).toFixed(2)})`
+    })
 
   let financeContextStr = ''
   if (monthlyTotal > 0 || monthlyIncome) {
-    financeContextStr = `\n\nFinancial context:\n- Monthly bills total: $${monthlyTotal.toFixed(2)}\n- Daily budget: $${dailyNumber || 'not set'}`
+    financeContextStr = `\n\nFinancial context:\n- Monthly bills total: $${monthlyTotal.toFixed(2)}\n- Daily budget: $${dailyNumber || 'not set'}${remainingToday ? ` (remaining today: $${remainingToday})` : ''}${todaySpendStr}`
     if (upcomingBills.length > 0) {
       financeContextStr += `\n- Upcoming bills (next 7 days): ${upcomingBills.join(', ')}`
     }
