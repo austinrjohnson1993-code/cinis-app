@@ -637,6 +637,7 @@ export default function Dashboard() {
   const [monthlySummary, setMonthlySummary] = useState('')
   const [monthlySummaryLoading, setMonthlySummaryLoading] = useState(false)
   const [monthlySummaryInitialized, setMonthlySummaryInitialized] = useState(false)
+  const [progressSnapshots, setProgressSnapshots] = useState([])
 
   // Finance
   const [bills, setBills] = useState([])
@@ -891,6 +892,7 @@ export default function Dashboard() {
         if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
           fetchProfile(session.user.id)
           fetchTasks(session.user.id)
+          fetchProgressSnapshots(session.user.id)
         }
       } else if (event === 'SIGNED_OUT' && hasSession.current) {
         router.push('/login')
@@ -1302,6 +1304,17 @@ export default function Dashboard() {
       setMonthlySummary('')
     }
     setMonthlySummaryLoading(false)
+  }
+
+  const fetchProgressSnapshots = async (userId) => {
+    try {
+      const { data } = await supabase
+        .from('progress_snapshots').select('*').eq('user_id', userId)
+        .order('snapshot_date', { ascending: false })
+      setProgressSnapshots(data || [])
+    } catch {
+      setProgressSnapshots([])
+    }
   }
 
   const fetchBills = async (userId) => {
@@ -3576,6 +3589,12 @@ export default function Dashboard() {
             const todayJournaled = (Array.isArray(journalEntries) ? journalEntries : []).some(j => j.created_at?.startsWith(todayIso))
             const journalRingPct = todayJournaled ? 1 : 0
 
+            // Focus ring — today's focus_minutes from progress_snapshots
+            const todaySnapshot = progressSnapshots.find(s => s.snapshot_date?.slice(0, 10) === pgTodayStr)
+            const todayFocusMinutes = todaySnapshot?.focus_minutes || 0
+            const focusRingPct = Math.min((todayFocusMinutes / 25), 1) // 25 min daily goal
+            const focusRingDisplay = todayFocusMinutes > 0 ? `${todayFocusMinutes}m` : '0m'
+
             // XP milestones
             const totalXp = profile?.total_xp || 0
             const XP_MILESTONES = [
@@ -3674,7 +3693,7 @@ export default function Dashboard() {
                   <p className={styles.pgSectionLabel}>Today</p>
                   <div className={styles.pgRingsRow}>
                     {renderRing(taskRingPct, '#FF6644', `${completedTodayCount}/${totalTodayCount}`, 'Tasks')}
-                    {renderRing(0, '#E8321A', '0m', 'Focus')}
+                    {renderRing(focusRingPct, '#E8321A', focusRingDisplay, 'Focus')}
                     {renderRing(journalRingPct, '#4CAF50', todayJournaled ? '✓' : '—', 'Journal')}
                   </div>
                 </div>
@@ -3793,7 +3812,12 @@ export default function Dashboard() {
                   ) : (
                     <>
                       <div className={styles.pgStreakMain}>
-                        <span className={styles.pgStreakNum}>{profile?.current_streak || 0}</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                          <span className={styles.pgStreakNum}>{profile?.current_streak || 0}</span>
+                          {[7, 14, 30, 60, 90].includes(profile?.current_streak) && (
+                            <span style={{ fontSize: '20px' }}>🔥</span>
+                          )}
+                        </div>
                         <span className={styles.pgStreakLabel}>day streak</span>
                       </div>
                       {(profile?.longest_streak || 0) > 0 && (
