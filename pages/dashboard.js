@@ -9,7 +9,7 @@ import { saveTaskOrder } from '../lib/taskOrder'
 import { isDueSoon as billIsDueSoon, formatBillAmount, getBillCategory, getNextDueDate } from '../lib/billUtils'
 import { CHORE_PRESETS, getChoresByPreset } from '../lib/chores'
 import { requestNotificationPermission, disablePushNotifications } from '../lib/pushNotifications'
-import { CheckSquare, ChatCircle, Target, CalendarBlank, Notebook, Wallet, ChartLineUp, Plus, Trash, Archive, Star, Gear, MagnifyingGlass, X, CaretLeft, CaretRight, CaretDown, Receipt, Scales, Books, Robot, List, Timer, ChartBar, Lightning, ArrowCounterClockwise, CheckCircle, Microphone, UsersThree, Fire } from '@phosphor-icons/react'
+import { CheckSquare, ChatCircle, Target, CalendarBlank, Notebook, Wallet, ChartLineUp, Plus, Trash, Archive, Star, Gear, MagnifyingGlass, X, CaretLeft, CaretRight, CaretDown, Receipt, Scales, Books, Robot, List, Timer, ChartBar, Lightning, ArrowCounterClockwise, CheckCircle, Microphone, UsersThree, Fire, Apple } from '@phosphor-icons/react'
 import { showToast as libShowToast, ToastContainer } from '../lib/toast.js'
 
 const THEMES = [
@@ -66,13 +66,14 @@ const NAV_ITEMS = [
   { id: 'habits', label: 'Habits', icon: <ArrowCounterClockwise size={22} /> },
   { id: 'tagteam', label: 'Tag Team', icon: <UsersThree size={22} /> },
   { id: 'finance', label: 'Finance', icon: <Wallet size={22} /> },
+  { id: 'nutrition', label: 'Nutrition', icon: <Apple size={22} /> },
   { id: 'progress', label: 'Progress', icon: <ChartLineUp size={22} /> },
   { id: 'guide', label: 'Guide', icon: <Books size={22} /> },
   { id: 'settings', label: 'Settings', icon: <Gear size={22} /> },
 ]
 
 const NAV_PRIMARY_IDS = ['tasks', 'checkin', 'focus', 'calendar']
-const NAV_MORE_IDS = ['habits', 'tagteam', 'finance', 'progress', 'guide', 'settings']
+const NAV_MORE_IDS = ['habits', 'tagteam', 'finance', 'nutrition', 'progress', 'guide', 'settings']
 
 // ── GUIDE TAB STRATEGIES ────────────────────────────────────────────────────────
 const GUIDE_STRATEGIES = [
@@ -3881,6 +3882,337 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+          </TabErrorBoundary>
+          )}
+
+          {/* ── NUTRITION ── */}
+          {activeTab === 'nutrition' && (
+          <TabErrorBoundary tabName="Nutrition">
+          {(() => {
+            const NUTRITION_SUBTABS = [
+              { id: 'log', label: 'Log' },
+              { id: 'stack', label: 'Stack' },
+              { id: 'meals', label: 'Meals' },
+              { id: 'body', label: 'Body' },
+              { id: 'knowledge', label: 'Knowledge' },
+              { id: 'learn', label: 'Learn' },
+              { id: 'insights', label: 'Insights' },
+            ]
+            const [nutritionSubTab, setNutritionSubTab] = useState('log')
+            const [waterIntake, setWaterIntake] = useState(0)
+
+            return (
+              <div className={styles.tabView}>
+                {/* Sub-tab navigation */}
+                <div className={styles.subTabNav}>
+                  <div className={styles.subTabScroller}>
+                    {NUTRITION_SUBTABS.map(tab => (
+                      <button key={tab.id} onClick={() => setNutritionSubTab(tab.id)}
+                        className={`${styles.subTabPill} ${nutritionSubTab === tab.id ? styles.subTabPillActive : ''}`}>
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* LOG sub-tab */}
+                {nutritionSubTab === 'log' && (
+                  <div className={styles.tabContent}>
+                    {/* Macro rings */}
+                    <div className={styles.macroRingsContainer}>
+                      {[
+                        { label: 'Calories', value: 1840, max: 2200, color: '#FF6644' },
+                        { label: 'Protein', value: 120, max: 160, color: '#FFB800' },
+                        { label: 'Carbs', value: 230, max: 280, color: '#4CAF50' },
+                        { label: 'Fat', value: 65, max: 80, color: '#2dd4bf' },
+                      ].map((macro, i) => {
+                        const percent = (macro.value / macro.max) * 100
+                        const circumference = 2 * Math.PI * 45
+                        const offset = circumference - (percent / 100) * circumference
+                        return (
+                          <div key={i} className={styles.macroRing}>
+                            <svg width="120" height="120" viewBox="0 0 120 120">
+                              <circle cx="60" cy="60" r="45" fill="none" stroke="rgba(240,234,214,0.1)" strokeWidth="6"/>
+                              <circle cx="60" cy="60" r="45" fill="none" stroke={macro.color} strokeWidth="6"
+                                strokeDasharray={circumference} strokeDashoffset={offset}
+                                style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px' }}/>
+                            </svg>
+                            <div className={styles.macroValue}>
+                              <span className={styles.macroNumber} style={{ fontFamily: "'Sora', sans-serif" }}>{macro.value}</span>
+                              <span className={styles.macroLabel}>{macro.label}</span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Water tracker */}
+                    <div className={styles.waterTrackerCard}>
+                      <h3 className={styles.waterTrackerTitle}>Water</h3>
+                      <div className={styles.waterBubbles}>
+                        {[...Array(10)].map((_, i) => (
+                          <button key={i} onClick={() => setWaterIntake(i + 1)}
+                            className={`${styles.waterBubble} ${i < waterIntake ? styles.waterBubbleFilled : ''}`}
+                            style={{ background: i < waterIntake ? '#2dd4bf' : 'rgba(240,234,214,0.1)' }}
+                            aria-label={`Cup ${i + 1}`}/>
+                        ))}
+                      </div>
+                      <p className={styles.waterLabel}>{waterIntake}/10 cups</p>
+                    </div>
+
+                    {/* Today's meals */}
+                    <div className={styles.mealsSection}>
+                      <h3 className={styles.sectionTitle}>Today's meals</h3>
+                      {[
+                        { name: 'Breakfast', time: '8:30 AM', foods: 'Oatmeal, berries, yogurt', cal: 380, protein: 18, carbs: 52, fat: 8 },
+                        { name: 'Lunch', time: '12:45 PM', foods: 'Grilled chicken, rice, broccoli', cal: 620, protein: 45, carbs: 65, fat: 12 },
+                        { name: 'Snack', time: '3:00 PM', foods: 'Protein bar, apple', cal: 280, protein: 20, carbs: 28, fat: 8 },
+                      ].map((meal, i) => (
+                        <div key={i} className={styles.mealCard}>
+                          <div className={styles.mealHeader}>
+                            <div>
+                              <div className={styles.mealName}>{meal.name}</div>
+                              <div className={styles.mealTime}>{meal.time}</div>
+                              <div className={styles.mealFoods}>{meal.foods}</div>
+                            </div>
+                            <div className={styles.mealCal}>{meal.cal}</div>
+                          </div>
+                          <div className={styles.mealMacros}>
+                            <span>P: {meal.protein}g</span>
+                            <span>C: {meal.carbs}g</span>
+                            <span>F: {meal.fat}g</span>
+                          </div>
+                        </div>
+                      ))}
+                      <button className={styles.addBtn}>+ Log meal</button>
+                    </div>
+                  </div>
+                )}
+
+                {/* STACK sub-tab */}
+                {nutritionSubTab === 'stack' && (
+                  <div className={styles.tabContent}>
+                    <div className={styles.stackSection}>
+                      <h3 className={styles.sectionTitle}>Your stack</h3>
+                      {[
+                        { name: 'Whey Protein', dose: '30g', timing: 'Post-workout', notes: 'Mix with water' },
+                        { name: 'Creatine', dose: '5g', timing: 'Anytime', notes: 'Take daily' },
+                        { name: 'Vitamin D3', dose: '2000 IU', timing: 'Morning', notes: 'With food' },
+                      ].map((supp, i) => (
+                        <div key={i} className={styles.supplementCard}>
+                          <div className={styles.suppHeader}>
+                            <div>
+                              <div className={styles.suppName}>{supp.name}</div>
+                              <div className={styles.suppDose}>{supp.dose}</div>
+                            </div>
+                            <span className={`${styles.timingBadge} ${styles['timing' + supp.timing.replace(' ', '')]}`}>
+                              {supp.timing}
+                            </span>
+                          </div>
+                          <div className={styles.suppNotes}>{supp.notes}</div>
+                        </div>
+                      ))}
+                      <button className={styles.addBtn}>+ Add supplement</button>
+                    </div>
+                    <div className={styles.coachCardSection}>
+                      <div className={styles.coachCard} style={{ borderLeft: '4px solid #FF6644' }}>
+                        <p><strong>Coach insight:</strong> Consistent supplementation supports your goals. Stay hydrated.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* MEALS sub-tab */}
+                {nutritionSubTab === 'meals' && (
+                  <div className={styles.tabContent}>
+                    <div className={styles.mealsSection}>
+                      <h3 className={styles.sectionTitle}>Saved meals</h3>
+                      {[
+                        { name: 'Protein Bowl', macros: 'P 45g • C 65g • F 12g', favorite: true },
+                        { name: 'Quick Breakfast', macros: 'P 20g • C 55g • F 8g', favorite: false },
+                        { name: 'Post-Workout Shake', macros: 'P 35g • C 45g • F 2g', favorite: true },
+                      ].map((meal, i) => (
+                        <div key={i} className={styles.savedMealCard}>
+                          <div className={styles.mealCardContent}>
+                            <div className={styles.mealCardName}>{meal.name}</div>
+                            <div className={styles.mealCardMacros}>{meal.macros}</div>
+                            <div className={styles.mealCardTags}>
+                              {['Balanced'].map(tag => (
+                                <span key={tag} className={styles.hotPoolTag}>{tag}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className={styles.mealCardActions}>
+                            {meal.favorite && <Star size={18} weight="fill" style={{ color: '#FFB800' }} />}
+                            <button className={styles.logMealBtn}>Log</button>
+                          </div>
+                        </div>
+                      ))}
+                      <button className={styles.addBtn}>+ Save new meal</button>
+                    </div>
+                  </div>
+                )}
+
+                {/* BODY sub-tab */}
+                {nutritionSubTab === 'body' && (
+                  <div className={styles.tabContent}>
+                    <div className={styles.bodyMetricsContainer}>
+                      {[
+                        { label: 'Weight', value: '175', unit: 'lbs', delta: '-2 lbs', trend: 'down' },
+                        { label: 'Body fat', value: '18', unit: '%', delta: '+0.5%', trend: 'up' },
+                        { label: 'Muscle mass', value: '142', unit: 'lbs', delta: '+1 lb', trend: 'up' },
+                      ].map((metric, i) => (
+                        <div key={i} className={styles.metricCard}>
+                          <div className={styles.metricLabel}>{metric.label}</div>
+                          <div className={styles.metricValue} style={{ fontFamily: "'Sora', sans-serif" }}>
+                            {metric.value}<span className={styles.metricUnit}>{metric.unit}</span>
+                          </div>
+                          <div className={`${styles.metricDelta} ${metric.trend === 'down' ? styles.deltaDown : styles.deltaUp}`}>
+                            {metric.delta} vs last week
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className={styles.bodySection}>
+                      <h3 className={styles.sectionTitle}>Weekly weigh-in streak: 7 days</h3>
+                      {/* Simple weight chart */}
+                      <div className={styles.weightChart}>
+                        {[171, 172, 172.5, 173, 174, 174.5, 175].map((w, i) => {
+                          const max = 175, min = 171
+                          const height = ((w - min) / (max - min)) * 80
+                          return (
+                            <div key={i} className={styles.chartBar} style={{ height: `${height}px` }} title={`${w} lbs`}/>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    <button className={styles.logWeightBtn}>+ Log today's weight</button>
+                  </div>
+                )}
+
+                {/* KNOWLEDGE sub-tab */}
+                {nutritionSubTab === 'knowledge' && (
+                  <div className={styles.tabContent}>
+                    <div className={styles.filterChips}>
+                      {['All', 'Protein', 'Carbs', 'Fat', 'Timing', 'Recovery', 'ADHD'].map(chip => (
+                        <button key={chip} className={styles.filterChip} style={{ borderColor: chip === 'All' ? '#FF6644' : 'rgba(240,234,214,0.12)' }}>
+                          {chip}
+                        </button>
+                      ))}
+                    </div>
+                    {[
+                      { title: 'Protein Timing', tag: 'Protein', body: 'Consume protein within 2 hours post-workout for optimal muscle synthesis.' },
+                      { title: 'Carb Loading', tag: 'Carbs', body: 'Strategic carb timing supports energy and performance during intense training.' },
+                      { title: 'Fat for Hormones', tag: 'Fat', body: 'Dietary fat is essential for testosterone and hormone production.' },
+                    ].map((strategy, i) => (
+                      <div key={i} className={styles.strategyCard}>
+                        <div className={styles.strategyHeader}>
+                          <h4 className={styles.strategyTitle}>{strategy.title}</h4>
+                          <span className={styles.tagBadge}>{strategy.tag}</span>
+                        </div>
+                        <p className={styles.strategyBody}>{strategy.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* LEARN sub-tab */}
+                {nutritionSubTab === 'learn' && (
+                  <div className={styles.tabContent}>
+                    <div className={styles.filterChips}>
+                      {['All', 'Guides', 'Research', 'Tools'].map(chip => (
+                        <button key={chip} className={styles.filterChip} style={{ borderColor: chip === 'All' ? '#FF6644' : 'rgba(240,234,214,0.12)' }}>
+                          {chip}
+                        </button>
+                      ))}
+                    </div>
+                    <div className={styles.learnCard} style={{ borderLeft: '4px solid #FF6644', marginBottom: '20px' }}>
+                      <div className={styles.learnCardTag}>Featured</div>
+                      <h3 className={styles.learnCardTitle}>Building Muscle: The Complete Guide</h3>
+                      <p className={styles.learnCardDesc}>Comprehensive guide to nutrition and training for muscle growth.</p>
+                      <a href="#" className={styles.learnCardLink}>Read guide →</a>
+                    </div>
+                    {[
+                      { type: 'Guide', title: 'Macro Counting 101', link: 'Read guide' },
+                      { type: 'Research', title: 'Latest Studies on Protein', link: 'View research' },
+                      { type: 'Tool', title: 'Meal Planner', link: 'Try tool' },
+                    ].map((resource, i) => (
+                      <div key={i} className={styles.resourceCard}>
+                        <span className={styles.resourceType}>{resource.type}</span>
+                        <h4 className={styles.resourceTitle}>{resource.title}</h4>
+                        <a href="#" className={styles.resourceLink}>{resource.link} →</a>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* INSIGHTS sub-tab */}
+                {nutritionSubTab === 'insights' && (
+                  <div className={styles.tabContent}>
+                    {/* Weekly nutrition score ring */}
+                    <div className={styles.insightScoreContainer}>
+                      <svg width="180" height="180" viewBox="0 0 180 180" style={{ marginBottom: '20px' }}>
+                        <circle cx="90" cy="90" r="70" fill="none" stroke="rgba(240,234,214,0.1)" strokeWidth="8"/>
+                        <circle cx="90" cy="90" r="70" fill="none"
+                          stroke="url(#scoreGradient)" strokeWidth="8"
+                          strokeDasharray={`${440 * 0.78} ${440}`}
+                          style={{ transform: 'rotate(-90deg)', transformOrigin: '90px 90px' }}/>
+                        <defs>
+                          <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#E8321A" />
+                            <stop offset="100%" stopColor="#FF6644" />
+                          </linearGradient>
+                        </defs>
+                        <text x="90" y="100" textAnchor="middle" fontSize="40" fontFamily="'Sora', sans-serif" fontWeight="700" fill="#F0EAD6">78</text>
+                      </svg>
+                      <p className={styles.insightScoreLabel}>Weekly Nutrition Score</p>
+                    </div>
+
+                    {/* Score breakdown */}
+                    <div className={styles.scoreBreakdown}>
+                      {[
+                        { category: 'Macro Balance', score: 85 },
+                        { category: 'Hydration', score: 70 },
+                        { category: 'Meal Timing', score: 78 },
+                        { category: 'Micronutrients', score: 72 },
+                      ].map((item, i) => (
+                        <div key={i} className={styles.breakdownItem}>
+                          <div className={styles.breakdownLabel}>{item.category}</div>
+                          <div className={styles.breakdownBar}>
+                            <div className={styles.breakdownFill} style={{ width: `${item.score}%` }} />
+                          </div>
+                          <div className={styles.breakdownValue}>{item.score}%</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* AI observations */}
+                    <div className={styles.observationsSection}>
+                      <h3 className={styles.sectionTitle}>This week</h3>
+                      <div className={styles.observationCard} style={{ borderLeft: '4px solid #FFB800' }}>
+                        <div className={styles.obsType}>⚠ Alert</div>
+                        <p className={styles.obsText}>You're 300 calories under goal on average. Consider eating more to support gains.</p>
+                      </div>
+                      <div className={styles.observationCard} style={{ borderLeft: '4px solid #FF6644' }}>
+                        <div className={styles.obsType}>📊 Pattern</div>
+                        <p className={styles.obsText}>You consistently hit protein goals on training days. Great consistency.</p>
+                      </div>
+                      <div className={styles.observationCard} style={{ borderLeft: '4px solid #4CAF50' }}>
+                        <div className={styles.obsType}>🎯 Win</div>
+                        <p className={styles.obsText}>New personal best: 10/10 days logged this week!</p>
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '0 14px 20px', marginTop: '20px' }}>
+                      <button className={styles.addTaskBtn} style={{ width: '100%' }}>Ask Cinis about nutrition</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
           </TabErrorBoundary>
           )}
 

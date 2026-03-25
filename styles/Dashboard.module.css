@@ -5860,3 +5860,325 @@
   font-size: 0.82rem; color: rgba(240,234,214,0.55);
   font-family: 'Figtree', sans-serif; line-height: 1.5;
 }
+
+/* ════════════════════════════════════════════
+   NUTRITION TAB
+   ════════════════════════════════════════════ */
+
+.macroRingsContainer {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  margin-bottom: 24px;
+}
+.macroRing {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  background: rgba(62, 50, 40, 0.5); border-radius: 12px; padding: 16px 12px;
+}
+.macroValue {
+  position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.macroNumber {
+  font-size: 1.4rem; font-weight: 700; color: #F0EAD6;
+}
+.macroLabel {
+  font-size: 0.7rem; color: rgba(240,234,214,0.5); margin-top: 2px; letter-spacing: 0.05em; text-transform: uppercase;
+}
+
+.waterTrackerCard {
+  background: rgba(62, 50, 40, 0.5); border-radius: 12px; padding: 16px 14px;
+  margin-bottom: 20px; border: 1px solid rgba(255, 200, 120, 0.06);
+}
+.waterTrackerTitle {
+  font-size: 0.85rem; font-weight: 700; color: #F0EAD6; margin-bottom: 12px;
+  font-family: 'Figtree', sans-serif;
+}
+.waterBubbles {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px;
+}
+.waterBubble {
+  width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
+  transition: all 0.2s; font-size: 1.2rem;
+}
+.waterBubble:hover {
+  transform: scale(1.1);
+}
+.waterBubbleFilled {
+  box-shadow: inset 0 0 8px rgba(45, 212, 191, 0.3);
+}
+.waterLabel {
+  font-size: 0.8rem; color: rgba(240,234,214,0.5); text-align: center;
+  font-family: 'Figtree', sans-serif; margin: 0;
+}
+
+.mealsSection {
+  margin-bottom: 20px;
+}
+.mealCard {
+  background: rgba(62, 50, 40, 0.5); border-radius: 12px; padding: 14px;
+  margin-bottom: 10px; border: 1px solid rgba(255, 200, 120, 0.06);
+}
+.mealHeader {
+  display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;
+}
+.mealName {
+  font-size: 0.95rem; font-weight: 700; color: #F0EAD6;
+  font-family: 'Figtree', sans-serif;
+}
+.mealTime {
+  font-size: 0.75rem; color: rgba(240,234,214,0.4); margin-top: 2px;
+}
+.mealFoods {
+  font-size: 0.8rem; color: rgba(240,234,214,0.55); margin-top: 4px;
+}
+.mealCal {
+  font-size: 1.2rem; font-weight: 700; color: #FF6644;
+  font-family: 'Sora', sans-serif;
+}
+.mealMacros {
+  display: flex; gap: 12px; font-size: 0.75rem; color: rgba(240,234,214,0.4);
+}
+
+.stackSection {
+  margin-bottom: 20px;
+}
+.supplementCard {
+  background: rgba(62, 50, 40, 0.5); border-radius: 12px; padding: 14px;
+  margin-bottom: 10px; border: 1px solid rgba(255, 200, 120, 0.06);
+}
+.suppHeader {
+  display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;
+}
+.suppName {
+  font-size: 0.95rem; font-weight: 700; color: #F0EAD6;
+  font-family: 'Figtree', sans-serif;
+}
+.suppDose {
+  font-size: 0.8rem; color: rgba(240,234,214,0.5); margin-top: 4px;
+}
+.timingBadge {
+  font-size: 0.7rem; font-weight: 700; padding: 4px 8px; border-radius: 4px;
+  background: rgba(255, 102, 68, 0.1); color: #FF6644; text-transform: uppercase;
+  font-family: 'Figtree', sans-serif;
+}
+.timingPostworkout { background: rgba(232, 50, 26, 0.1); color: #E8321A; }
+.timingMorning { background: rgba(255, 184, 0, 0.1); color: #FFB800; }
+.timingAnytime { background: rgba(45, 212, 191, 0.1); color: #2dd4bf; }
+.suppNotes {
+  font-size: 0.75rem; color: rgba(240,234,214,0.4);
+}
+
+.savedMealCard {
+  background: rgba(62, 50, 40, 0.5); border-radius: 12px; padding: 14px;
+  margin-bottom: 10px; border: 1px solid rgba(255, 200, 120, 0.06);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.mealCardContent { flex: 1; }
+.mealCardName {
+  font-size: 0.95rem; font-weight: 700; color: #F0EAD6;
+  font-family: 'Figtree', sans-serif; margin-bottom: 4px;
+}
+.mealCardMacros {
+  font-size: 0.8rem; color: rgba(240,234,214,0.5); margin-bottom: 8px;
+}
+.mealCardTags {
+  display: flex; gap: 6px;
+}
+.hotPoolTag {
+  font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 3px;
+  background: rgba(255, 102, 68, 0.1); color: #FF6644; text-transform: uppercase;
+  font-family: 'Figtree', sans-serif;
+}
+.mealCardActions {
+  display: flex; gap: 12px; align-items: center;
+}
+.logMealBtn {
+  padding: 6px 12px; background: #FF6644; border: none; border-radius: 6px;
+  color: white; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+  font-family: 'Figtree', sans-serif; transition: all 0.2s;
+}
+.logMealBtn:hover {
+  background: #e85a36; box-shadow: 0 2px 8px rgba(255, 102, 68, 0.3);
+}
+
+.bodyMetricsContainer {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;
+}
+.metricCard {
+  background: rgba(62, 50, 40, 0.5); border-radius: 12px; padding: 14px;
+  border: 1px solid rgba(255, 200, 120, 0.06); text-align: center;
+}
+.metricLabel {
+  font-size: 0.75rem; font-weight: 700; color: rgba(240,234,214,0.5);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
+}
+.metricValue {
+  font-size: 1.4rem; font-weight: 700; color: #F0EAD6; margin-bottom: 6px;
+}
+.metricUnit {
+  font-size: 0.9rem; color: rgba(240,234,214,0.6); margin-left: 4px;
+}
+.metricDelta {
+  font-size: 0.75rem; color: rgba(240,234,214,0.4);
+}
+.deltaDown { color: #4CAF50; }
+.deltaUp { color: #FFB800; }
+
+.bodySection {
+  margin-bottom: 20px;
+}
+.weightChart {
+  display: flex; align-items: flex-end; justify-content: space-around;
+  gap: 8px; height: 120px; padding: 20px 14px;
+  background: rgba(62, 50, 40, 0.3); border-radius: 12px; margin-bottom: 16px;
+}
+.chartBar {
+  width: 100%; background: linear-gradient(180deg, #FF6644, #FFB800);
+  border-radius: 4px 4px 0 0; min-height: 4px; transition: all 0.3s;
+}
+.chartBar:hover { filter: brightness(1.2); }
+
+.logWeightBtn {
+  width: 100%; padding: 12px; background: #FF6644; border: none; border-radius: 8px;
+  color: white; font-family: 'Figtree', sans-serif; font-weight: 700; cursor: pointer;
+  font-size: 0.9rem; transition: all 0.2s; margin-bottom: 20px;
+}
+.logWeightBtn:hover {
+  background: #e85a36; box-shadow: 0 4px 12px rgba(255, 102, 68, 0.3);
+}
+
+.filterChips {
+  display: flex; gap: 8px; overflow-x: auto; margin-bottom: 16px; padding: 0 14px;
+}
+.filterChip {
+  padding: 8px 14px; border: 1px solid rgba(240,234,214,0.12); border-radius: 20px;
+  background: transparent; color: rgba(240,234,214,0.6); cursor: pointer;
+  font-size: 0.8rem; font-weight: 700; white-space: nowrap;
+  font-family: 'Figtree', sans-serif; transition: all 0.2s; flex-shrink: 0;
+}
+.filterChip:hover {
+  border-color: rgba(240,234,214,0.24);
+}
+
+.strategyCard {
+  background: rgba(62, 50, 40, 0.5); border-radius: 12px; padding: 14px;
+  margin-bottom: 10px; border: 1px solid rgba(255, 200, 120, 0.06);
+}
+.strategyHeader {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+}
+.strategyTitle {
+  font-size: 0.95rem; font-weight: 700; color: #F0EAD6;
+  font-family: 'Figtree', sans-serif; margin: 0;
+}
+.tagBadge {
+  font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 3px;
+  background: rgba(255, 102, 68, 0.1); color: #FF6644; text-transform: uppercase;
+  font-family: 'Figtree', sans-serif;
+}
+.strategyBody {
+  font-size: 0.85rem; color: rgba(240,234,214,0.6); line-height: 1.5; margin: 0;
+}
+
+.learnCard {
+  background: rgba(62, 50, 40, 0.5); border-radius: 12px; padding: 16px;
+  border: 1px solid rgba(255, 200, 120, 0.06);
+}
+.learnCardTag {
+  display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 4px 8px;
+  background: rgba(255, 102, 68, 0.15); color: #FF6644; border-radius: 3px;
+  text-transform: uppercase; font-family: 'Figtree', sans-serif; margin-bottom: 8px;
+}
+.learnCardTitle {
+  font-size: 1rem; font-weight: 700; color: #F0EAD6;
+  font-family: 'Figtree', sans-serif; margin: 0 0 8px 0;
+}
+.learnCardDesc {
+  font-size: 0.85rem; color: rgba(240,234,214,0.6); line-height: 1.5; margin-bottom: 12px;
+}
+.learnCardLink {
+  color: #FF6644; text-decoration: none; font-weight: 700; font-size: 0.85rem;
+  font-family: 'Figtree', sans-serif;
+}
+
+.resourceCard {
+  background: rgba(62, 50, 40, 0.5); border-radius: 12px; padding: 14px;
+  margin-bottom: 10px; border: 1px solid rgba(255, 200, 120, 0.06);
+}
+.resourceType {
+  display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 3px 8px;
+  background: rgba(255, 102, 68, 0.1); color: #FF6644; border-radius: 3px;
+  text-transform: uppercase; font-family: 'Figtree', sans-serif; margin-bottom: 8px;
+}
+.resourceTitle {
+  font-size: 0.95rem; font-weight: 700; color: #F0EAD6;
+  font-family: 'Figtree', sans-serif; margin: 8px 0 4px 0;
+}
+.resourceLink {
+  color: #FF6644; text-decoration: none; font-weight: 700; font-size: 0.8rem;
+  font-family: 'Figtree', sans-serif;
+}
+
+.insightScoreContainer {
+  display: flex; flex-direction: column; align-items: center; margin-bottom: 24px;
+}
+.insightScoreLabel {
+  font-size: 0.9rem; color: rgba(240,234,214,0.6);
+  font-family: 'Figtree', sans-serif; margin: 0;
+}
+
+.scoreBreakdown {
+  margin-bottom: 24px;
+}
+.breakdownItem {
+  display: grid; grid-template-columns: 100px 1fr 50px; align-items: center;
+  gap: 12px; margin-bottom: 16px;
+}
+.breakdownLabel {
+  font-size: 0.8rem; color: rgba(240,234,214,0.6);
+  font-family: 'Figtree', sans-serif; text-align: left;
+}
+.breakdownBar {
+  height: 6px; background: rgba(240,234,214,0.1); border-radius: 3px; overflow: hidden;
+}
+.breakdownFill {
+  height: 100%; background: var(--accent); transition: width 0.5s ease;
+}
+.breakdownValue {
+  font-size: 0.75rem; font-weight: 700; color: rgba(240,234,214,0.6);
+  text-align: right; font-family: 'Figtree', sans-serif;
+}
+
+.observationsSection {
+  margin-top: 20px;
+}
+.observationCard {
+  background: rgba(62, 50, 40, 0.5); border-radius: 12px; padding: 14px;
+  margin-bottom: 10px; border: 1px solid rgba(255, 200, 120, 0.06);
+}
+.obsType {
+  font-size: 0.75rem; font-weight: 700; color: rgba(240,234,214,0.6);
+  text-transform: uppercase; margin-bottom: 6px;
+  font-family: 'Figtree', sans-serif;
+}
+.obsText {
+  font-size: 0.85rem; color: rgba(240,234,214,0.7); line-height: 1.5; margin: 0;
+}
+
+.coachCardSection {
+  margin-top: 20px;
+}
+.coachCard {
+  background: rgba(62, 50, 40, 0.5); border-radius: 12px; padding: 14px;
+  border: 1px solid rgba(255, 200, 120, 0.06);
+}
+.coachCard p {
+  font-size: 0.85rem; color: rgba(240,234,214,0.7); line-height: 1.5; margin: 0;
+}
+
+.addBtn {
+  width: 100%; padding: 10px; background: transparent; border: 2px dashed rgba(255, 102, 68, 0.3);
+  border-radius: 8px; color: #FF6644; font-family: 'Figtree', sans-serif;
+  font-weight: 700; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; margin-top: 12px;
+}
+.addBtn:hover {
+  border-color: rgba(255, 102, 68, 0.6); background: rgba(255, 102, 68, 0.05);
+}
