@@ -13,18 +13,18 @@ import { CheckSquare, ChatCircle, Target, CalendarBlank, Notebook, Wallet, Chart
 import { showToast as libShowToast, ToastContainer } from '../lib/toast.js'
 
 const THEMES = [
-  { id: 'orange-bronze', name: 'Classic', accent: '#FF6644', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#FF6644', dataTheme: 'classic' },
-  { id: 'teal-ocean', name: 'Ocean', accent: '#2dd4bf', gradient: 'radial-gradient(ellipse at top left, rgba(15,80,90,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(10,60,70,0.35) 0%, transparent 60%)', logo: '#2dd4bf' },
-  { id: 'purple-cosmos', name: 'Cosmos', accent: '#8b5cf6', gradient: 'radial-gradient(ellipse at top left, rgba(60,20,120,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(40,10,90,0.35) 0%, transparent 60%)', logo: '#8b5cf6' },
-  { id: 'blue-arctic', name: 'Arctic', accent: '#3b82f6', gradient: 'radial-gradient(ellipse at top left, rgba(15,40,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(10,30,80,0.35) 0%, transparent 60%)', logo: '#3b82f6' },
-  { id: 'green-forest', name: 'Forest', accent: '#22c55e', gradient: 'radial-gradient(ellipse at top left, rgba(10,70,30,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(8,50,20,0.35) 0%, transparent 60%)', logo: '#22c55e' },
-  { id: 'rose-sunset', name: 'Sunset', accent: '#f43f5e', gradient: 'radial-gradient(ellipse at top left, rgba(120,20,40,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(90,15,30,0.35) 0%, transparent 60%)', logo: '#f43f5e' },
-  { id: 'amber-desert', name: 'Desert', accent: '#f59e0b', gradient: 'radial-gradient(ellipse at top left, rgba(120,70,5,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(90,50,5,0.35) 0%, transparent 60%)', logo: '#f59e0b' },
-  { id: 'cyan-electric', name: 'Electric', accent: '#06b6d4', gradient: 'radial-gradient(ellipse at top left, rgba(5,70,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(5,50,80,0.35) 0%, transparent 60%)', logo: '#06b6d4' },
-  { id: 'indigo-night', name: 'Night', accent: '#6366f1', gradient: 'radial-gradient(ellipse at top left, rgba(30,20,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(20,15,80,0.35) 0%, transparent 60%)', logo: '#6366f1' },
-  { id: 'drill-sergeant', name: 'Command', accent: '#ef4444', gradient: 'radial-gradient(ellipse at top left, rgba(100,10,10,0.5) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,5,5,0.4) 0%, transparent 60%)', logo: '#ef4444' },
-  { id: 'midnight', name: 'Midnight', accent: '#FF6644', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#FF6644', dataTheme: 'midnight' },
-  { id: 'warm', name: 'Warm', accent: '#FF6644', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#FF6644', dataTheme: 'warm' },
+  { id: 'orange-bronze', name: 'Classic', accent: '#FF6644', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#FF6644', dataTheme: 'classic', bg: '#211A14', cardBg: '#3E3228' },
+  { id: 'teal-ocean', name: 'Ocean', accent: '#2dd4bf', gradient: 'radial-gradient(ellipse at top left, rgba(15,80,90,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(10,60,70,0.35) 0%, transparent 60%)', logo: '#2dd4bf', bg: '#0A1A1C', cardBg: '#0F2A2E' },
+  { id: 'purple-cosmos', name: 'Cosmos', accent: '#8b5cf6', gradient: 'radial-gradient(ellipse at top left, rgba(60,20,120,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(40,10,90,0.35) 0%, transparent 60%)', logo: '#8b5cf6', bg: '#0D0A1A', cardBg: '#1A1230' },
+  { id: 'blue-arctic', name: 'Arctic', accent: '#3b82f6', gradient: 'radial-gradient(ellipse at top left, rgba(15,40,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(10,30,80,0.35) 0%, transparent 60%)', logo: '#3b82f6', bg: '#090F1E', cardBg: '#111C36' },
+  { id: 'green-forest', name: 'Forest', accent: '#22c55e', gradient: 'radial-gradient(ellipse at top left, rgba(10,70,30,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(8,50,20,0.35) 0%, transparent 60%)', logo: '#22c55e', bg: '#081410', cardBg: '#0F2018' },
+  { id: 'rose-sunset', name: 'Sunset', accent: '#f43f5e', gradient: 'radial-gradient(ellipse at top left, rgba(120,20,40,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(90,15,30,0.35) 0%, transparent 60%)', logo: '#f43f5e', bg: '#1A080C', cardBg: '#2E0F16' },
+  { id: 'amber-desert', name: 'Desert', accent: '#f59e0b', gradient: 'radial-gradient(ellipse at top left, rgba(120,70,5,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(90,50,5,0.35) 0%, transparent 60%)', logo: '#f59e0b', bg: '#1A1208', cardBg: '#2E200A' },
+  { id: 'cyan-electric', name: 'Electric', accent: '#06b6d4', gradient: 'radial-gradient(ellipse at top left, rgba(5,70,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(5,50,80,0.35) 0%, transparent 60%)', logo: '#06b6d4', bg: '#071218', cardBg: '#0C2030' },
+  { id: 'indigo-night', name: 'Night', accent: '#6366f1', gradient: 'radial-gradient(ellipse at top left, rgba(30,20,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(20,15,80,0.35) 0%, transparent 60%)', logo: '#6366f1', bg: '#0A0A1A', cardBg: '#14142E' },
+  { id: 'drill-sergeant', name: 'Command', accent: '#ef4444', gradient: 'radial-gradient(ellipse at top left, rgba(100,10,10,0.5) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,5,5,0.4) 0%, transparent 60%)', logo: '#ef4444', bg: '#1A0808', cardBg: '#2E1010' },
+  { id: 'midnight', name: 'Midnight', accent: '#ffffff', gradient: 'radial-gradient(ellipse at top left, rgba(20,20,50,0.6) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(10,10,40,0.5) 0%, transparent 60%)', logo: '#ffffff', dataTheme: 'midnight', bg: '#0D0D1A', cardBg: '#1A1A2E' },
+  { id: 'warm', name: 'Warm', accent: '#FF8C42', gradient: 'radial-gradient(ellipse at top left, rgba(100,50,10,0.5) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,30,5,0.4) 0%, transparent 60%)', logo: '#FF8C42', dataTheme: 'warm', bg: '#1A0F0A', cardBg: '#3D2B1F' },
 ]
 
 function applyTheme(theme) {
@@ -39,14 +39,14 @@ function applyTheme(theme) {
   } else {
     root.removeAttribute('data-theme')
   }
-  // Override background/text for themes that need it (Midnight)
-  root.style.setProperty('--night', theme.bg || '#0d1117')
-  root.style.setProperty('--cream', theme.textColor || '#f0ead6')
-  root.style.setProperty('--bg-color', '#110d06')
-  root.style.setProperty('--card-bg', '#221608')
-  root.style.setProperty('--text-color', '#f0ead6')
-  root.style.setProperty('--text-muted', 'rgba(240,234,214,0.5)')
-  root.style.setProperty('--border-color', 'rgba(255,200,120,0.12)')
+  // Apply per-theme bg and card colors
+  root.style.setProperty('--bg-color', theme.bg || '#211A14')
+  root.style.setProperty('--card-bg', theme.cardBg || '#3E3228')
+  root.style.setProperty('--night', theme.bg || '#211A14')
+  root.style.setProperty('--cream', '#F5F0E3')
+  root.style.setProperty('--text-color', '#F5F0E3')
+  root.style.setProperty('--text-muted', 'rgba(245,240,227,0.5)')
+  root.style.setProperty('--border-color', 'rgba(245,240,227,0.09)')
   // also set --accent-rgb so rgba(var(--accent-rgb), opacity) works with this theme
   applyAccentColor(theme.accent, theme.id)
 }
@@ -76,22 +76,26 @@ const NAV_PRIMARY_IDS = ['tasks', 'checkin', 'focus', 'calendar']
 const NAV_MORE_IDS = ['habits', 'tagteam', 'finance', 'nutrition', 'progress', 'guide', 'settings']
 
 // ── GUIDE TAB STRATEGIES ────────────────────────────────────────────────────────
+const GUIDE_TAG_COLORS = {
+  'CINIS': '#FF6644',
+  'QUICK WINS': '#4CAF50',
+  'SYSTEMS': '#3B8BD4',
+  'FOCUS': '#3B8BD4',
+  'FINANCE': '#FFB800',
+  'NUTRITION': '#4CAF50',
+}
+
 const GUIDE_STRATEGIES = [
-  // Cinis tag
-  { id: 'c1', tag: 'Cinis', icon: '✦', title: 'Set your coaching blend', body: 'Go to Settings → Coaching Blend. Pick up to 3 personas that match how you want to be coached. Your coach changes tone immediately.' },
-  { id: 'c2', tag: 'Cinis', icon: '⭐', title: 'Use star for your #1 task', body: 'Star exactly one task per day. It becomes your priority card with a countdown. One task. That\'s the whole system.' },
-  { id: 'c3', tag: 'Cinis', icon: '💬', title: 'The morning check-in is your launch pad', body: 'Don\'t open your task list cold. Open Check-in first. Let your coach orient you. Then go. The first message is the hardest — the chip buttons do it for you.' },
-  // Quick Wins tag
-  { id: 'q1', tag: 'Quick Wins', icon: '⚡', title: 'The 2-minute sweep', body: 'Scan your task list. Do every task that takes under 2 minutes right now, back to back. Don\'t schedule them — just do them. This clears cognitive load faster than any planning session.' },
-  { id: 'q2', tag: 'Quick Wins', icon: '🔪', title: 'Shrink the first step', body: 'The task isn\'t \'write the report.\' The task is \'open the document.\' Make the first step so small it\'s embarrassing to skip.' },
-  // Focus tag
-  { id: 'f1', tag: 'Focus', icon: '👥', title: 'Body doubles work', body: 'Working alongside someone — even silently, even virtually — dramatically increases follow-through for ADHD brains. Use Focus co-session when it launches, or just open a video call with anyone.' },
-  { id: 'f2', tag: 'Focus', icon: '🕐', title: 'Time blocks, not lists', body: 'A to-do list with no time attached is a wish list. Assign every important task a specific block on the calendar. Unscheduled = undone.' },
-  // Momentum tag
-  { id: 'm1', tag: 'Momentum', icon: '🔥', title: 'Never miss twice', body: 'Missing once is an accident. Missing twice is a new pattern. If you break a streak, the only move is to get one rep in today, no matter how small.' },
-  { id: 'm2', tag: 'Momentum', icon: '🎯', title: 'Done beats perfect', body: 'A completed task at 70% is worth more than a perfect task that never ships. Mark it done. Move forward. Refinement is a future task.' },
-  // Systems tag
-  { id: 's1', tag: 'Systems', icon: '📋', title: 'Weekly review in 5 minutes', body: 'Every Sunday: archive anything more than 2 weeks old with no progress. Reschedule anything you\'re actually going to do. Delete everything else. A clean list is a usable list.' },
+  { id: 'c1', tag: 'CINIS', icon: '🎙️', title: 'Use your voice', preview: 'Tap the mic and just talk. Tasks are created from what you say.', body: 'The Voice FAB (bottom right mic button) turns speech into tasks instantly. Say "remind me to call Sarah tomorrow at 3pm" and it\'s done. No typing required.' },
+  { id: 'c2', tag: 'CINIS', icon: '🧠', title: 'Your coaching blend matters', preview: 'Pick up to 3 personas. Your coach changes tone immediately.', body: 'Go to Settings → Coaching Blend. Different blends unlock different coaching styles. A drill sergeant is great for momentum days. A gentle nudge works better when you\'re low on energy. Swap them anytime.' },
+  { id: 'c3', tag: 'CINIS', icon: '⏱️', title: 'Focus timer + task = magic', preview: 'Star a task, then start focus. The timer locks you in.', body: 'Star your top task, then open the Focus tab. The timer runs alongside your task — when it ends, you check in. This creates accountability loops that ADHD brains respond to better than open-ended work sessions.' },
+  { id: 'c4', tag: 'CINIS', icon: '📓', title: 'Journal is inside Habits', preview: 'Your daily journal lives in the Habits tab.', body: 'Open the Habits tab and scroll down to find your daily journal. It\'s intentionally tucked here because journaling is a habit, not a task. Short entries — even one sentence — build the streak.' },
+  { id: 'q1', tag: 'QUICK WINS', icon: '⚡', title: 'The 2-minute sweep', preview: 'Do every sub-2-minute task right now, back to back.', body: 'Scan your task list. Do every task that takes under 2 minutes right now, back to back. Don\'t schedule them — just do them. This clears cognitive load faster than any planning session.' },
+  { id: 's1', tag: 'SYSTEMS', icon: '📐', title: 'Time blocks, not lists', preview: 'A to-do with no time attached is a wish list.', body: 'A to-do list with no time attached is a wish list. Assign every important task a specific block on the calendar. Unscheduled = undone. Cinis calendar is your block planner — use it.' },
+  { id: 'f1', tag: 'FOCUS', icon: '👥', title: 'Body doubles work', preview: 'Work alongside someone — even silently.', body: 'Working alongside someone — even silently, even virtually — dramatically increases follow-through for ADHD brains. Open a silent video call, a co-working stream, or just sit in a coffee shop. The presence is what matters.' },
+  { id: 's2', tag: 'SYSTEMS', icon: '🌙', title: 'The evening shutdown', preview: 'A 5-minute ritual closes the day properly.', body: 'At end of day: review what you did, reschedule what you didn\'t, write one thing for tomorrow. This prevents the open-loop anxiety that wrecks sleep. It takes 5 minutes and the effect is immediate.' },
+  { id: 'fi1', tag: 'FINANCE', icon: '💰', title: 'Know your daily number', preview: 'Monthly budget ÷ 30 = your daily spend limit.', body: 'Monthly budget ÷ 30 = your daily number. Every spend decision becomes simple: am I over or under today? The Finance tab tracks this in real time. Knowing the number matters more than tracking every category.' },
+  { id: 'n1', tag: 'NUTRITION', icon: '🥩', title: 'Log meals by talking', preview: 'Voice-log food in the Nutrition tab.', body: 'In the Nutrition tab, tap the mic and describe what you ate. Cinis parses it into macros automatically. Logging friction is why people stop — voice removes it.' },
 ]
 
 // ── Pure helpers ──────────────────────────────────────────────────────────────
@@ -2165,12 +2169,10 @@ export default function Dashboard() {
     setActiveTheme(theme)
     setProfile(prev => ({ ...prev, accent_color: theme.id }))
     if (typeof localStorage !== 'undefined') localStorage.setItem('fb_accent_color', theme.id)
+    applyTheme(theme)
     if (user) {
       const themeId = theme.name?.toLowerCase() || theme.id
-      const ok = await patchSettings({ accent_color: theme.id, theme_id: themeId })
-      if (ok) applyTheme(theme)
-    } else {
-      applyTheme(theme)
+      await patchSettings({ accent_color: theme.id, theme_id: themeId })
     }
   }
 
@@ -2809,7 +2811,7 @@ export default function Dashboard() {
 
   if (loading) return (
     <div className={styles.loadingPage}>
-      <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 600, fontSize: '1.3rem', letterSpacing: '0.16em', color: '#F0EAD6' }}>CINIS</span>
+      <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 600, fontSize: '1.3rem', letterSpacing: '0.16em', color: '#F5F0E3' }}>CINIS</span>
     </div>
   )
 
@@ -2833,8 +2835,8 @@ export default function Dashboard() {
               <polygon points="32,36 37,40 36,41 32,43 28,41 27,40" fill="#FFF0EB" opacity="0.60"/>
             </svg>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.16em', color: '#F0EAD6' }}>CINIS</span>
-              <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: '0.62rem', color: 'rgba(240,234,214,0.3)', letterSpacing: '0.01em', lineHeight: 1 }}>Where start meets finished.</span>
+              <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.16em', color: '#F5F0E3' }}>CINIS</span>
+              <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: '0.62rem', color: 'rgba(245,240,227,0.3)', letterSpacing: '0.01em', lineHeight: 1 }}>Where start meets finished.</span>
             </div>
           </div>
           <nav className={styles.sidebarNav}>
@@ -2862,7 +2864,7 @@ export default function Dashboard() {
           {(() => {
             const HP = '#FF6644'
             const EMBER = '#E8321A'
-            const ASH = '#F0EAD6'
+            const ASH = '#F5F0E3'
             const CHAR = '#3E3228'
             const greetLine = generateGreetingLine(tasks)
 
@@ -2884,7 +2886,7 @@ export default function Dashboard() {
                         style={{ background: isOverdue ? `${EMBER}22` : `${HP}18`, color: isOverdue ? EMBER : HP }}>
                         {sectionTasks.length}
                       </span>
-                      <span style={{ color: 'rgba(240,234,214,0.3)', fontSize: 16, transform: collapsed ? 'rotate(0deg)' : 'rotate(90deg)', display: 'inline-block', transition: 'transform 0.2s' }}>›</span>
+                      <span style={{ color: 'rgba(245,240,227,0.3)', fontSize: 16, transform: collapsed ? 'rotate(0deg)' : 'rotate(90deg)', display: 'inline-block', transition: 'transform 0.2s' }}>›</span>
                     </div>
                   </button>
                   {!collapsed && (
@@ -2946,12 +2948,12 @@ export default function Dashboard() {
                                   {countdown ? (
                                     <span style={{ fontSize: 11, color: HP, fontFamily: "'Sora', sans-serif", fontWeight: 600 }}>{countdown}</span>
                                   ) : task.due_time && (
-                                    <span style={{ fontSize: 11, color: 'rgba(240,234,214,0.4)', fontFamily: "'Sora', sans-serif" }}>
+                                    <span style={{ fontSize: 11, color: 'rgba(245,240,227,0.4)', fontFamily: "'Sora', sans-serif" }}>
                                       {new Date(task.due_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                                     </span>
                                   )}
                                   {task.rollover_count > 0 && (
-                                    <span style={{ fontSize: 10, color: 'rgba(240,234,214,0.28)', fontFamily: "'Sora', sans-serif" }}>↷ {task.rollover_count}×</span>
+                                    <span style={{ fontSize: 10, color: 'rgba(245,240,227,0.28)', fontFamily: "'Sora', sans-serif" }}>↷ {task.rollover_count}×</span>
                                   )}
                                 </div>
                               )}
@@ -2961,7 +2963,7 @@ export default function Dashboard() {
                                 className={`${styles.s17StarBtn} ${task.starred ? styles.s17StarBtnActive : ''}`}
                                 onClick={e => { e.stopPropagation(); toggleStarDB(task) }}
                                 aria-label={task.starred ? 'Unstar' : 'Star'}
-                                style={{ color: task.starred ? HP : 'rgba(240,234,214,0.2)' }}
+                                style={{ color: task.starred ? HP : 'rgba(245,240,227,0.2)' }}
                               >{task.starred ? '★' : '☆'}</button>
                             )}
                             {isDone && (
@@ -3024,7 +3026,7 @@ export default function Dashboard() {
                           <div style={{ fontSize: 15, fontWeight: 600, color: ASH, fontFamily: "'Figtree', sans-serif", lineHeight: 1.3, marginBottom: 4 }}>{worst.title}</div>
                           <div style={{ fontSize: 12, color: EMBER, fontFamily: "'Sora', sans-serif", fontWeight: 600 }}>{daysOver} day{daysOver !== 1 ? 's' : ''} overdue</div>
                           {s17Overdue.length > 1 && (
-                            <div style={{ fontSize: 12, color: 'rgba(240,234,214,0.45)', marginTop: 4, fontFamily: "'Sora', sans-serif" }}>+{s17Overdue.length - 1} more overdue</div>
+                            <div style={{ fontSize: 12, color: 'rgba(245,240,227,0.45)', marginTop: 4, fontFamily: "'Sora', sans-serif" }}>+{s17Overdue.length - 1} more overdue</div>
                           )}
                         </div>
                       </div>
@@ -3061,10 +3063,10 @@ export default function Dashboard() {
                 {/* 4 — Momentum Bar */}
                 <div className={styles.s17MomentumWrap}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontSize: 11, fontFamily: "'Figtree', sans-serif", color: 'rgba(240,234,214,0.5)', fontWeight: 600 }}>
+                    <span style={{ fontSize: 11, fontFamily: "'Figtree', sans-serif", color: 'rgba(245,240,227,0.5)', fontWeight: 600 }}>
                       🔥 {profile?.current_streak || 0} streak
                     </span>
-                    <span style={{ fontSize: 11, fontFamily: "'Figtree', sans-serif", color: 'rgba(240,234,214,0.4)', fontWeight: 600 }}>
+                    <span style={{ fontSize: 11, fontFamily: "'Figtree', sans-serif", color: 'rgba(245,240,227,0.4)', fontWeight: 600 }}>
                       {profile?.total_xp || 0} XP
                     </span>
                   </div>
@@ -3213,7 +3215,7 @@ export default function Dashboard() {
                       {msg.role === 'assistant' && (
                         <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '6px' }}>
                           <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: '11px', color: '#FF6644', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Cinis</span>
-                          <span style={{ fontSize: '10px', color: 'rgba(240,234,214,0.35)', marginTop: '2px' }}>· {primaryPersonaName}</span>
+                          <span style={{ fontSize: '10px', color: 'rgba(245,240,227,0.35)', marginTop: '2px' }}>· {primaryPersonaName}</span>
                         </div>
                       )}
                       <div className={msg.role === 'assistant' ? styles.ciBubbleAI : styles.ciBubbleUser}>
@@ -3225,7 +3227,7 @@ export default function Dashboard() {
                     <div className={styles.ciBubbleWrap}>
                       <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '6px' }}>
                         <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: '11px', color: '#FF6644', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Cinis</span>
-                        <span style={{ fontSize: '10px', color: 'rgba(240,234,214,0.35)', marginTop: '2px' }}>· {primaryPersonaName}</span>
+                        <span style={{ fontSize: '10px', color: 'rgba(245,240,227,0.35)', marginTop: '2px' }}>· {primaryPersonaName}</span>
                       </div>
                       <div className={styles.ciBubbleAI}><span className={styles.checkinTyping}>···</span></div>
                     </div>
@@ -3281,7 +3283,7 @@ export default function Dashboard() {
                       <span style={{
                         fontSize: 18,
                         lineHeight: 1,
-                        color: checkinVoiceListening ? '#211A14' : '#F0EAD6',
+                        color: checkinVoiceListening ? '#211A14' : '#F5F0E3',
                         animation: checkinVoiceListening ? 'pulse 1.5s infinite' : 'none'
                       }}>
                         🎤
@@ -3873,7 +3875,7 @@ export default function Dashboard() {
                           : <div className={styles.journalEntrySummary}>{preview}</div>
                         }
                         {isExpanded && (
-                          <div style={{ marginTop: '10px', fontSize: '13px', color: 'rgba(240,234,214,0.6)', lineHeight: 1.6, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '10px' }}>
+                          <div style={{ marginTop: '10px', fontSize: '13px', color: 'rgba(245,240,227,0.6)', lineHeight: 1.6, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '10px' }}>
                             {entry.content}
                           </div>
                         )}
@@ -3891,20 +3893,21 @@ export default function Dashboard() {
           <TabErrorBoundary tabName="Nutrition">
           {(() => {
             return (
-              <div style={{ paddingBottom: '80px', background: '#0D0705', minHeight: '100vh' }}>
+              <div style={{ paddingBottom: '80px', background: '#211A14', minHeight: '100vh' }}>
                 {/* Underline sub-tab nav */}
-                <div style={{ borderBottom: `1px solid #F0EAD610`, overflowX: 'auto', scrollBehavior: 'smooth', display: 'flex' }}>
+                <div style={{ borderBottom: '0.5px solid #F5F0E31E', overflowX: 'auto', display: 'flex', marginBottom: '14px' }}>
                   {['Log', 'Stack', 'Meals', 'Body', 'Knowledge', 'Learn', 'Insights'].map(tab => {
                     const isActive = nutrSubTab === tab.toLowerCase()
                     return (
                       <button key={tab} onClick={() => setNutrSubTab(tab.toLowerCase())}
                         style={{
-                          flex: '0 0 auto', padding: '14px 16px', background: 'transparent', border: 'none',
-                          borderBottom: isActive ? '2px solid #E8321A' : 'none',
-                          color: isActive ? '#E8321A' : '#F0EAD680',
+                          flexShrink: 0, padding: '8px 10px', background: 'none', border: 'none',
+                          WebkitAppearance: 'none', appearance: 'none',
+                          borderBottom: isActive ? '2px solid #E8321A' : '2px solid transparent',
+                          color: isActive ? '#F5F0E3' : '#F5F0E350',
                           fontFamily: "'Figtree', sans-serif", fontSize: '10px', fontWeight: '700',
-                          letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s',
-                          whiteSpace: 'nowrap'
+                          letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer',
+                          whiteSpace: 'nowrap', borderRadius: 0
                         }}>
                         {tab}
                       </button>
@@ -3912,7 +3915,7 @@ export default function Dashboard() {
                   })}
                 </div>
 
-                <div style={{ padding: '12px 14px' }}>
+                <div style={{ padding: '18px' }}>
                   {/* LOG */}
                   {nutrSubTab === 'log' && (
                     <>
@@ -3921,8 +3924,8 @@ export default function Dashboard() {
                         {[
                           { label: 'Calories', val: 1840, max: 2400, color: '#E8321A' },
                           { label: 'Protein', val: 128, max: 180, color: '#FF6644' },
-                          { label: 'Carbs', val: 195, max: 280, color: '#F0EAD680' },
-                          { label: 'Fat', val: 52, max: 80, color: '#F0EAD680' },
+                          { label: 'Carbs', val: 195, max: 280, color: '#F5F0E380' },
+                          { label: 'Fat', val: 52, max: 80, color: '#F5F0E380' },
                         ].map((m, i) => {
                           const pct = (m.val / m.max) * 100
                           const circumference = 126
@@ -3930,16 +3933,16 @@ export default function Dashboard() {
                           return (
                             <div key={i} style={{ textAlign: 'center', position: 'relative' }}>
                               <svg width="48" height="48" viewBox="0 0 48 48" style={{ margin: '0 auto' }}>
-                                <circle cx="24" cy="24" r="20" fill="none" stroke="#F0EAD610" strokeWidth="3"/>
+                                <circle cx="24" cy="24" r="20" fill="none" stroke="#F5F0E310" strokeWidth="3"/>
                                 <circle cx="24" cy="24" r="20" fill="none" stroke={m.color} strokeWidth="3"
                                   strokeDasharray="126" strokeDashoffset={strokeDashoffset}
                                   strokeLinecap="round"
                                   style={{ transform: 'rotate(-90deg)', transformOrigin: '24px 24px', transition: 'stroke-dashoffset 0.6s' }}/>
                               </svg>
-                              <div style={{ fontSize: '11px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#F0EAD6', marginTop: '6px' }}>
+                              <div style={{ fontSize: '11px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#F5F0E3', marginTop: '6px' }}>
                                 {m.val}
                               </div>
-                              <div style={{ fontSize: '8px', color: '#F0EAD650', letterSpacing: '0.05em', textTransform: 'uppercase', fontFamily: "'Figtree', sans-serif" }}>
+                              <div style={{ fontSize: '8px', color: '#F5F0E350', letterSpacing: '0.05em', textTransform: 'uppercase', fontFamily: "'Figtree', sans-serif" }}>
                                 {m.label}
                               </div>
                             </div>
@@ -3950,23 +3953,23 @@ export default function Dashboard() {
                       {/* Water + Protein remaining (side by side) */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                         {/* Water card */}
-                        <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px' }}>
-                          <div style={{ fontSize: '9px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Water</div>
-                          <div style={{ fontSize: '14px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#F0EAD6' }}>6/10</div>
-                          <div style={{ fontSize: '8px', color: '#F0EAD650', marginTop: '4px' }}>glasses today</div>
+                        <div style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '12px' }}>
+                          <div style={{ fontSize: '9px', color: '#F5F0E350', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Water</div>
+                          <div style={{ fontSize: '14px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#F5F0E3' }}>6/10</div>
+                          <div style={{ fontSize: '8px', color: '#F5F0E350', marginTop: '4px' }}>glasses today</div>
                         </div>
                         {/* Protein remaining card */}
-                        <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px' }}>
-                          <div style={{ fontSize: '9px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Protein left</div>
+                        <div style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '12px' }}>
+                          <div style={{ fontSize: '9px', color: '#F5F0E350', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Protein left</div>
                           <div style={{ fontSize: '14px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#FF6644' }}>52g</div>
-                          <div style={{ fontSize: '8px', color: '#F0EAD650', marginTop: '4px' }}>to goal</div>
+                          <div style={{ fontSize: '8px', color: '#F5F0E350', marginTop: '4px' }}>to goal</div>
                         </div>
                       </div>
 
                       {/* Today's meals section */}
                       <div style={{ marginBottom: '20px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                          <h3 style={{ margin: 0, fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>Today's meals</h3>
+                          <h3 style={{ margin: 0, fontSize: '0.85rem', fontWeight: '700', color: '#F5F0E3', fontFamily: "'Figtree', sans-serif" }}>Today's meals</h3>
                           <a href="#" style={{ fontSize: '8px', color: '#E8321A', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>+ Log meal</a>
                         </div>
 
@@ -3976,16 +3979,16 @@ export default function Dashboard() {
                           { name: 'Pre-workout', time: '12:00 PM', foods: 'Chicken, rice, broccoli', cal: 580, p: 48, c: 68, f: 12 },
                           { name: 'Post-workout', time: '4:00 PM', foods: 'Whey protein, banana', cal: 240, p: 35, c: 28, f: 3 },
                         ].map((m, i) => (
-                          <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                          <div key={i} style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                               <div>
-                                <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>{m.name}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#F0EAD650', marginTop: '2px' }}>{m.time}</div>
+                                <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F5F0E3', fontFamily: "'Figtree', sans-serif" }}>{m.name}</div>
+                                <div style={{ fontSize: '0.75rem', color: '#F5F0E350', marginTop: '2px' }}>{m.time}</div>
                               </div>
                               <div style={{ fontSize: '13px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#E8321A' }}>{m.cal}</div>
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: '#F0EAD680', marginBottom: '6px' }}>{m.foods}</div>
-                            <div style={{ display: 'flex', gap: '8px', fontSize: '0.7rem', color: '#F0EAD650', fontFamily: "'Sora', sans-serif" }}>
+                            <div style={{ fontSize: '0.75rem', color: '#F5F0E380', marginBottom: '6px' }}>{m.foods}</div>
+                            <div style={{ display: 'flex', gap: '8px', fontSize: '0.7rem', color: '#F5F0E350', fontFamily: "'Sora', sans-serif" }}>
                               <span>P {m.p}g</span><span>C {m.c}g</span><span>F {m.f}g</span>
                             </div>
                           </div>
@@ -4001,9 +4004,9 @@ export default function Dashboard() {
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                           {['Protein shake', 'Chicken + rice', 'Eggs', 'Protein bar', '+ Custom'].map(chip => (
                             <button key={chip} style={{
-                              padding: '6px 10px', background: chip.includes('+') ? 'transparent' : '#2A1810',
-                              border: chip.includes('+') ? '1px dashed #FF664460' : '1px solid #F0EAD615',
-                              borderRadius: '6px', fontSize: '0.7rem', color: chip.includes('+') ? '#FF6644' : '#F0EAD6',
+                              padding: '6px 10px', background: chip.includes('+') ? 'transparent' : '#3E3228',
+                              border: chip.includes('+') ? '1px dashed #FF664460' : '1px solid #F5F0E315',
+                              borderRadius: '6px', fontSize: '0.7rem', color: chip.includes('+') ? '#FF6644' : '#F5F0E3',
                               cursor: 'pointer', fontFamily: "'Figtree', sans-serif", fontWeight: '700',
                               transition: 'all 0.2s', whiteSpace: 'nowrap'
                             }}>
@@ -4039,21 +4042,21 @@ export default function Dashboard() {
                             {group.title}
                           </div>
                           {group.items.map((item, i) => (
-                            <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
+                            <div key={i} style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                                <div style={{ fontWeight: '700', fontSize: '0.85rem', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>{item.name}</div>
-                                <div style={{ fontSize: '0.8rem', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#F0EAD6' }}>{item.dose}</div>
+                                <div style={{ fontWeight: '700', fontSize: '0.85rem', color: '#F5F0E3', fontFamily: "'Figtree', sans-serif" }}>{item.name}</div>
+                                <div style={{ fontSize: '0.8rem', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#F5F0E3' }}>{item.dose}</div>
                               </div>
-                              <div style={{ fontSize: '0.75rem', color: '#F0EAD650' }}>{item.note}</div>
-                              <div style={{ height: '3px', background: '#F0EAD615', borderRadius: '2px', marginTop: '8px' }}>
+                              <div style={{ fontSize: '0.75rem', color: '#F5F0E350' }}>{item.note}</div>
+                              <div style={{ height: '3px', background: '#F5F0E315', borderRadius: '2px', marginTop: '8px' }}>
                                 <div style={{ height: '100%', background: group.color, borderRadius: '2px', width: '75%' }}/>
                               </div>
                             </div>
                           ))}
                         </div>
                       ))}
-                      <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderLeft: '4px solid #FF6644', borderRadius: '8px', padding: '12px' }}>
-                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#F0EAD6', lineHeight: 1.5 }}>
+                      <div style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderLeft: '4px solid #FF6644', borderRadius: '8px', padding: '12px' }}>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#F5F0E3', lineHeight: 1.5 }}>
                           <strong>Coach insight:</strong> Your stack is solid. Prioritize timing - creatine consistency over peak dose.
                         </p>
                       </div>
@@ -4068,15 +4071,15 @@ export default function Dashboard() {
                         { name: 'Pre-workout stack', cal: 580, p: 48, c: 68, f: 12, fav: false },
                         { name: 'Cut dinner', cal: 520, p: 52, c: 42, f: 14, fav: true },
                       ].map((meal, i) => (
-                        <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div key={i} style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>{meal.name}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#F0EAD650', marginTop: '4px', fontFamily: "'Sora', sans-serif" }}>
+                            <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#F5F0E3', fontFamily: "'Figtree', sans-serif" }}>{meal.name}</div>
+                            <div style={{ fontSize: '0.8rem', color: '#F5F0E350', marginTop: '4px', fontFamily: "'Sora', sans-serif" }}>
                               {meal.cal} cal • P{meal.p} C{meal.c} F{meal.f}
                             </div>
                             <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
                               <span style={{ fontSize: '0.65rem', background: '#FF664420', color: '#FF6644', padding: '2px 6px', borderRadius: '3px', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Protein</span>
-                              <span style={{ fontSize: '0.65rem', background: '#F0EAD620', color: '#F0EAD6', padding: '2px 6px', borderRadius: '3px', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Balanced</span>
+                              <span style={{ fontSize: '0.65rem', background: '#F5F0E320', color: '#F5F0E3', padding: '2px 6px', borderRadius: '3px', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Balanced</span>
                             </div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
@@ -4098,22 +4101,22 @@ export default function Dashboard() {
                         {[
                           { label: 'Weight', val: '187.4', unit: 'lbs', color: '#FF6644' },
                           { label: 'Change', val: '-0.6', unit: 'lbs', color: '#4CAF50' },
-                          { label: 'Body fat', val: '16.2', unit: '%', color: '#F0EAD680' },
+                          { label: 'Body fat', val: '16.2', unit: '%', color: '#F5F0E380' },
                         ].map((stat, i) => (
-                          <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-                            <div style={{ fontSize: '8px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>
+                          <div key={i} style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '8px', color: '#F5F0E350', textTransform: 'uppercase', fontWeight: '700', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>
                               {stat.label}
                             </div>
                             <div style={{ fontSize: '13px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: stat.color }}>
-                              {stat.val}<span style={{ fontSize: '10px', color: '#F0EAD650' }}>{stat.unit}</span>
+                              {stat.val}<span style={{ fontSize: '10px', color: '#F5F0E350' }}>{stat.unit}</span>
                             </div>
                           </div>
                         ))}
                       </div>
 
                       <div style={{ marginBottom: '20px' }}>
-                        <h3 style={{ margin: '0 0 12px 0', fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>Weight trend (7 days)</h3>
-                        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '100px', background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px 6px', gap: '4px' }}>
+                        <h3 style={{ margin: '0 0 12px 0', fontSize: '0.85rem', fontWeight: '700', color: '#F5F0E3', fontFamily: "'Figtree', sans-serif" }}>Weight trend (7 days)</h3>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '100px', background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '12px 6px', gap: '4px' }}>
                           {[189, 188.5, 188.2, 188, 187.8, 187.6, 187.4].map((w, i) => {
                             const h = ((w - 187) / 2) * 100
                             return <div key={i} style={{ flex: 1, height: `${h}%`, background: '#FF6644', borderRadius: '2px', transition: 'all 0.3s' }} title={`${w} lbs`}/>
@@ -4121,7 +4124,7 @@ export default function Dashboard() {
                         </div>
                       </div>
 
-                      <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px', marginBottom: '16px', fontSize: '0.85rem', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>
+                      <div style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '12px', marginBottom: '16px', fontSize: '0.85rem', color: '#F5F0E3', fontFamily: "'Figtree', sans-serif" }}>
                         <span style={{ fontWeight: '700' }}>6 day streak 🔥</span> — keep logging!
                       </div>
 
@@ -4142,8 +4145,8 @@ export default function Dashboard() {
                         {['All', 'Protein', 'Carbs', 'Fat', 'Timing', 'Recovery', 'ADHD'].map(f => (
                           <button key={f} style={{
                             padding: '6px 12px', background: f === 'All' ? '#FF664420' : 'transparent',
-                            border: `1px solid ${f === 'All' ? '#FF6644' : '#F0EAD615'}`,
-                            borderRadius: '16px', fontSize: '0.75rem', color: '#F0EAD6',
+                            border: `1px solid ${f === 'All' ? '#FF6644' : '#F5F0E315'}`,
+                            borderRadius: '16px', fontSize: '0.75rem', color: '#F5F0E3',
                             cursor: 'pointer', fontFamily: "'Figtree', sans-serif", fontWeight: '700',
                             whiteSpace: 'nowrap', transition: 'all 0.2s'
                           }}>
@@ -4154,20 +4157,20 @@ export default function Dashboard() {
 
                       {[
                         { title: 'Protein timing myth', tag: 'Protein', color: '#FF6644', body: '20-40g per meal matters more than post-workout window. Spread protein throughout the day.' },
-                        { title: 'Carbs are not the enemy', tag: 'Carbs', color: '#F0EAD680', body: 'Fuel for brain and training. Time them around workouts. Dietary carbs do not equal body fat.' },
+                        { title: 'Carbs are not the enemy', tag: 'Carbs', color: '#F5F0E380', body: 'Fuel for brain and training. Time them around workouts. Dietary carbs do not equal body fat.' },
                         { title: 'The ADHD-nutrition link', tag: 'ADHD', color: '#3B8BD4', body: 'Omega-3, protein breakfast, stable blood sugar. Energy dips = focus dips.' },
                         { title: 'Pre-workout nutrition', tag: 'Timing', color: '#FFB800', body: 'Carbs 60-90min before, protein 30min before. Avoid high fiber 45min pre-workout.' },
                         { title: 'Sleep + recovery nutrition', tag: 'Recovery', color: '#4CAF50', body: 'Casein before bed, magnesium timing, carbs support cortisol reset.' },
                         { title: 'Supplement hierarchy', tag: 'Timing', color: '#FFB800', body: 'Creatine & Whey are #1. Rest are nice-to-haves. Consistency beats perfection.' },
                       ].map((s, i) => (
-                        <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                        <div key={i} style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                            <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '700', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>{s.title}</h4>
+                            <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '700', color: '#F5F0E3', fontFamily: "'Figtree', sans-serif" }}>{s.title}</h4>
                             <span style={{ fontSize: '0.7rem', background: `${s.color}20`, color: s.color, padding: '3px 8px', borderRadius: '3px', fontWeight: '700', fontFamily: "'Figtree', sans-serif", textTransform: 'uppercase' }}>
                               {s.tag}
                             </span>
                           </div>
-                          <p style={{ margin: 0, fontSize: '0.8rem', color: '#F0EAD680', lineHeight: 1.5 }}>{s.body}</p>
+                          <p style={{ margin: 0, fontSize: '0.8rem', color: '#F5F0E380', lineHeight: 1.5 }}>{s.body}</p>
                         </div>
                       ))}
                     </>
@@ -4180,8 +4183,8 @@ export default function Dashboard() {
                         {['All', 'Guides', 'Research', 'Tools'].map(f => (
                           <button key={f} style={{
                             padding: '6px 12px', background: f === 'All' ? '#FF664420' : 'transparent',
-                            border: `1px solid ${f === 'All' ? '#FF6644' : '#F0EAD615'}`,
-                            borderRadius: '16px', fontSize: '0.75rem', color: '#F0EAD6',
+                            border: `1px solid ${f === 'All' ? '#FF6644' : '#F5F0E315'}`,
+                            borderRadius: '16px', fontSize: '0.75rem', color: '#F5F0E3',
                             cursor: 'pointer', fontFamily: "'Figtree', sans-serif", fontWeight: '700',
                             whiteSpace: 'nowrap'
                           }}>
@@ -4191,19 +4194,19 @@ export default function Dashboard() {
                       </div>
 
                       {/* Featured */}
-                      <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderLeft: '4px solid #FF6644', borderRadius: '8px', padding: '14px', marginBottom: '16px' }}>
+                      <div style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderLeft: '4px solid #FF6644', borderRadius: '8px', padding: '14px', marginBottom: '16px' }}>
                         <div style={{ fontSize: '0.7rem', color: '#FF6644', fontWeight: '700', textTransform: 'uppercase', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>Featured</div>
-                        <h3 style={{ margin: '0 0 8px 0', fontSize: '0.95rem', fontWeight: '700', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>Your first meal prep: a step-by-step system</h3>
-                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#F0EAD680', lineHeight: 1.5, marginBottom: '10px' }}>Learn meal prep that actually saves time and scales with your goals.</p>
+                        <h3 style={{ margin: '0 0 8px 0', fontSize: '0.95rem', fontWeight: '700', color: '#F5F0E3', fontFamily: "'Figtree', sans-serif" }}>Your first meal prep: a step-by-step system</h3>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#F5F0E380', lineHeight: 1.5, marginBottom: '10px' }}>Learn meal prep that actually saves time and scales with your goals.</p>
                         <a href="#" style={{ fontSize: '0.8rem', color: '#FF6644', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Start guide →</a>
                       </div>
 
                       {/* Guides */}
                       <div style={{ marginBottom: '20px' }}>
-                        <div style={{ fontSize: '8px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Guides</div>
+                        <div style={{ fontSize: '8px', color: '#F5F0E350', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Guides</div>
                         {['Set up your macros', 'Build your supplement stack', 'Reverse diet playbook'].map(g => (
-                          <div key={g} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
-                            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>{g}</div>
+                          <div key={g} style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F5F0E3', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>{g}</div>
                             <a href="#" style={{ fontSize: '0.75rem', color: '#FF6644', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Read guide →</a>
                           </div>
                         ))}
@@ -4211,10 +4214,10 @@ export default function Dashboard() {
 
                       {/* Calculators */}
                       <div style={{ marginBottom: '20px' }}>
-                        <div style={{ fontSize: '8px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Calculators</div>
+                        <div style={{ fontSize: '8px', color: '#F5F0E350', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Calculators</div>
                         {['TDEE calculator', '1RM estimator', 'Cut/bulk timeline'].map(c => (
-                          <div key={c} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
-                            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>{c}</div>
+                          <div key={c} style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F5F0E3', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>{c}</div>
                             <a href="#" style={{ fontSize: '0.75rem', color: '#FF6644', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Try tool →</a>
                           </div>
                         ))}
@@ -4222,10 +4225,10 @@ export default function Dashboard() {
 
                       {/* External */}
                       <div>
-                        <div style={{ fontSize: '8px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>External Resources</div>
+                        <div style={{ fontSize: '8px', color: '#F5F0E350', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>External Resources</div>
                         {['Examine.com', 'Jeff Nippard', 'Renaissance Periodization'].map(r => (
-                          <div key={r} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
-                            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>{r}</div>
+                          <div key={r} style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F5F0E3', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>{r}</div>
                             <a href="#" style={{ fontSize: '0.75rem', color: '#FF6644', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Visit →</a>
                           </div>
                         ))}
@@ -4242,9 +4245,9 @@ export default function Dashboard() {
                           { label: 'Avg water', val: '4.1', color: '#3B8BD4' },
                           { label: 'Supp adherence', val: '78%', color: '#4CAF50' },
                         ].map((s, i) => (
-                          <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+                          <div key={i} style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
                             <div style={{ fontSize: '12px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: s.color }}>{s.val}</div>
-                            <div style={{ fontSize: '0.7rem', color: '#F0EAD650', marginTop: '4px', fontFamily: "'Figtree', sans-serif" }}>{s.label}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#F5F0E350', marginTop: '4px', fontFamily: "'Figtree', sans-serif" }}>{s.label}</div>
                           </div>
                         ))}
                       </div>
@@ -4255,15 +4258,15 @@ export default function Dashboard() {
                         { type: 'Win', color: '#4CAF50', text: '✓ 6-day logging streak! Consistency is the biggest driver of results.' },
                         { type: 'Food + spending', color: '#FF6644', text: 'Your chicken + rice meals average $2.40/meal. Meal prep ROI is solid.' },
                       ].map((obs, i) => (
-                        <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderLeft: `4px solid ${obs.color}`, borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                        <div key={i} style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderLeft: `4px solid ${obs.color}`, borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
                           <div style={{ fontSize: '0.75rem', fontWeight: '700', color: obs.color, textTransform: 'uppercase', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>
                             {obs.type}
                           </div>
-                          <p style={{ margin: 0, fontSize: '0.85rem', color: '#F0EAD6', lineHeight: 1.5 }}>{obs.text}</p>
+                          <p style={{ margin: 0, fontSize: '0.85rem', color: '#F5F0E3', lineHeight: 1.5 }}>{obs.text}</p>
                         </div>
                       ))}
 
-                      <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px', marginTop: '16px', textAlign: 'center' }}>
+                      <div style={{ background: '#3E3228', border: '1px solid #F5F0E315', borderRadius: '8px', padding: '12px', marginTop: '16px', textAlign: 'center' }}>
                         <button style={{
                           width: '100%', padding: '10px', background: '#FF6644', border: 'none', borderRadius: '6px',
                           color: 'white', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', fontFamily: "'Figtree', sans-serif",
@@ -4521,138 +4524,126 @@ export default function Dashboard() {
                     {/* ── GUIDE ── */}
           {activeTab === 'guide' && (
           <TabErrorBoundary tabName="Guide">
-            <div className={styles.guideView} style={{ paddingBottom: '80px', display: 'flex', flexDirection: 'column' }}>
+          {(() => {
+            const triedCount = guideTried.length
+            const savedCount = guideBookmarks.length
+            const forYouCards = [
+              { id: 'fy1', icon: '🎙️', title: 'Try voice input', preview: 'Tap the mic. Say what you need done.', cta: 'Open Check-in', action: 'checkin' },
+              { id: 'fy2', icon: '⭐', title: 'Star your #1 task', preview: 'One task. The whole system.', cta: 'Open Tasks', action: 'tasks' },
+              { id: 'fy3', icon: '⏱️', title: 'Start a focus session', preview: 'Lock in for 25 minutes.', cta: 'Open Focus', action: 'focus' },
+            ]
+            const filteredStrategies = GUIDE_STRATEGIES.filter(s => {
+              if (guideSelectedFilter === 'All') return true
+              if (guideSelectedFilter === 'Saved') return guideBookmarks.includes(s.id)
+              return s.tag === guideSelectedFilter
+            })
+            return (
+              <div style={{ paddingBottom: '80px', background: '#211A14', minHeight: '100vh' }}>
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 14px 4px' }}>
+                  <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', color: '#F5F0E3', fontFamily: "'Figtree', sans-serif" }}>Guide</h2>
+                  <span style={{ fontSize: '9px', color: '#F5F0E338', fontFamily: "'Figtree', sans-serif" }}>{triedCount} tried · {savedCount} saved</span>
+                </div>
+                <p style={{ margin: '0 14px 16px', fontSize: '9px', color: '#F5F0E350', fontFamily: "'Figtree', sans-serif", lineHeight: 1.5 }}>How to get the most out of Cinis — plus strategies that work.</p>
 
-              {/* FOR YOU CAROUSEL */}
-              {(() => {
-                const forYouCards = []
-                const overdueCount = tasks.filter(t => !t.completed && t.due_time && new Date(t.due_time) < new Date()).length
-                if (overdueCount >= 3) {
-                  forYouCards.push({ id: 'overdue', icon: '🎯', title: 'The one-task rule', preview: 'Too many open loops?', cta: 'Open Tasks', action: 'tasks' })
-                }
-                const streak = profile?.current_streak || 0
-                if (streak >= 7) {
-                  forYouCards.push({ id: 'streak', icon: '🔥', title: 'Protect the streak', preview: 'You\'re on a roll.', cta: 'Open Check-in', action: 'checkin' })
-                }
-                const focusThisWeek = tasks.filter(t => {
-                  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7)
-                  return t.completed && t.completed_at && new Date(t.completed_at) > weekAgo && t.tag === 'focus'
-                }).length
-                if (focusThisWeek === 0) {
-                  forYouCards.push({ id: 'focus', icon: '👥', title: 'Body doubles work', preview: 'Focus alongside someone.', cta: 'Open Focus', action: 'focus' })
-                }
-                forYouCards.push(
-                  { id: 'tip1', icon: '✦', title: 'How Check-in works', preview: 'Your coach knows your context.', cta: 'Open Check-in', action: 'checkin' },
-                  { id: 'tip2', icon: '⭐', title: 'Star your #1 task', preview: 'One thing. Go.', cta: 'Open Tasks', action: 'tasks' }
-                )
+                {/* FOR YOU carousel */}
+                <div style={{ marginBottom: '20px' }}>
+                  <p style={{ fontFamily: "'Figtree', sans-serif", fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: '#FF6644', marginBottom: '10px', marginLeft: '14px', letterSpacing: '0.08em' }}>⚡ For you right now</p>
+                  <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingLeft: '14px', paddingRight: '14px', scrollBehavior: 'smooth' }}>
+                    {forYouCards.map(card => (
+                      <div key={card.id} style={{ minWidth: '190px', width: '190px', background: '#3E3228', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', borderTop: '2px solid #FF6644', flexShrink: 0 }}>
+                        <div style={{ fontSize: '24px', marginBottom: '8px' }}>{card.icon}</div>
+                        <p style={{ fontFamily: "'Figtree', sans-serif", fontWeight: '600', fontSize: '12px', color: '#F5F0E3', margin: '0 0 4px', lineHeight: 1.3 }}>{card.title}</p>
+                        <p style={{ fontFamily: "'Figtree', sans-serif", fontWeight: '400', fontSize: '10px', color: '#F5F0E350', margin: '0 0 10px', lineHeight: 1.4, flex: 1 }}>{card.preview}</p>
+                        <button onClick={() => switchTab(card.action)} style={{ background: '#FF6644', border: 'none', color: '#F5F0E3', fontFamily: "'Figtree', sans-serif", fontSize: '9px', fontWeight: '700', cursor: 'pointer', textAlign: 'center', padding: '5px 0', borderRadius: '6px', width: '100%' }}>{card.cta}</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                return (
-                  <div style={{ marginBottom: '24px' }}>
-                    <p style={{ fontFamily: 'Figtree, sans-serif', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: '#FF6644', marginBottom: '12px', marginLeft: '12px' }}>For You</p>
-                    <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingLeft: '12px', paddingRight: '12px' }}>
-                      {forYouCards.map(card => (
-                        <div key={card.id} style={{ minWidth: '220px', backgroundColor: '#3E3228', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column' }}>
-                          <div style={{ fontSize: '32px', marginBottom: '8px' }}>{card.icon}</div>
-                          <p style={{ fontFamily: 'Figtree, sans-serif', fontWeight: 500, fontSize: '13px', color: '#F0EAD6', marginBottom: '4px' }}>{card.title}</p>
-                          <p style={{ fontFamily: 'Figtree, sans-serif', fontWeight: 400, fontSize: '11px', color: 'rgba(240,234,214,0.5)', marginBottom: '8px' }}>{card.preview}</p>
-                          <button onClick={() => card.action === 'tasks' || card.action === 'checkin' || card.action === 'focus' ? switchTab(card.action) : null} style={{ marginTop: 'auto', backgroundColor: 'transparent', color: '#FF6644', border: 'none', fontFamily: 'Figtree, sans-serif', fontSize: '11px', fontWeight: 500, cursor: 'pointer', textAlign: 'left', padding: 0 }}>
-                            {card.cta}
+                {/* FILTER CHIPS */}
+                <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingLeft: '14px', paddingRight: '14px', marginBottom: '16px', scrollBehavior: 'smooth' }}>
+                  {['All', 'CINIS', 'QUICK WINS', 'SYSTEMS', 'FOCUS', 'FINANCE', 'NUTRITION', 'Saved'].map(filter => {
+                    const isActive = guideSelectedFilter === filter
+                    const label = filter === 'Saved' ? (savedCount > 0 ? `Saved ${savedCount}` : 'Saved') : filter
+                    return (
+                      <button key={filter} onClick={() => setGuideSelectedFilter(filter)}
+                        style={{
+                          flex: '0 0 auto', padding: '6px 12px', borderRadius: '20px',
+                          border: isActive ? '1px solid #FF6644' : 'none',
+                          background: isActive ? 'rgba(255,102,68,0.15)' : 'rgba(245,240,227,0.06)',
+                          color: isActive ? '#FF6644' : '#F5F0E350',
+                          fontFamily: "'Figtree', sans-serif", fontSize: '9px', fontWeight: '700',
+                          textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer', whiteSpace: 'nowrap'
+                        }}>
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* STRATEGY CARDS */}
+                <div style={{ padding: '0 14px' }}>
+                  {filteredStrategies.map(strategy => {
+                    const tagColor = GUIDE_TAG_COLORS[strategy.tag] || '#FF6644'
+                    const isExpanded = guideExpandedCard === strategy.id
+                    const isBookmarked = guideBookmarks.includes(strategy.id)
+                    const isTried = guideTried.includes(strategy.id)
+                    return (
+                      <div key={strategy.id} style={{ marginBottom: '8px', background: '#3E3228', borderRadius: '10px', padding: '12px 14px', border: '1px solid #F5F0E318' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', cursor: 'pointer' }}
+                          onClick={() => setGuideExpandedCard(isExpanded ? null : strategy.id)}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flex: 1, minWidth: 0 }}>
+                            <span style={{ fontSize: '20px', flexShrink: 0, marginTop: '1px' }}>{strategy.icon}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ fontFamily: "'Figtree', sans-serif", fontWeight: '500', fontSize: '12px', color: '#F5F0E3', margin: '0 0 4px' }}>{strategy.title}</p>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                                <span style={{ background: `${tagColor}26`, color: tagColor, padding: '2px 6px', borderRadius: '10px', fontSize: '6px', fontWeight: '700', fontFamily: "'Figtree', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{strategy.tag}</span>
+                              </div>
+                              {!isExpanded && <p style={{ fontFamily: "'Figtree', sans-serif", fontWeight: '400', fontSize: '10px', color: '#F5F0E350', margin: 0, lineHeight: 1.4 }}>{strategy.preview}</p>}
+                            </div>
+                          </div>
+                          <button onClick={e => {
+                            e.stopPropagation()
+                            const next = isBookmarked ? guideBookmarks.filter(id => id !== strategy.id) : [...guideBookmarks, strategy.id]
+                            setGuideBookmarks(next)
+                            localStorage.setItem('cinis_guide_bookmarks', JSON.stringify(next))
+                          }} style={{ background: 'none', border: 'none', fontSize: '14px', cursor: 'pointer', padding: '0 0 0 8px', flexShrink: 0, opacity: isBookmarked ? 1 : 0.35, lineHeight: 1 }}>
+                            🔖
                           </button>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })()}
-
-              {/* FILTER CHIPS */}
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingLeft: '12px', paddingRight: '12px', marginBottom: '20px' }}>
-                {['All', 'Cinis', 'Quick Wins', 'Focus', 'Momentum', 'Systems', 'Saved'].map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => setGuideSelectedFilter(filter)}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: '20px',
-                      backgroundColor: guideSelectedFilter === filter ? '#FF6644' : '#3E3228',
-                      color: '#F0EAD6',
-                      border: guideSelectedFilter === filter ? 'none' : '1px solid rgba(255,102,68,0.3)',
-                      fontFamily: 'Figtree, sans-serif',
-                      fontSize: '12px',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {filter}
-                  </button>
-                ))}
-              </div>
-
-              {/* STRATEGY CARDS */}
-              <div style={{ flex: 1, overflowY: 'auto', paddingLeft: '12px', paddingRight: '12px' }}>
-                {GUIDE_STRATEGIES.filter(s => {
-                  if (guideSelectedFilter === 'All') return true
-                  if (guideSelectedFilter === 'Saved') return guideBookmarks.includes(s.id)
-                  return s.tag === guideSelectedFilter
-                }).map(strategy => (
-                  <div key={strategy.id} style={{ marginBottom: '12px', backgroundColor: '#3E3228', borderRadius: '12px', padding: '12px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setGuideExpandedCard(guideExpandedCard === strategy.id ? null : strategy.id)}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flex: 1 }}>
-                        <span style={{ fontSize: '24px', marginTop: '2px' }}>{strategy.icon}</span>
-                        <div style={{ flex: 1 }}>
-                          <p style={{ fontFamily: 'Figtree, sans-serif', fontWeight: 500, fontSize: '13px', color: '#F0EAD6', margin: 0, marginBottom: '4px' }}>{strategy.title}</p>
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <span style={{ display: 'inline-block', backgroundColor: '#211A14', color: '#FF6644', padding: '4px 8px', borderRadius: '12px', fontFamily: 'Figtree, sans-serif', fontSize: '10px', fontWeight: 500 }}>{strategy.tag}</span>
+                        {isExpanded && (
+                          <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #F5F0E318' }}>
+                            <p style={{ fontFamily: "'Figtree', sans-serif", fontWeight: '400', fontSize: '11px', color: '#F5F0E390', lineHeight: 1.65, margin: '0 0 12px' }}>{strategy.body}</p>
+                            <button onClick={() => {
+                              const next = isTried ? guideTried.filter(id => id !== strategy.id) : [...guideTried, strategy.id]
+                              setGuideTried(next)
+                              localStorage.setItem('cinis_guide_tried', JSON.stringify(next))
+                            }} style={{ background: isTried ? '#4CAF50' : '#FF6644', color: '#F5F0E3', border: 'none', padding: '7px 16px', borderRadius: '6px', fontFamily: "'Figtree', sans-serif", fontSize: '10px', fontWeight: '600', cursor: 'pointer' }}>
+                              {isTried ? 'Tried ✓' : 'This worked'}
+                            </button>
                           </div>
-                        </div>
+                        )}
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setGuideBookmarks(guideBookmarks.includes(strategy.id) ? guideBookmarks.filter(id => id !== strategy.id) : [...guideBookmarks, strategy.id])
-                          localStorage.setItem('cinis_guide_bookmarks', JSON.stringify(guideBookmarks.includes(strategy.id) ? guideBookmarks.filter(id => id !== strategy.id) : [...guideBookmarks, strategy.id]))
-                        }}
-                        style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', padding: 0, marginLeft: '8px' }}
-                      >
-                        {guideBookmarks.includes(strategy.id) ? '🔖' : '📄'}
-                      </button>
-                    </div>
-                    {guideExpandedCard === strategy.id && (
-                      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(240,234,214,0.1)' }}>
-                        <p style={{ fontFamily: 'Figtree, sans-serif', fontWeight: 400, fontSize: '12px', color: '#F0EAD6', lineHeight: 1.5, margin: 0, marginBottom: '12px' }}>{strategy.body}</p>
-                        <button
-                          onClick={() => {
-                            setGuideTried(guideTried.includes(strategy.id) ? guideTried.filter(id => id !== strategy.id) : [...guideTried, strategy.id])
-                            localStorage.setItem('cinis_guide_tried', JSON.stringify(guideTried.includes(strategy.id) ? guideTried.filter(id => id !== strategy.id) : [...guideTried, strategy.id]))
-                          }}
-                          style={{ backgroundColor: guideTried.includes(strategy.id) ? '#4CAF50' : 'transparent', color: '#F0EAD6', border: guideTried.includes(strategy.id) ? 'none' : '1px solid rgba(240,234,214,0.3)', padding: '8px 12px', borderRadius: '6px', fontFamily: 'Figtree, sans-serif', fontSize: '11px', fontWeight: 500, cursor: 'pointer' }}
-                        >
-                          {guideTried.includes(strategy.id) ? 'This worked ✓' : 'This worked'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                    )
+                  })}
+                </div>
 
-              {/* COACH CTA */}
-              <div style={{ padding: '12px 12px 20px', marginTop: '12px' }}>
-                <div style={{ backgroundColor: '#3E3228', borderRadius: '12px', padding: '12px 14px', border: '1px solid rgba(255,102,68,0.4)', textAlign: 'center' }}>
-                  <p style={{ fontFamily: 'Figtree, sans-serif', fontWeight: 400, fontSize: '12px', color: '#F0EAD6', margin: 0, marginBottom: '12px' }}>Want to talk through a strategy?</p>
-                  <button
-                    onClick={() => {
-                      setCheckinInput('I want to talk about a focus strategy')
-                      switchTab('checkin')
-                    }}
-                    style={{ backgroundColor: '#FF6644', color: '#F0EAD6', border: 'none', padding: '10px 16px', borderRadius: '6px', fontFamily: 'Figtree, sans-serif', fontSize: '12px', fontWeight: 500, cursor: 'pointer', width: '100%' }}
-                  >
-                    Ask your coach
-                  </button>
+                {/* COACH CTA */}
+                <div style={{ padding: '16px 14px 0' }}>
+                  <div style={{ background: '#3E3228', borderRadius: '10px', padding: '16px 14px', border: '1px solid #F5F0E318', textAlign: 'center' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#FF6644', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', fontSize: '14px', fontWeight: '700', fontFamily: "'Sora', sans-serif", color: '#211A14' }}>C</div>
+                    <p style={{ fontFamily: "'Figtree', sans-serif", fontWeight: '600', fontSize: '12px', color: '#F5F0E3', margin: '0 0 4px' }}>Need help with something specific?</p>
+                    <p style={{ fontFamily: "'Figtree', sans-serif", fontWeight: '400', fontSize: '10px', color: '#F5F0E350', margin: '0 0 12px' }}>Ask your coach in Check-in</p>
+                    <button onClick={() => { setCheckinInput('I want to talk through a strategy'); switchTab('checkin') }}
+                      style={{ background: '#FF6644', color: '#F5F0E3', border: 'none', padding: '9px 20px', borderRadius: '6px', fontFamily: "'Figtree', sans-serif", fontSize: '11px', fontWeight: '600', cursor: 'pointer', width: '100%' }}>
+                      Open Check-in
+                    </button>
+                  </div>
                 </div>
               </div>
-
-            </div>
+            )
+          })()}
           </TabErrorBoundary>
           )}
 
@@ -4964,7 +4955,7 @@ export default function Dashboard() {
                     <div className={styles.budgetSetupCard}>
                       <p className={styles.budgetSetupLabel}>What's your monthly take-home pay?</p>
                       <div className={styles.incomeInputRow}>
-                        <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'rgba(240,234,214,0.4)' }}>$</span>
+                        <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'rgba(245,240,227,0.4)' }}>$</span>
                         <input
                           type="number"
                           placeholder="0"
@@ -4972,7 +4963,7 @@ export default function Dashboard() {
                           step="1"
                           value={monthlyIncomeInput}
                           onChange={e => setMonthlyIncomeInput(e.target.value)}
-                          style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: '#F0EAD6' }}
+                          style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: '#F5F0E3' }}
                           className={styles.incomeInput}
                         />
                       </div>
@@ -5115,12 +5106,12 @@ export default function Dashboard() {
                       <div className={styles.budgetSetupCard}>
                         <p className={styles.budgetSetupLabel}>What's your take-home pay?</p>
                         <div className={styles.incomeInputRow}>
-                          <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'rgba(240,234,214,0.4)' }}>$</span>
+                          <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'rgba(245,240,227,0.4)' }}>$</span>
                           <input
                             type="number" placeholder="0" min="0" step="1"
                             value={monthlyIncomeInput}
                             onChange={e => setMonthlyIncomeInput(e.target.value)}
-                            style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: '#F0EAD6' }}
+                            style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: '#F5F0E3' }}
                             className={styles.incomeInput}
                           />
                         </div>
@@ -5170,7 +5161,7 @@ export default function Dashboard() {
                           value={spendAmount}
                           onChange={e => setSpendAmount(e.target.value)}
                           className={styles.fieldInput}
-                          style={{ fontFamily: 'Sora, sans-serif', fontSize: '1.4rem', fontWeight: 300, color: '#F0EAD6', textAlign: 'center' }}
+                          style={{ fontFamily: 'Sora, sans-serif', fontSize: '1.4rem', fontWeight: 300, color: '#F5F0E3', textAlign: 'center' }}
                         />
                         <div className={styles.toggleRow} style={{ flexWrap: 'wrap' }}>
                           {['Food','Transport','Shopping','Entertainment','Bills','Other'].map(c => (
@@ -5690,7 +5681,7 @@ export default function Dashboard() {
                     <div className={styles.fiScoreCard}>
                       <div className={styles.fiScoreRing}>
                         <svg width="124" height="124" viewBox="0 0 124 124">
-                          <circle cx="62" cy="62" r="54" fill="none" stroke="rgba(240,234,214,0.07)" strokeWidth="10" />
+                          <circle cx="62" cy="62" r="54" fill="none" stroke="rgba(245,240,227,0.07)" strokeWidth="10" />
                           <circle cx="62" cy="62" r="54" fill="none"
                             stroke={scoreColor} strokeWidth="10"
                             strokeDasharray={`${strokeDash} ${circumference}`}
@@ -5701,7 +5692,7 @@ export default function Dashboard() {
                           <text x="62" y="57" textAnchor="middle" dominantBaseline="central"
                             fill={scoreColor} fontSize="26" fontWeight="700" fontFamily="Sora, sans-serif">{score}</text>
                           <text x="62" y="77" textAnchor="middle" dominantBaseline="central"
-                            fill="rgba(240,234,214,0.4)" fontSize="11" fontFamily="Figtree, sans-serif">out of 100</text>
+                            fill="rgba(245,240,227,0.4)" fontSize="11" fontFamily="Figtree, sans-serif">out of 100</text>
                         </svg>
                       </div>
                       <div className={styles.fiScoreInfo}>
@@ -5725,7 +5716,7 @@ export default function Dashboard() {
                         <div key={cat.label} className={styles.fiCatRow}>
                           <div className={styles.fiCatTop}>
                             <span className={styles.fiCatLabel}>{cat.label}</span>
-                            <span className={styles.fiCatPts} style={{ color: cat.pts === cat.max ? '#4CAF50' : 'rgba(240,234,214,0.5)' }}>{cat.pts}/{cat.max}</span>
+                            <span className={styles.fiCatPts} style={{ color: cat.pts === cat.max ? '#4CAF50' : 'rgba(245,240,227,0.5)' }}>{cat.pts}/{cat.max}</span>
                           </div>
                           <div className={styles.fiCatBar}>
                             <div className={styles.fiCatBarFill} style={{ width: `${(cat.pts / cat.max) * 100}%`, background: cat.pts === cat.max ? '#4CAF50' : HP }} />
@@ -6259,7 +6250,7 @@ export default function Dashboard() {
         )}
 
         {/* VOICE FAB */}
-        {activeTab === 'tasks' && !showAddModal && !addingTaskOverlay && (
+        {(
           <button
             className={`${styles.voiceFab} ${voiceFabState === 'recording' ? styles.voiceFabRecording : ''} ${voiceFabState === 'processing' ? styles.voiceFabProcessing : ''}`}
             onClick={handleVoiceFabClick}
@@ -6372,7 +6363,7 @@ export default function Dashboard() {
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>
                       Date{newTaskDates.length > 1 ? `s — ${newTaskDates.length} selected` : ''}
-                      {newTaskDates.length > 0 && <button type="button" onClick={() => setNewTaskDates([])} style={{ marginLeft: 8, background: 'none', border: 'none', color: 'rgba(240,234,214,0.4)', fontSize: 12, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>clear</button>}
+                      {newTaskDates.length > 0 && <button type="button" onClick={() => setNewTaskDates([])} style={{ marginLeft: 8, background: 'none', border: 'none', color: 'rgba(245,240,227,0.4)', fontSize: 12, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>clear</button>}
                     </label>
                     <div className={styles.quickRow}>
                       <button type="button" onClick={() => toggleCalDate(todayStr())}
@@ -6384,14 +6375,14 @@ export default function Dashboard() {
                     <div className={styles.s17CalendarWrap}>
                       <div className={styles.s17CalHeader}>
                         <button type="button" onClick={() => setCalPickerMonth(d => new Date(d.getFullYear(), d.getMonth()-1, 1))} className={styles.s17CalNav}>‹</button>
-                        <span style={{ fontSize: 13, color: 'rgba(240,234,214,0.7)', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>
+                        <span style={{ fontSize: 13, color: 'rgba(245,240,227,0.7)', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>
                           {calPickerMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
                         </span>
                         <button type="button" onClick={() => setCalPickerMonth(d => new Date(d.getFullYear(), d.getMonth()+1, 1))} className={styles.s17CalNav}>›</button>
                       </div>
                       <div className={styles.s17CalGrid}>
                         {['S','M','T','W','T','F','S'].map((d,i) => (
-                          <div key={i} style={{ textAlign:'center', fontSize: 10, color: 'rgba(240,234,214,0.3)', fontFamily: "'Sora', sans-serif", padding: '2px 0' }}>{d}</div>
+                          <div key={i} style={{ textAlign:'center', fontSize: 10, color: 'rgba(245,240,227,0.3)', fontFamily: "'Sora', sans-serif", padding: '2px 0' }}>{d}</div>
                         ))}
                         {(() => {
                           const year = calPickerMonth.getFullYear()
@@ -6424,7 +6415,7 @@ export default function Dashboard() {
                       Time
                       <button type="button"
                         onClick={() => setTaskTimeEnabled(v => !v)}
-                        style={{ marginLeft: 10, background: 'none', border: 'none', color: taskTimeEnabled ? '#FF6644' : 'rgba(240,234,214,0.35)', fontSize: 12, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                        style={{ marginLeft: 10, background: 'none', border: 'none', color: taskTimeEnabled ? '#FF6644' : 'rgba(245,240,227,0.35)', fontSize: 12, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
                         {taskTimeEnabled ? '✓ set' : '+ set time'}
                       </button>
                     </label>
@@ -6439,7 +6430,7 @@ export default function Dashboard() {
                             </button>
                           ))}
                         </div>
-                        <span style={{ color: 'rgba(240,234,214,0.3)', fontSize: 18, padding: '0 4px', alignSelf: 'center' }}>:</span>
+                        <span style={{ color: 'rgba(245,240,227,0.3)', fontSize: 18, padding: '0 4px', alignSelf: 'center' }}>:</span>
                         <div className={styles.s17TimeCol}>
                           {[0,5,10,15,20,25,30,35,40,45,50,55].map(m => (
                             <button key={m} type="button"
@@ -6562,7 +6553,7 @@ export default function Dashboard() {
                         <Microphone size={28} />
                       )}
                     </button>
-                    <p style={{ fontSize: 13, color: 'rgba(240,234,214,0.4)', marginTop: 12, fontFamily: "'Figtree', sans-serif" }}>
+                    <p style={{ fontSize: 13, color: 'rgba(245,240,227,0.4)', marginTop: 12, fontFamily: "'Figtree', sans-serif" }}>
                       {listening ? 'Tap to stop' : 'Tap to speak your task'}
                     </p>
                   </div>
@@ -6845,7 +6836,7 @@ export default function Dashboard() {
               <p className={styles.sessionEndPrompt} style={{ marginBottom: '20px' }}>No judgment — let's figure out the next step.</p>
               {stuckConfirmRemove ? (
                 <div>
-                  <p style={{ fontSize: '0.92rem', color: 'rgba(240,234,214,0.6)', marginBottom: '18px', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '0.92rem', color: 'rgba(245,240,227,0.6)', marginBottom: '18px', lineHeight: 1.5 }}>
                     Are you sure? This will remove <strong style={{ color: 'var(--text-color, #f0ead6)' }}>{stuckTask?.title}</strong> from your list.
                   </p>
                   <div className={styles.focusResultBtns}>
@@ -7031,7 +7022,7 @@ export default function Dashboard() {
                 <button onClick={() => setShowAlarmsModal(false)} className={styles.modalClose}>×</button>
               </div>
               {alarms.filter(a => !a.triggered).length === 0 && (
-                <p style={{ fontSize: '0.88rem', color: 'rgba(240,234,214,0.35)', marginBottom: '20px' }}>No active alarms.</p>
+                <p style={{ fontSize: '0.88rem', color: 'rgba(245,240,227,0.35)', marginBottom: '20px' }}>No active alarms.</p>
               )}
               {alarms.filter(a => !a.triggered).map(alarm => (
                 <div key={alarm.id} className={styles.alarmRow}>
