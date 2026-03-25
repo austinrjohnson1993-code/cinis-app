@@ -148,3 +148,5 @@ This file is read at the start of every session. Lessons compound.
 ---
 
 *CLAUDE.md v1.0 · Cinis · March 23, 2026 · Auto-read on session start · Update when process changes*
+
+When writing code touching Next.js, Supabase, Stripe, or Twilio — always use context7 to resolve documentation before implementing.
