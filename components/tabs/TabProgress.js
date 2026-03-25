@@ -98,7 +98,6 @@ export default function TabProgress({ user, profile, tasks, showToast, loggedFet
 
   // ── Effects ──────────────────────────────────────────────────────────────
 
-  // Initial data load
   useEffect(() => {
     if (!user) return
     const init = async () => {
@@ -111,22 +110,19 @@ export default function TabProgress({ user, profile, tasks, showToast, loggedFet
     init()
   }, [user])
 
-  // Load insights on mount
   useEffect(() => {
     if (user && !progressInsightsLoaded) {
       fetchProgressInsights()
     }
   }, [user])
 
-  // Load weekly summary on mount
   useEffect(() => {
     if (user && !weeklySummaryInitialized) {
       fetchWeeklySummary()
-      fetchJournalEntries(user.id) // refresh so Today journalCount is current
+      fetchJournalEntries(user.id)
     }
   }, [user])
 
-  // Load monthly summary when band switches to month
   useEffect(() => {
     if (progressBand === 'month' && user && !monthlySummaryInitialized) {
       fetchMonthlySummary()
@@ -155,11 +151,12 @@ export default function TabProgress({ user, profile, tasks, showToast, loggedFet
 
   const totalXp = profile?.total_xp || 0
   const XP_MILESTONES = [
-    { xp: 1000, label: 'Journal' },
-    { xp: 2000, label: 'Stickers' },
+    { xp: 1000, label: 'Sticker pack' },
     { xp: 5000, label: 'Journal book' },
+    { xp: 25000, label: 'Lifetime Pro' },
   ]
   const nextMilestone = XP_MILESTONES.find(m => m.xp > totalXp)
+  const prevMilestone = [...XP_MILESTONES].reverse().find(m => m.xp <= totalXp)
   const xpBarPct = nextMilestone ? Math.min((totalXp / nextMilestone.xp) * 100, 100) : 100
   const xpToNext = nextMilestone ? (nextMilestone.xp - totalXp).toLocaleString() : null
 
@@ -188,7 +185,6 @@ export default function TabProgress({ user, profile, tasks, showToast, loggedFet
   const monthFocusMinutes = progressSnapshots
     .filter(s => s.snapshot_date && new Date(s.snapshot_date) >= monthStart)
     .reduce((sum, s) => sum + (s.focus_minutes || 0), 0)
-  const monthFocusHours = (monthFocusMinutes / 60).toFixed(1)
   const monthJournalCount = (Array.isArray(journalEntries) ? journalEntries : [])
     .filter(j => j.created_at && new Date(j.created_at) >= monthStart).length
 
@@ -201,7 +197,7 @@ export default function TabProgress({ user, profile, tasks, showToast, loggedFet
     return (
       <div className={styles.pgRingSvgWrap}>
         <svg width="68" height="68" viewBox="0 0 68 68">
-          <circle cx="34" cy="34" r={r} fill="none" stroke="rgba(245,240,227,0.03)" strokeWidth="5" />
+          <circle cx="34" cy="34" r={r} fill="none" stroke="rgba(245,240,227,0.08)" strokeWidth="5" />
           {pct > 0 && (
             <circle cx="34" cy="34" r={r} fill="none" stroke={color} strokeWidth="5"
               strokeDasharray={circ} strokeDashoffset={dashOff} strokeLinecap="round"
@@ -230,44 +226,49 @@ export default function TabProgress({ user, profile, tasks, showToast, loggedFet
       }))
     : INSIGHT_STATIC
 
+  const fmtFocusMonth = monthFocusMinutes >= 60
+    ? (monthFocusMinutes / 60).toFixed(1).replace(/\.0$/, '') + 'h'
+    : monthFocusMinutes + 'm'
+
   // ── Render ───────────────────────────────────────────────────────────────
 
   if (loading) return (
-    <div style={{ padding: '12px 14px', paddingBottom: 80, maxWidth: 680, margin: '0 auto', overflowY: 'auto', minHeight: '100%' }}>
+    <div style={{ padding: '12px 14px', paddingBottom: 80, overflowY: 'auto', height: '100%' }}>
       <SkeletonCard lines={3} />
       <SkeletonCard lines={3} />
     </div>
   )
 
   if (tasksError || progressError) return (
-    <div style={{ padding: '12px 14px', paddingBottom: 80, maxWidth: 680, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60%' }}>
+    <div style={{ padding: '12px 14px', paddingBottom: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60%' }}>
       <ErrorState message="Couldn't load your data." onRetry={() => { setTasksError(false); setProgressError(false); setLoading(true); fetchProgressSnapshots(user.id) }} />
     </div>
   )
 
   return (
-    <div className={styles.pgView}>
+    <div style={{ padding: '12px 14px', paddingBottom: 80, overflowY: 'auto', height: '100%' }}>
 
-      {/* 1 — Three rings */}
-      <div className={styles.pgRingsCard}>
-        <div className={styles.pgRingsRow}>
-          <div className={styles.pgRingWrap}>
-            {renderRing(taskRingPct, '#FF6644', String(completedTodayCount), totalTodayCount > 0 ? 'of ' + String(totalTodayCount) : String(0))}
-            <span className={styles.pgRingLabel}>Tasks</span>
-          </div>
-          <div className={styles.pgRingWrap}>
-            {renderRing(focusRingPct, '#3B8BD4', todayFocusMinutes > 0 ? String(todayFocusMinutes) : '0', 'min')}
-            <span className={styles.pgRingLabel}>Focus</span>
-          </div>
-          <div className={styles.pgRingWrap}>
-            {renderRing(journalRingPct, '#4CAF50', todayJournaled ? '1' : '0', 'entry')}
-            <span className={styles.pgRingLabel}>Journal</span>
-          </div>
+      {/* 1 — Header */}
+      <h2 style={{ margin: '0 0 12px', fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 600, color: '#F5F0E3' }}>Progress</h2>
+
+      {/* 2 — Three rings */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginBottom: 16 }}>
+        <div className={styles.pgRingWrap}>
+          {renderRing(taskRingPct, '#FF6644', String(completedTodayCount), totalTodayCount > 0 ? 'of ' + String(totalTodayCount) : '0')}
+          <span style={{ fontSize: 9, color: 'rgba(245,240,227,0.45)', fontFamily: "'Figtree', sans-serif", marginTop: 5 }}>Tasks</span>
+        </div>
+        <div className={styles.pgRingWrap}>
+          {renderRing(focusRingPct, '#3B8BD4', todayFocusMinutes + 'm', '')}
+          <span style={{ fontSize: 9, color: 'rgba(245,240,227,0.45)', fontFamily: "'Figtree', sans-serif", marginTop: 5 }}>Focus</span>
+        </div>
+        <div className={styles.pgRingWrap}>
+          {renderRing(journalRingPct, '#4CAF50', todayJournaled ? '1' : '0', 'entry')}
+          <span style={{ fontSize: 9, color: 'rgba(245,240,227,0.45)', fontFamily: "'Figtree', sans-serif", marginTop: 5 }}>Journal</span>
         </div>
       </div>
 
-      {/* 2 — XP bar */}
-      <div className={styles.pgXpCard}>
+      {/* 3 — XP card */}
+      <div style={{ background: '#3E3228', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
         <div className={styles.pgXpRow}>
           <div className={styles.pgXpLeft}>
             <span className={styles.pgXpEmoji}>{'\uD83D\uDD25'}</span>
@@ -276,43 +277,55 @@ export default function TabProgress({ user, profile, tasks, showToast, loggedFet
           </div>
           {nextMilestone && (
             <div className={styles.pgXpRight}>
-              <span className={styles.pgXpToGo}>{xpToNext} to go</span>
-              <span className={styles.pgXpNextHint}>{nextMilestone.label} at {nextMilestone.xp >= 1000 ? (nextMilestone.xp / 1000) + 'K' : nextMilestone.xp}</span>
+              <span style={{ fontSize: 9, fontWeight: 600, color: '#FFB800', fontFamily: "'Figtree', sans-serif" }}>{xpToNext} to go</span>
+              <span style={{ fontSize: 8, color: 'rgba(245,240,227,0.38)', fontFamily: "'Figtree', sans-serif" }}>{nextMilestone.label} at {nextMilestone.xp >= 1000 ? (nextMilestone.xp / 1000) + 'K' : nextMilestone.xp}</span>
             </div>
           )}
         </div>
-        <div className={styles.pgXpBarTrack}>
-          <div className={styles.pgXpBarFill} style={{ width: xpBarPct + '%' }} />
+        <div style={{ height: 6, background: 'rgba(245,240,227,0.07)', borderRadius: 3, overflow: 'hidden', marginTop: 8 }}>
+          <div style={{ height: '100%', width: xpBarPct + '%', background: 'linear-gradient(90deg, #FFB800, #FF6644)', borderRadius: 3, transition: 'width 0.5s ease' }} />
         </div>
-        <div className={styles.pgXpMilestones}>
-          <span className={styles.pgXpMstone}>1K {'\u2014'} Journal</span>
-          <span className={styles.pgXpMstone}>2K {'\u2014'} Stickers</span>
-          <span className={styles.pgXpMstone}>5K {'\u2014'} Journal book</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+          <span style={{ fontSize: 7, color: 'rgba(245,240,227,0.3)', fontFamily: "'Figtree', sans-serif" }}>
+            {prevMilestone ? `${prevMilestone.xp >= 1000 ? (prevMilestone.xp / 1000) + 'K' : prevMilestone.xp}` : '0'}
+          </span>
+          <span style={{ fontSize: 7, color: 'rgba(245,240,227,0.3)', fontFamily: "'Figtree', sans-serif" }}>
+            {nextMilestone ? `${nextMilestone.xp >= 1000 ? (nextMilestone.xp / 1000) + 'K' : nextMilestone.xp}` : '25K'}
+          </span>
+          {XP_MILESTONES.length > 2 && (
+            <span style={{ fontSize: 7, color: 'rgba(245,240,227,0.3)', fontFamily: "'Figtree', sans-serif" }}>
+              {XP_MILESTONES[2].xp >= 1000 ? (XP_MILESTONES[2].xp / 1000) + 'K' : XP_MILESTONES[2].xp}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* 3 — Insight cards */}
+      {/* 4 — AI insight cards */}
       {progressInsightsLoading ? (
-        <div className={styles.pgInsightSkeleton} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ height: 52, background: 'rgba(245,240,227,0.06)', borderRadius: 8, animation: 'pgSkeletonPulse 1.4s ease-in-out infinite' }} />
+          ))}
+        </div>
       ) : (
         <div className={styles.pgInsightsStack}>
           {insightSource.map((ins, i) => (
-            <div key={i} className={styles.pgInsightCard} style={{ borderLeftColor: ins.color }}>
+            <div key={i} style={{ background: '#3E3228', borderRadius: 8, padding: '9px 10px', marginBottom: 5, borderLeft: `3px solid ${ins.color}` }}>
               <div className={styles.pgInsightHeader}>
                 <span className={styles.pgInsightIcon} style={{ color: ins.color }}>{ins.icon}</span>
-                <span className={styles.pgInsightType} style={{ color: ins.color }}>{ins.label}</span>
+                <span style={{ fontSize: 9, fontWeight: 800, color: ins.color, fontFamily: "'Figtree', sans-serif", letterSpacing: '0.08em', textTransform: 'uppercase' }}>{ins.label}</span>
               </div>
-              <p className={styles.pgInsightBody}>{ins.body}</p>
+              <p style={{ fontSize: 11, color: 'rgba(245,240,227,0.56)', fontFamily: "'Figtree', sans-serif", lineHeight: 1.55, margin: 0 }}>{ins.body}</p>
             </div>
           ))}
         </div>
       )}
 
-      {/* 4 — Weekly bar chart */}
-      <div className={styles.pgWeekCard}>
+      {/* 5 — Weekly bar chart */}
+      <div style={{ background: '#3E3228', borderRadius: 10, padding: 12, marginTop: 10, marginBottom: 12 }}>
         <div className={styles.pgWeekHeader}>
-          <span className={styles.pgWeekTitle}>This week vs last</span>
-          <span className={styles.pgWeekCount}>{thisWeekTotal} tasks</span>
+          <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 10, fontWeight: 700, color: 'rgba(245,240,227,0.45)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>This week vs last</span>
+          <span style={{ fontFamily: "'Sora', sans-serif", fontSize: 11, fontWeight: 600, color: '#F5F0E3' }}>{thisWeekTotal} tasks</span>
         </div>
         <div className={styles.pgBarChart}>
           {barDays.map((d, i) => {
@@ -322,51 +335,50 @@ export default function TabProgress({ user, profile, tasks, showToast, loggedFet
             return (
               <div key={i} className={styles.pgBarCol}>
                 <div className={styles.pgBarPairWrap}>
-                  <div className={styles.pgBarPrev} style={{ height: prevBarCounts[i] > 0 ? Math.max(prevH, 4) : 0 }} />
-                  <div className={styles.pgBar + (isToday ? ' ' + styles.pgBarToday : '')}
-                    style={{ height: Math.max(thisH, 3) }} />
+                  <div style={{ width: 8, borderRadius: 2, background: 'rgba(245,240,227,0.10)', height: prevBarCounts[i] > 0 ? Math.max(prevH, 4) : 0 }} />
+                  <div style={{ width: 8, borderRadius: 2, background: isToday ? '#FF6644' : 'rgba(255,102,68,0.5)', height: Math.max(thisH, 3) }} />
                 </div>
-                <span className={styles.pgBarLabel + (isToday ? ' ' + styles.pgBarLabelToday : '')}>
+                <span style={{ fontSize: 9, fontWeight: 500, color: isToday ? '#FF6644' : 'rgba(245,240,227,0.3)', fontFamily: "'Figtree', sans-serif" }}>
                   {d.toLocaleDateString('en-US', { weekday: 'narrow' })}
                 </span>
               </div>
             )
           })}
         </div>
-        <div className={styles.pgWeekLegend}>
-          <div className={styles.pgWeekLegendItem}>
-            <div className={styles.pgWeekDot} style={{ background: '#FF6644' }} />
-            <span className={styles.pgWeekLegendLabel}>This week</span>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#FF6644' }} />
+            <span style={{ fontSize: 9, color: 'rgba(245,240,227,0.4)', fontFamily: "'Figtree', sans-serif" }}>This week</span>
           </div>
-          <div className={styles.pgWeekLegendItem}>
-            <div className={styles.pgWeekDot} style={{ background: 'rgba(245,240,227,0.2)' }} />
-            <span className={styles.pgWeekLegendLabel}>Last week</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'rgba(245,240,227,0.10)' }} />
+            <span style={{ fontSize: 9, color: 'rgba(245,240,227,0.4)', fontFamily: "'Figtree', sans-serif" }}>Last week</span>
           </div>
         </div>
       </div>
 
-      {/* 5 — Monthly summary */}
-      <div className={styles.pgMonthCard}>
-        <p className={styles.pgMonthName}>{monthName}</p>
+      {/* 6 — Monthly stats */}
+      <div style={{ background: '#3E3228', borderRadius: 10, padding: 12 }}>
+        <p style={{ fontFamily: "'Figtree', sans-serif", fontSize: 10, fontWeight: 500, color: '#F5F0E3', marginBottom: 8, margin: '0 0 8px' }}>{monthName}</p>
         <div className={styles.pgMonthStats}>
           <div className={styles.pgMonthStat}>
-            <span className={styles.pgMonthStatNum} style={{ color: '#FF6644' }}>{completedThisMonthList.length}</span>
-            <span className={styles.pgMonthStatLabel}>tasks</span>
+            <span style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 600, color: '#FF6644', lineHeight: 1 }}>{completedThisMonthList.length}</span>
+            <span style={{ fontSize: 8, color: 'rgba(245,240,227,0.38)', fontFamily: "'Figtree', sans-serif", marginTop: 2 }}>tasks</span>
           </div>
           <div className={styles.pgMonthDivider} />
           <div className={styles.pgMonthStat}>
-            <span className={styles.pgMonthStatNum} style={{ color: '#3B8BD4' }}>{monthFocusHours}h</span>
-            <span className={styles.pgMonthStatLabel}>focus</span>
+            <span style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 600, color: '#3B8BD4', lineHeight: 1 }}>{fmtFocusMonth}</span>
+            <span style={{ fontSize: 8, color: 'rgba(245,240,227,0.38)', fontFamily: "'Figtree', sans-serif", marginTop: 2 }}>focus</span>
           </div>
           <div className={styles.pgMonthDivider} />
           <div className={styles.pgMonthStat}>
-            <span className={styles.pgMonthStatNum} style={{ color: '#4CAF50' }}>{monthJournalCount}</span>
-            <span className={styles.pgMonthStatLabel}>entries</span>
+            <span style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 600, color: '#4CAF50', lineHeight: 1 }}>{monthJournalCount}</span>
+            <span style={{ fontSize: 8, color: 'rgba(245,240,227,0.38)', fontFamily: "'Figtree', sans-serif", marginTop: 2 }}>entries</span>
           </div>
           <div className={styles.pgMonthDivider} />
           <div className={styles.pgMonthStat}>
-            <span className={styles.pgMonthStatNum} style={{ color: '#FFB800' }}>{(profile?.current_streak || 0) + 'd'}</span>
-            <span className={styles.pgMonthStatLabel}>streak</span>
+            <span style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 600, color: '#FFB800', lineHeight: 1 }}>{(profile?.current_streak || 0) + 'd'}</span>
+            <span style={{ fontSize: 8, color: 'rgba(245,240,227,0.38)', fontFamily: "'Figtree', sans-serif", marginTop: 2 }}>streak</span>
           </div>
         </div>
       </div>
