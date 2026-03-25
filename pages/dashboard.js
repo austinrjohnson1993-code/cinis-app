@@ -3889,327 +3889,393 @@ export default function Dashboard() {
           {activeTab === 'nutrition' && (
           <TabErrorBoundary tabName="Nutrition">
           {(() => {
-            const NUTRITION_SUBTABS = [
-              { id: 'log', label: 'Log' },
-              { id: 'stack', label: 'Stack' },
-              { id: 'meals', label: 'Meals' },
-              { id: 'body', label: 'Body' },
-              { id: 'knowledge', label: 'Knowledge' },
-              { id: 'learn', label: 'Learn' },
-              { id: 'insights', label: 'Insights' },
-            ]
-            const [nutritionSubTab, setNutritionSubTab] = useState('log')
-            const [waterIntake, setWaterIntake] = useState(0)
+            const [nutrSubTab, setNutrSubTab] = useState('log')
 
             return (
-              <div className={styles.tabView}>
-                {/* Sub-tab navigation */}
-                <div className={styles.subTabNav}>
-                  <div className={styles.subTabScroller}>
-                    {NUTRITION_SUBTABS.map(tab => (
-                      <button key={tab.id} onClick={() => setNutritionSubTab(tab.id)}
-                        className={`${styles.subTabPill} ${nutritionSubTab === tab.id ? styles.subTabPillActive : ''}`}>
-                        {tab.label}
+              <div style={{ paddingBottom: '80px', background: '#0D0705', minHeight: '100vh' }}>
+                {/* Underline sub-tab nav */}
+                <div style={{ borderBottom: `1px solid #F0EAD610`, overflowX: 'auto', scrollBehavior: 'smooth', display: 'flex' }}>
+                  {['Log', 'Stack', 'Meals', 'Body', 'Knowledge', 'Learn', 'Insights'].map(tab => {
+                    const isActive = nutrSubTab === tab.toLowerCase()
+                    return (
+                      <button key={tab} onClick={() => setNutrSubTab(tab.toLowerCase())}
+                        style={{
+                          flex: '0 0 auto', padding: '14px 16px', background: 'transparent', border: 'none',
+                          borderBottom: isActive ? '2px solid #E8321A' : 'none',
+                          color: isActive ? '#E8321A' : '#F0EAD680',
+                          fontFamily: "'Figtree', sans-serif", fontSize: '10px', fontWeight: '700',
+                          letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s',
+                          whiteSpace: 'nowrap'
+                        }}>
+                        {tab}
                       </button>
-                    ))}
-                  </div>
+                    )
+                  })}
                 </div>
 
-                {/* LOG sub-tab */}
-                {nutritionSubTab === 'log' && (
-                  <div className={styles.tabContent}>
-                    {/* Macro rings */}
-                    <div className={styles.macroRingsContainer}>
-                      {[
-                        { label: 'Calories', value: 1840, max: 2200, color: '#FF6644' },
-                        { label: 'Protein', value: 120, max: 160, color: '#FFB800' },
-                        { label: 'Carbs', value: 230, max: 280, color: '#4CAF50' },
-                        { label: 'Fat', value: 65, max: 80, color: '#2dd4bf' },
-                      ].map((macro, i) => {
-                        const percent = (macro.value / macro.max) * 100
-                        const circumference = 2 * Math.PI * 45
-                        const offset = circumference - (percent / 100) * circumference
-                        return (
-                          <div key={i} className={styles.macroRing}>
-                            <svg width="120" height="120" viewBox="0 0 120 120">
-                              <circle cx="60" cy="60" r="45" fill="none" stroke="rgba(240,234,214,0.1)" strokeWidth="6"/>
-                              <circle cx="60" cy="60" r="45" fill="none" stroke={macro.color} strokeWidth="6"
-                                strokeDasharray={circumference} strokeDashoffset={offset}
-                                style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px' }}/>
-                            </svg>
-                            <div className={styles.macroValue}>
-                              <span className={styles.macroNumber} style={{ fontFamily: "'Sora', sans-serif" }}>{macro.value}</span>
-                              <span className={styles.macroLabel}>{macro.label}</span>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                    {/* Water tracker */}
-                    <div className={styles.waterTrackerCard}>
-                      <h3 className={styles.waterTrackerTitle}>Water</h3>
-                      <div className={styles.waterBubbles}>
-                        {[...Array(10)].map((_, i) => (
-                          <button key={i} onClick={() => setWaterIntake(i + 1)}
-                            className={`${styles.waterBubble} ${i < waterIntake ? styles.waterBubbleFilled : ''}`}
-                            style={{ background: i < waterIntake ? '#2dd4bf' : 'rgba(240,234,214,0.1)' }}
-                            aria-label={`Cup ${i + 1}`}/>
-                        ))}
-                      </div>
-                      <p className={styles.waterLabel}>{waterIntake}/10 cups</p>
-                    </div>
-
-                    {/* Today's meals */}
-                    <div className={styles.mealsSection}>
-                      <h3 className={styles.sectionTitle}>Today's meals</h3>
-                      {[
-                        { name: 'Breakfast', time: '8:30 AM', foods: 'Oatmeal, berries, yogurt', cal: 380, protein: 18, carbs: 52, fat: 8 },
-                        { name: 'Lunch', time: '12:45 PM', foods: 'Grilled chicken, rice, broccoli', cal: 620, protein: 45, carbs: 65, fat: 12 },
-                        { name: 'Snack', time: '3:00 PM', foods: 'Protein bar, apple', cal: 280, protein: 20, carbs: 28, fat: 8 },
-                      ].map((meal, i) => (
-                        <div key={i} className={styles.mealCard}>
-                          <div className={styles.mealHeader}>
-                            <div>
-                              <div className={styles.mealName}>{meal.name}</div>
-                              <div className={styles.mealTime}>{meal.time}</div>
-                              <div className={styles.mealFoods}>{meal.foods}</div>
-                            </div>
-                            <div className={styles.mealCal}>{meal.cal}</div>
-                          </div>
-                          <div className={styles.mealMacros}>
-                            <span>P: {meal.protein}g</span>
-                            <span>C: {meal.carbs}g</span>
-                            <span>F: {meal.fat}g</span>
-                          </div>
-                        </div>
-                      ))}
-                      <button className={styles.addBtn}>+ Log meal</button>
-                    </div>
-                  </div>
-                )}
-
-                {/* STACK sub-tab */}
-                {nutritionSubTab === 'stack' && (
-                  <div className={styles.tabContent}>
-                    <div className={styles.stackSection}>
-                      <h3 className={styles.sectionTitle}>Your stack</h3>
-                      {[
-                        { name: 'Whey Protein', dose: '30g', timing: 'Post-workout', notes: 'Mix with water' },
-                        { name: 'Creatine', dose: '5g', timing: 'Anytime', notes: 'Take daily' },
-                        { name: 'Vitamin D3', dose: '2000 IU', timing: 'Morning', notes: 'With food' },
-                      ].map((supp, i) => (
-                        <div key={i} className={styles.supplementCard}>
-                          <div className={styles.suppHeader}>
-                            <div>
-                              <div className={styles.suppName}>{supp.name}</div>
-                              <div className={styles.suppDose}>{supp.dose}</div>
-                            </div>
-                            <span className={`${styles.timingBadge} ${styles['timing' + supp.timing.replace(' ', '')]}`}>
-                              {supp.timing}
-                            </span>
-                          </div>
-                          <div className={styles.suppNotes}>{supp.notes}</div>
-                        </div>
-                      ))}
-                      <button className={styles.addBtn}>+ Add supplement</button>
-                    </div>
-                    <div className={styles.coachCardSection}>
-                      <div className={styles.coachCard} style={{ borderLeft: '4px solid #FF6644' }}>
-                        <p><strong>Coach insight:</strong> Consistent supplementation supports your goals. Stay hydrated.</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* MEALS sub-tab */}
-                {nutritionSubTab === 'meals' && (
-                  <div className={styles.tabContent}>
-                    <div className={styles.mealsSection}>
-                      <h3 className={styles.sectionTitle}>Saved meals</h3>
-                      {[
-                        { name: 'Protein Bowl', macros: 'P 45g • C 65g • F 12g', favorite: true },
-                        { name: 'Quick Breakfast', macros: 'P 20g • C 55g • F 8g', favorite: false },
-                        { name: 'Post-Workout Shake', macros: 'P 35g • C 45g • F 2g', favorite: true },
-                      ].map((meal, i) => (
-                        <div key={i} className={styles.savedMealCard}>
-                          <div className={styles.mealCardContent}>
-                            <div className={styles.mealCardName}>{meal.name}</div>
-                            <div className={styles.mealCardMacros}>{meal.macros}</div>
-                            <div className={styles.mealCardTags}>
-                              {['Balanced'].map(tag => (
-                                <span key={tag} className={styles.hotPoolTag}>{tag}</span>
-                              ))}
-                            </div>
-                          </div>
-                          <div className={styles.mealCardActions}>
-                            {meal.favorite && <Star size={18} weight="fill" style={{ color: '#FFB800' }} />}
-                            <button className={styles.logMealBtn}>Log</button>
-                          </div>
-                        </div>
-                      ))}
-                      <button className={styles.addBtn}>+ Save new meal</button>
-                    </div>
-                  </div>
-                )}
-
-                {/* BODY sub-tab */}
-                {nutritionSubTab === 'body' && (
-                  <div className={styles.tabContent}>
-                    <div className={styles.bodyMetricsContainer}>
-                      {[
-                        { label: 'Weight', value: '175', unit: 'lbs', delta: '-2 lbs', trend: 'down' },
-                        { label: 'Body fat', value: '18', unit: '%', delta: '+0.5%', trend: 'up' },
-                        { label: 'Muscle mass', value: '142', unit: 'lbs', delta: '+1 lb', trend: 'up' },
-                      ].map((metric, i) => (
-                        <div key={i} className={styles.metricCard}>
-                          <div className={styles.metricLabel}>{metric.label}</div>
-                          <div className={styles.metricValue} style={{ fontFamily: "'Sora', sans-serif" }}>
-                            {metric.value}<span className={styles.metricUnit}>{metric.unit}</span>
-                          </div>
-                          <div className={`${styles.metricDelta} ${metric.trend === 'down' ? styles.deltaDown : styles.deltaUp}`}>
-                            {metric.delta} vs last week
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className={styles.bodySection}>
-                      <h3 className={styles.sectionTitle}>Weekly weigh-in streak: 7 days</h3>
-                      {/* Simple weight chart */}
-                      <div className={styles.weightChart}>
-                        {[171, 172, 172.5, 173, 174, 174.5, 175].map((w, i) => {
-                          const max = 175, min = 171
-                          const height = ((w - min) / (max - min)) * 80
+                <div style={{ padding: '12px 14px' }}>
+                  {/* LOG */}
+                  {nutrSubTab === 'log' && (
+                    <>
+                      {/* 4 Macro Rings */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+                        {[
+                          { label: 'Calories', val: 1840, max: 2400, color: '#E8321A' },
+                          { label: 'Protein', val: 128, max: 180, color: '#FF6644' },
+                          { label: 'Carbs', val: 195, max: 280, color: '#F0EAD680' },
+                          { label: 'Fat', val: 52, max: 80, color: '#F0EAD680' },
+                        ].map((m, i) => {
+                          const pct = (m.val / m.max) * 100
+                          const circumference = 126
+                          const strokeDashoffset = circumference - (pct / 100) * circumference
                           return (
-                            <div key={i} className={styles.chartBar} style={{ height: `${height}px` }} title={`${w} lbs`}/>
+                            <div key={i} style={{ textAlign: 'center', position: 'relative' }}>
+                              <svg width="48" height="48" viewBox="0 0 48 48" style={{ margin: '0 auto' }}>
+                                <circle cx="24" cy="24" r="20" fill="none" stroke="#F0EAD610" strokeWidth="3"/>
+                                <circle cx="24" cy="24" r="20" fill="none" stroke={m.color} strokeWidth="3"
+                                  strokeDasharray="126" strokeDashoffset={strokeDashoffset}
+                                  strokeLinecap="round"
+                                  style={{ transform: 'rotate(-90deg)', transformOrigin: '24px 24px', transition: 'stroke-dashoffset 0.6s' }}/>
+                              </svg>
+                              <div style={{ fontSize: '11px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#F0EAD6', marginTop: '6px' }}>
+                                {m.val}
+                              </div>
+                              <div style={{ fontSize: '8px', color: '#F0EAD650', letterSpacing: '0.05em', textTransform: 'uppercase', fontFamily: "'Figtree', sans-serif" }}>
+                                {m.label}
+                              </div>
+                            </div>
                           )
                         })}
                       </div>
-                    </div>
 
-                    <button className={styles.logWeightBtn}>+ Log today's weight</button>
-                  </div>
-                )}
-
-                {/* KNOWLEDGE sub-tab */}
-                {nutritionSubTab === 'knowledge' && (
-                  <div className={styles.tabContent}>
-                    <div className={styles.filterChips}>
-                      {['All', 'Protein', 'Carbs', 'Fat', 'Timing', 'Recovery', 'ADHD'].map(chip => (
-                        <button key={chip} className={styles.filterChip} style={{ borderColor: chip === 'All' ? '#FF6644' : 'rgba(240,234,214,0.12)' }}>
-                          {chip}
-                        </button>
-                      ))}
-                    </div>
-                    {[
-                      { title: 'Protein Timing', tag: 'Protein', body: 'Consume protein within 2 hours post-workout for optimal muscle synthesis.' },
-                      { title: 'Carb Loading', tag: 'Carbs', body: 'Strategic carb timing supports energy and performance during intense training.' },
-                      { title: 'Fat for Hormones', tag: 'Fat', body: 'Dietary fat is essential for testosterone and hormone production.' },
-                    ].map((strategy, i) => (
-                      <div key={i} className={styles.strategyCard}>
-                        <div className={styles.strategyHeader}>
-                          <h4 className={styles.strategyTitle}>{strategy.title}</h4>
-                          <span className={styles.tagBadge}>{strategy.tag}</span>
+                      {/* Water + Protein remaining (side by side) */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+                        {/* Water card */}
+                        <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px' }}>
+                          <div style={{ fontSize: '9px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Water</div>
+                          <div style={{ fontSize: '14px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#F0EAD6' }}>6/10</div>
+                          <div style={{ fontSize: '8px', color: '#F0EAD650', marginTop: '4px' }}>glasses today</div>
                         </div>
-                        <p className={styles.strategyBody}>{strategy.body}</p>
+                        {/* Protein remaining card */}
+                        <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px' }}>
+                          <div style={{ fontSize: '9px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Protein left</div>
+                          <div style={{ fontSize: '14px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#FF6644' }}>52g</div>
+                          <div style={{ fontSize: '8px', color: '#F0EAD650', marginTop: '4px' }}>to goal</div>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                )}
 
-                {/* LEARN sub-tab */}
-                {nutritionSubTab === 'learn' && (
-                  <div className={styles.tabContent}>
-                    <div className={styles.filterChips}>
-                      {['All', 'Guides', 'Research', 'Tools'].map(chip => (
-                        <button key={chip} className={styles.filterChip} style={{ borderColor: chip === 'All' ? '#FF6644' : 'rgba(240,234,214,0.12)' }}>
-                          {chip}
-                        </button>
-                      ))}
-                    </div>
-                    <div className={styles.learnCard} style={{ borderLeft: '4px solid #FF6644', marginBottom: '20px' }}>
-                      <div className={styles.learnCardTag}>Featured</div>
-                      <h3 className={styles.learnCardTitle}>Building Muscle: The Complete Guide</h3>
-                      <p className={styles.learnCardDesc}>Comprehensive guide to nutrition and training for muscle growth.</p>
-                      <a href="#" className={styles.learnCardLink}>Read guide →</a>
-                    </div>
-                    {[
-                      { type: 'Guide', title: 'Macro Counting 101', link: 'Read guide' },
-                      { type: 'Research', title: 'Latest Studies on Protein', link: 'View research' },
-                      { type: 'Tool', title: 'Meal Planner', link: 'Try tool' },
-                    ].map((resource, i) => (
-                      <div key={i} className={styles.resourceCard}>
-                        <span className={styles.resourceType}>{resource.type}</span>
-                        <h4 className={styles.resourceTitle}>{resource.title}</h4>
-                        <a href="#" className={styles.resourceLink}>{resource.link} →</a>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      {/* Today's meals section */}
+                      <div style={{ marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <h3 style={{ margin: 0, fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>Today's meals</h3>
+                          <a href="#" style={{ fontSize: '8px', color: '#E8321A', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>+ Log meal</a>
+                        </div>
 
-                {/* INSIGHTS sub-tab */}
-                {nutritionSubTab === 'insights' && (
-                  <div className={styles.tabContent}>
-                    {/* Weekly nutrition score ring */}
-                    <div className={styles.insightScoreContainer}>
-                      <svg width="180" height="180" viewBox="0 0 180 180" style={{ marginBottom: '20px' }}>
-                        <circle cx="90" cy="90" r="70" fill="none" stroke="rgba(240,234,214,0.1)" strokeWidth="8"/>
-                        <circle cx="90" cy="90" r="70" fill="none"
-                          stroke="url(#scoreGradient)" strokeWidth="8"
-                          strokeDasharray={`${440 * 0.78} ${440}`}
-                          style={{ transform: 'rotate(-90deg)', transformOrigin: '90px 90px' }}/>
-                        <defs>
-                          <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#E8321A" />
-                            <stop offset="100%" stopColor="#FF6644" />
-                          </linearGradient>
-                        </defs>
-                        <text x="90" y="100" textAnchor="middle" fontSize="40" fontFamily="'Sora', sans-serif" fontWeight="700" fill="#F0EAD6">78</text>
-                      </svg>
-                      <p className={styles.insightScoreLabel}>Weekly Nutrition Score</p>
-                    </div>
-
-                    {/* Score breakdown */}
-                    <div className={styles.scoreBreakdown}>
-                      {[
-                        { category: 'Macro Balance', score: 85 },
-                        { category: 'Hydration', score: 70 },
-                        { category: 'Meal Timing', score: 78 },
-                        { category: 'Micronutrients', score: 72 },
-                      ].map((item, i) => (
-                        <div key={i} className={styles.breakdownItem}>
-                          <div className={styles.breakdownLabel}>{item.category}</div>
-                          <div className={styles.breakdownBar}>
-                            <div className={styles.breakdownFill} style={{ width: `${item.score}%` }} />
+                        {/* Meal cards */}
+                        {[
+                          { name: 'Breakfast', time: '7:30 AM', foods: 'Oats, eggs, berries', cal: 420, p: 28, c: 52, f: 14 },
+                          { name: 'Pre-workout', time: '12:00 PM', foods: 'Chicken, rice, broccoli', cal: 580, p: 48, c: 68, f: 12 },
+                          { name: 'Post-workout', time: '4:00 PM', foods: 'Whey protein, banana', cal: 240, p: 35, c: 28, f: 3 },
+                        ].map((m, i) => (
+                          <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                              <div>
+                                <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>{m.name}</div>
+                                <div style={{ fontSize: '0.75rem', color: '#F0EAD650', marginTop: '2px' }}>{m.time}</div>
+                              </div>
+                              <div style={{ fontSize: '13px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#E8321A' }}>{m.cal}</div>
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#F0EAD680', marginBottom: '6px' }}>{m.foods}</div>
+                            <div style={{ display: 'flex', gap: '8px', fontSize: '0.7rem', color: '#F0EAD650', fontFamily: "'Sora', sans-serif" }}>
+                              <span>P {m.p}g</span><span>C {m.c}g</span><span>F {m.f}g</span>
+                            </div>
                           </div>
-                          <div className={styles.breakdownValue}>{item.score}%</div>
+                        ))}
+
+                        {/* Dinner dashed placeholder */}
+                        <div style={{ border: '2px dashed #FF664450', borderRadius: '8px', padding: '12px', textAlign: 'center', marginBottom: '12px' }}>
+                          <div style={{ fontSize: '0.8rem', color: '#FF6644', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>52g protein remaining</div>
+                          <div style={{ fontSize: '0.7rem', color: '#FF664480', marginTop: '4px' }}>Hit your dinner goal here</div>
+                        </div>
+
+                        {/* Quick add chips */}
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          {['Protein shake', 'Chicken + rice', 'Eggs', 'Protein bar', '+ Custom'].map(chip => (
+                            <button key={chip} style={{
+                              padding: '6px 10px', background: chip.includes('+') ? 'transparent' : '#2A1810',
+                              border: chip.includes('+') ? '1px dashed #FF664460' : '1px solid #F0EAD615',
+                              borderRadius: '6px', fontSize: '0.7rem', color: chip.includes('+') ? '#FF6644' : '#F0EAD6',
+                              cursor: 'pointer', fontFamily: "'Figtree', sans-serif", fontWeight: '700',
+                              transition: 'all 0.2s', whiteSpace: 'nowrap'
+                            }}>
+                              {chip}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* STACK */}
+                  {nutrSubTab === 'stack' && (
+                    <>
+                      {[
+                        { title: 'Morning', color: '#FF6644', items: [
+                          { name: 'Creatine', dose: '5g', note: 'Consistency matters' },
+                          { name: 'Vitamin D3', dose: '5000 IU', note: 'With food' },
+                          { name: 'Omega-3', dose: '2g', note: 'Anti-inflammatory' },
+                          { name: 'Magnesium Glycinate', dose: '400mg', note: 'Sleep quality' },
+                        ]},
+                        { title: 'Pre-workout', color: '#E8321A', items: [
+                          { name: 'Caffeine + L-Theanine', dose: '200/200mg', note: 'Sharp focus' },
+                          { name: 'Beta-Alanine', dose: '3.2g', note: 'Endurance boost' },
+                        ]},
+                        { title: 'Evening', color: '#3B8BD4', items: [
+                          { name: 'ZMA', dose: '3 caps', note: 'Recovery support' },
+                          { name: 'Melatonin', dose: '0.5mg', note: 'Sleep onset' },
+                        ]},
+                      ].map((group, gi) => (
+                        <div key={gi} style={{ marginBottom: '20px' }}>
+                          <div style={{ fontSize: '9px', fontWeight: '700', color: group.color, textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>
+                            {group.title}
+                          </div>
+                          {group.items.map((item, i) => (
+                            <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                <div style={{ fontWeight: '700', fontSize: '0.85rem', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>{item.name}</div>
+                                <div style={{ fontSize: '0.8rem', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: '#F0EAD6' }}>{item.dose}</div>
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: '#F0EAD650' }}>{item.note}</div>
+                              <div style={{ height: '3px', background: '#F0EAD615', borderRadius: '2px', marginTop: '8px' }}>
+                                <div style={{ height: '100%', background: group.color, borderRadius: '2px', width: '75%' }}/>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       ))}
-                    </div>
+                      <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderLeft: '4px solid #FF6644', borderRadius: '8px', padding: '12px' }}>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#F0EAD6', lineHeight: 1.5 }}>
+                          <strong>Coach insight:</strong> Your stack is solid. Prioritize timing - creatine consistency over peak dose.
+                        </p>
+                      </div>
+                    </>
+                  )}
 
-                    {/* AI observations */}
-                    <div className={styles.observationsSection}>
-                      <h3 className={styles.sectionTitle}>This week</h3>
-                      <div className={styles.observationCard} style={{ borderLeft: '4px solid #FFB800' }}>
-                        <div className={styles.obsType}>⚠ Alert</div>
-                        <p className={styles.obsText}>You're 300 calories under goal on average. Consider eating more to support gains.</p>
+                  {/* MEALS */}
+                  {nutrSubTab === 'meals' && (
+                    <>
+                      {[
+                        { name: 'Bulk breakfast', cal: 840, p: 45, c: 102, f: 18, fav: true },
+                        { name: 'Pre-workout stack', cal: 580, p: 48, c: 68, f: 12, fav: false },
+                        { name: 'Cut dinner', cal: 520, p: 52, c: 42, f: 14, fav: true },
+                      ].map((meal, i) => (
+                        <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: '700', fontSize: '0.9rem', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>{meal.name}</div>
+                            <div style={{ fontSize: '0.8rem', color: '#F0EAD650', marginTop: '4px', fontFamily: "'Sora', sans-serif" }}>
+                              {meal.cal} cal • P{meal.p} C{meal.c} F{meal.f}
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
+                              <span style={{ fontSize: '0.65rem', background: '#FF664420', color: '#FF6644', padding: '2px 6px', borderRadius: '3px', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Protein</span>
+                              <span style={{ fontSize: '0.65rem', background: '#F0EAD620', color: '#F0EAD6', padding: '2px 6px', borderRadius: '3px', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Balanced</span>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '12px' }}>
+                            {meal.fav && <span style={{ fontSize: '1.2rem' }}>⭐</span>}
+                            <a href="#" style={{ fontSize: '0.75rem', color: '#E8321A', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Log</a>
+                          </div>
+                        </div>
+                      ))}
+                      <div style={{ marginTop: '16px', padding: '12px', border: '2px dashed #FF664450', borderRadius: '8px', textAlign: 'center' }}>
+                        <a href="#" style={{ fontSize: '0.8rem', color: '#FF6644', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>+ Save current meal as template</a>
                       </div>
-                      <div className={styles.observationCard} style={{ borderLeft: '4px solid #FF6644' }}>
-                        <div className={styles.obsType}>📊 Pattern</div>
-                        <p className={styles.obsText}>You consistently hit protein goals on training days. Great consistency.</p>
-                      </div>
-                      <div className={styles.observationCard} style={{ borderLeft: '4px solid #4CAF50' }}>
-                        <div className={styles.obsType}>🎯 Win</div>
-                        <p className={styles.obsText}>New personal best: 10/10 days logged this week!</p>
-                      </div>
-                    </div>
+                    </>
+                  )}
 
-                    <div style={{ padding: '0 14px 20px', marginTop: '20px' }}>
-                      <button className={styles.addTaskBtn} style={{ width: '100%' }}>Ask Cinis about nutrition</button>
-                    </div>
-                  </div>
-                )}
+                  {/* BODY */}
+                  {nutrSubTab === 'body' && (
+                    <>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
+                        {[
+                          { label: 'Weight', val: '187.4', unit: 'lbs', color: '#FF6644' },
+                          { label: 'Change', val: '-0.6', unit: 'lbs', color: '#4CAF50' },
+                          { label: 'Body fat', val: '16.2', unit: '%', color: '#F0EAD680' },
+                        ].map((stat, i) => (
+                          <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '8px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>
+                              {stat.label}
+                            </div>
+                            <div style={{ fontSize: '13px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: stat.color }}>
+                              {stat.val}<span style={{ fontSize: '10px', color: '#F0EAD650' }}>{stat.unit}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{ marginBottom: '20px' }}>
+                        <h3 style={{ margin: '0 0 12px 0', fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>Weight trend (7 days)</h3>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '100px', background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px 6px', gap: '4px' }}>
+                          {[189, 188.5, 188.2, 188, 187.8, 187.6, 187.4].map((w, i) => {
+                            const h = ((w - 187) / 2) * 100
+                            return <div key={i} style={{ flex: 1, height: `${h}%`, background: '#FF6644', borderRadius: '2px', transition: 'all 0.3s' }} title={`${w} lbs`}/>
+                          })}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px', marginBottom: '16px', fontSize: '0.85rem', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>
+                        <span style={{ fontWeight: '700' }}>6 day streak 🔥</span> — keep logging!
+                      </div>
+
+                      <button style={{
+                        width: '100%', padding: '12px', background: '#FF6644', border: 'none', borderRadius: '8px',
+                        color: 'white', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', fontFamily: "'Figtree', sans-serif",
+                        transition: 'all 0.2s'
+                      }}>
+                        + Log today's weight
+                      </button>
+                    </>
+                  )}
+
+                  {/* KNOWLEDGE */}
+                  {nutrSubTab === 'knowledge' && (
+                    <>
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '8px' }}>
+                        {['All', 'Protein', 'Carbs', 'Fat', 'Timing', 'Recovery', 'ADHD'].map(f => (
+                          <button key={f} style={{
+                            padding: '6px 12px', background: f === 'All' ? '#FF664420' : 'transparent',
+                            border: `1px solid ${f === 'All' ? '#FF6644' : '#F0EAD615'}`,
+                            borderRadius: '16px', fontSize: '0.75rem', color: '#F0EAD6',
+                            cursor: 'pointer', fontFamily: "'Figtree', sans-serif", fontWeight: '700',
+                            whiteSpace: 'nowrap', transition: 'all 0.2s'
+                          }}>
+                            {f}
+                          </button>
+                        ))}
+                      </div>
+
+                      {[
+                        { title: 'Protein timing myth', tag: 'Protein', color: '#FF6644', body: '20-40g per meal matters more than post-workout window. Spread protein throughout the day.' },
+                        { title: 'Carbs are not the enemy', tag: 'Carbs', color: '#F0EAD680', body: 'Fuel for brain and training. Time them around workouts. Dietary carbs do not equal body fat.' },
+                        { title: 'The ADHD-nutrition link', tag: 'ADHD', color: '#3B8BD4', body: 'Omega-3, protein breakfast, stable blood sugar. Energy dips = focus dips.' },
+                        { title: 'Pre-workout nutrition', tag: 'Timing', color: '#FFB800', body: 'Carbs 60-90min before, protein 30min before. Avoid high fiber 45min pre-workout.' },
+                        { title: 'Sleep + recovery nutrition', tag: 'Recovery', color: '#4CAF50', body: 'Casein before bed, magnesium timing, carbs support cortisol reset.' },
+                        { title: 'Supplement hierarchy', tag: 'Timing', color: '#FFB800', body: 'Creatine & Whey are #1. Rest are nice-to-haves. Consistency beats perfection.' },
+                      ].map((s, i) => (
+                        <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                            <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '700', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>{s.title}</h4>
+                            <span style={{ fontSize: '0.7rem', background: `${s.color}20`, color: s.color, padding: '3px 8px', borderRadius: '3px', fontWeight: '700', fontFamily: "'Figtree', sans-serif", textTransform: 'uppercase' }}>
+                              {s.tag}
+                            </span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: '0.8rem', color: '#F0EAD680', lineHeight: 1.5 }}>{s.body}</p>
+                        </div>
+                      ))}
+                    </>
+                  )}
+
+                  {/* LEARN */}
+                  {nutrSubTab === 'learn' && (
+                    <>
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '8px' }}>
+                        {['All', 'Guides', 'Research', 'Tools'].map(f => (
+                          <button key={f} style={{
+                            padding: '6px 12px', background: f === 'All' ? '#FF664420' : 'transparent',
+                            border: `1px solid ${f === 'All' ? '#FF6644' : '#F0EAD615'}`,
+                            borderRadius: '16px', fontSize: '0.75rem', color: '#F0EAD6',
+                            cursor: 'pointer', fontFamily: "'Figtree', sans-serif", fontWeight: '700',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {f}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Featured */}
+                      <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderLeft: '4px solid #FF6644', borderRadius: '8px', padding: '14px', marginBottom: '16px' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#FF6644', fontWeight: '700', textTransform: 'uppercase', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>Featured</div>
+                        <h3 style={{ margin: '0 0 8px 0', fontSize: '0.95rem', fontWeight: '700', color: '#F0EAD6', fontFamily: "'Figtree', sans-serif" }}>Your first meal prep: a step-by-step system</h3>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#F0EAD680', lineHeight: 1.5, marginBottom: '10px' }}>Learn meal prep that actually saves time and scales with your goals.</p>
+                        <a href="#" style={{ fontSize: '0.8rem', color: '#FF6644', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Start guide →</a>
+                      </div>
+
+                      {/* Guides */}
+                      <div style={{ marginBottom: '20px' }}>
+                        <div style={{ fontSize: '8px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Guides</div>
+                        {['Set up your macros', 'Build your supplement stack', 'Reverse diet playbook'].map(g => (
+                          <div key={g} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>{g}</div>
+                            <a href="#" style={{ fontSize: '0.75rem', color: '#FF6644', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Read guide →</a>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Calculators */}
+                      <div style={{ marginBottom: '20px' }}>
+                        <div style={{ fontSize: '8px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>Calculators</div>
+                        {['TDEE calculator', '1RM estimator', 'Cut/bulk timeline'].map(c => (
+                          <div key={c} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>{c}</div>
+                            <a href="#" style={{ fontSize: '0.75rem', color: '#FF6644', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Try tool →</a>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* External */}
+                      <div>
+                        <div style={{ fontSize: '8px', color: '#F0EAD650', textTransform: 'uppercase', fontWeight: '700', marginBottom: '8px', fontFamily: "'Figtree', sans-serif" }}>External Resources</div>
+                        {['Examine.com', 'Jeff Nippard', 'Renaissance Periodization'].map(r => (
+                          <div key={r} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', marginBottom: '6px' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#F0EAD6', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>{r}</div>
+                            <a href="#" style={{ fontSize: '0.75rem', color: '#FF6644', textDecoration: 'none', fontWeight: '700', fontFamily: "'Figtree', sans-serif" }}>Visit →</a>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* INSIGHTS */}
+                  {nutrSubTab === 'insights' && (
+                    <>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
+                        {[
+                          { label: 'Avg meals/day', val: '2.4', color: '#FF6644' },
+                          { label: 'Avg water', val: '4.1', color: '#3B8BD4' },
+                          { label: 'Supp adherence', val: '78%', color: '#4CAF50' },
+                        ].map((s, i) => (
+                          <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '12px', fontFamily: "'Sora', sans-serif", fontWeight: '700', color: s.color }}>{s.val}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#F0EAD650', marginTop: '4px', fontFamily: "'Figtree', sans-serif" }}>{s.label}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {[
+                        { type: 'Pattern', color: '#E8321A', text: 'You log most consistently on Mon, Tue, Wed. Weekend gaps are your weak point.' },
+                        { type: 'Hydration', color: '#3B8BD4', text: 'You\'re averaging 4.1 glasses/day. Aim for 8–10 for optimal performance.' },
+                        { type: 'Win', color: '#4CAF50', text: '✓ 6-day logging streak! Consistency is the biggest driver of results.' },
+                        { type: 'Food + spending', color: '#FF6644', text: 'Your chicken + rice meals average $2.40/meal. Meal prep ROI is solid.' },
+                      ].map((obs, i) => (
+                        <div key={i} style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderLeft: `4px solid ${obs.color}`, borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                          <div style={{ fontSize: '0.75rem', fontWeight: '700', color: obs.color, textTransform: 'uppercase', marginBottom: '6px', fontFamily: "'Figtree', sans-serif" }}>
+                            {obs.type}
+                          </div>
+                          <p style={{ margin: 0, fontSize: '0.85rem', color: '#F0EAD6', lineHeight: 1.5 }}>{obs.text}</p>
+                        </div>
+                      ))}
+
+                      <div style={{ background: '#2A1810', border: '1px solid #F0EAD615', borderRadius: '8px', padding: '12px', marginTop: '16px', textAlign: 'center' }}>
+                        <button style={{
+                          width: '100%', padding: '10px', background: '#FF6644', border: 'none', borderRadius: '6px',
+                          color: 'white', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', fontFamily: "'Figtree', sans-serif",
+                          transition: 'all 0.2s'
+                        }}>
+                          Ask Cinis about nutrition
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             )
           })()}
