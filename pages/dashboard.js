@@ -6342,13 +6342,6 @@ export default function Dashboard() {
                   <span>{item.label}</span>
                 </button>
               ))}
-              <button onClick={() => switchTab('settings')}
-                className={`${styles.moreDrawerItem} ${activeTab === 'settings' ? styles.moreDrawerItemActive : ''}`}>
-                <span className={styles.navIcon}>
-                  <Gear size={22} />
-                </span>
-                <span>Settings</span>
-              </button>
             </div>
           </div>
         )}
