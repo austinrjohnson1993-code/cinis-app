@@ -1,0 +1,9 @@
+{
+  "hooks": {
+    "startup": [
+      {
+        "command": "bash /Users/ryanjohnson/Documents/focusbuddy-app/scripts/session_start.sh"
+      }
+    ]
+  }
+}
