@@ -13,17 +13,17 @@
 
 | Tab | File | Split | Transplanted | QC Confirmed | Notes |
 |-----|------|-------|--------------|--------------|-------|
-| Tasks | TabTasks.js | ✅ | ⬜ | ⬜ | Highest priority — home screen |
-| Check-in | TabCheckin.js | ✅ | ⬜ | ⬜ | |
-| Focus | TabFocus.js | ✅ | ⬜ | ⬜ | |
-| Calendar | TabCalendar.js | ✅ | ⬜ | ⬜ | |
-| Habits | TabHabits.js | ✅ | ⬜ | ⬜ | Includes Journal card |
-| Tag Team | TabTagTeam.js | ✅ | ⬜ | ⬜ | Placeholder at launch |
-| Nutrition | TabNutrition.js | ✅ | ⬜ | ⬜ | Macro ring labels + water dots bugs |
-| Finance | TabFinance.js | ✅ | ⬜ | ⬜ | Bills tab working |
-| Progress | TabProgress.js | ✅ | ⬜ | ⬜ | Monthly/weekly decoupled S26 |
-| Guide | TabGuide.js | ✅ | ⬜ | ⬜ | |
-| Settings | TabSettings.js | ✅ | ⬜ | ⬜ | Push notif toggle not wired |
+| Tasks | TabTasks.js | ✅ | ✅ | ⬜ | Highest priority — home screen |
+| Check-in | TabCheckin.js | ✅ | ✅ | ⬜ | |
+| Focus | TabFocus.js | ✅ | ✅ | ⬜ | |
+| Calendar | TabCalendar.js | ✅ | ✅ | ⬜ | |
+| Habits | TabHabits.js | ✅ | ✅ | ⬜ | Includes Journal card |
+| Tag Team | TabTagTeam.js | ✅ | ✅ | ⬜ | Placeholder at launch |
+| Nutrition | TabNutrition.js | ✅ | ✅ | ⬜ | Macro ring labels + water dots bugs |
+| Finance | TabFinance.js | ✅ | ✅ | ⬜ | Bills tab working |
+| Progress | TabProgress.js | ✅ | ✅ | ⬜ | Monthly/weekly decoupled S26 |
+| Guide | TabGuide.js | ✅ | ✅ | ⬜ | |
+| Settings | TabSettings.js | ✅ | ✅ | ⬜ | Push notif toggle not wired |
 
 ## Dashboard Shell
 
