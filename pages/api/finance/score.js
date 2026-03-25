@@ -8,12 +8,6 @@ function getAdminClient() {
   )
 }
 
-// Score weights — 4 components, 25 points each = 100 max
-// autopay:  % of bills on autopay (0-25)
-// budget:   income set + bills entered (0-25)
-// tracking: spend_log used this week (0-25)
-// activity: spending entered last 7 days — more entries = better awareness (0-25)
-
 async function handler(req, res, userId) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
 
@@ -26,63 +20,63 @@ async function handler(req, res, userId) {
   const [
     { data: bills },
     { data: profile },
-    { data: recentSpend },
+    { data: weekSpend },
   ] = await Promise.all([
-    supabaseAdmin.from('bills').select('id, autopay, amount, frequency').eq('user_id', userId),
-    supabaseAdmin.from('profiles').select('monthly_income').eq('id', userId).single(),
-    supabaseAdmin.from('spend_log').select('id').eq('user_id', userId).gte('created_at', sevenDaysAgo.toISOString()),
+    supabaseAdmin.from('bills').select('id, autopay').eq('user_id', userId),
+    supabaseAdmin.from('profiles')
+      .select('budget_plan, income_sources, financial_goals')
+      .eq('id', userId)
+      .single(),
+    supabaseAdmin.from('spend_log')
+      .select('id, impulse')
+      .eq('user_id', userId)
+      .gte('logged_at', sevenDaysAgo.toISOString()),
   ])
 
   const billList = bills || []
-  const spendEntries = recentSpend || []
-  const monthlyIncome = parseFloat(profile?.monthly_income) || 0
+  const spendEntries = weekSpend || []
 
-  // ── Autopay score (0-25) ───────────────────────────────────────────────────
-  // Bills entered + % on autopay. No bills entered = 0. All on autopay = 25.
-  let autopayScore = 0
+  // ── Autopay coverage (0–15) ───────────────────────────────────────────────
+  let autopay = 0
   if (billList.length > 0) {
     const autopayCount = billList.filter(b => b.autopay).length
-    const autopayRatio = autopayCount / billList.length
-    autopayScore = Math.round(autopayRatio * 25)
+    autopay = Math.min(15, Math.round((autopayCount / billList.length) * 15))
   }
 
-  // ── Budget score (0-25) ────────────────────────────────────────────────────
-  // 15 pts for having income set, 10 pts for having at least 3 bills entered
-  let budgetScore = 0
-  if (monthlyIncome > 0) budgetScore += 15
-  if (billList.length >= 3) budgetScore += 10
-  budgetScore = Math.min(budgetScore, 25)
+  // ── Budget set up (0 or 12) ───────────────────────────────────────────────
+  const budget = profile?.budget_plan ? 12 : 0
 
-  // ── Tracking score (0-25) — spend_log entries this week ───────────────────
-  // 0 entries = 0, 1-2 = 10, 3-5 = 18, 6+ = 25
-  let trackingScore = 0
-  if (spendEntries.length >= 6) trackingScore = 25
-  else if (spendEntries.length >= 3) trackingScore = 18
-  else if (spendEntries.length >= 1) trackingScore = 10
+  // ── Spending tracked (0–15) — entries this week / 7 * 15 ─────────────────
+  const spending = Math.min(15, Math.round((spendEntries.length / 7) * 15))
 
-  // ── Activity score (0-25) — awareness bonus ───────────────────────────────
-  // Did they log something in the last 7 days at all? Capped activity signal.
-  // 0 = no, partial = occasional, 25 = tracked most days
-  const uniqueDays = new Set(
-    spendEntries.map(e => e.created_at?.slice(0, 10)).filter(Boolean)
-  ).size
-  let activityScore = 0
-  if (uniqueDays >= 5) activityScore = 25
-  else if (uniqueDays >= 3) activityScore = 18
-  else if (uniqueDays >= 1) activityScore = 10
+  // ── Emergency fund (0 or 15) ─────────────────────────────────────────────
+  const financialGoals = profile?.financial_goals || []
+  const hasEmergencyGoal = Array.isArray(financialGoals)
+    ? financialGoals.some(g => String(g).toLowerCase().includes('emergency'))
+    : String(financialGoals).toLowerCase().includes('emergency')
+  const emergency = hasEmergencyGoal ? 15 : 0
 
-  const total_score = autopayScore + budgetScore + trackingScore + activityScore
+  // ── Impulse control (0–13) — start at 13, minus 2 per impulse this week ──
+  const impulseCount = spendEntries.filter(e => e.impulse).length
+  const impulse = Math.max(0, 13 - impulseCount * 2)
 
-  console.log(`[finance/score] userId:${userId} score:${total_score} autopay:${autopayScore} budget:${budgetScore} tracking:${trackingScore} activity:${activityScore}`)
+  // ── Auto-save active (0 or 15) ────────────────────────────────────────────
+  const incomeSources = profile?.income_sources || []
+  const hasAutoSave = Array.isArray(incomeSources)
+    ? incomeSources.some(s => String(s?.type || s).toLowerCase().includes('auto_save') || String(s?.type || s).toLowerCase().includes('autosave'))
+    : false
+  const autosave = hasAutoSave ? 15 : 0
+
+  // ── Needs under 50% — skip for now ───────────────────────────────────────
+  const needs = 0
+
+  const score = autopay + budget + spending + emergency + impulse + autosave + needs
+
+  console.log(`[finance/score] ${userId} score:${score} autopay:${autopay} budget:${budget} spending:${spending} emergency:${emergency} impulse:${impulse} autosave:${autosave}`)
 
   return res.status(200).json({
-    total_score,
-    breakdown: {
-      autopay: autopayScore,
-      budget: budgetScore,
-      tracking: trackingScore,
-      activity: activityScore,
-    },
+    score,
+    breakdown: { autopay, budget, spending, emergency, impulse, autosave, needs },
   })
 }
 
