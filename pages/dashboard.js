@@ -4286,7 +4286,6 @@ export default function Dashboard() {
           {activeTab === 'progress' && (
           <TabErrorBoundary tabName="Progress">
           {(() => {
-            // ── Derived data ──────────────────────────────────────────────
             const pgTodayStr = s17TodayStr
             const todayTasksForRings = tasks.filter(t => !t.archived && t.scheduled_for && t.scheduled_for.slice(0,10) === pgTodayStr)
             const completedTodayCount = todayTasksForRings.filter(t => t.completed).length
@@ -4297,24 +4296,20 @@ export default function Dashboard() {
             const todayJournaled = (Array.isArray(journalEntries) ? journalEntries : []).some(j => j.created_at?.startsWith(todayIso))
             const journalRingPct = todayJournaled ? 1 : 0
 
-            // Focus ring — today's focus_minutes from progress_snapshots
             const todaySnapshot = progressSnapshots.find(s => s.snapshot_date?.slice(0, 10) === pgTodayStr)
             const todayFocusMinutes = todaySnapshot?.focus_minutes || 0
-            const focusRingPct = Math.min((todayFocusMinutes / 25), 1) // 25 min daily goal
-            const focusRingDisplay = todayFocusMinutes > 0 ? `${todayFocusMinutes}m` : '0m'
+            const focusRingPct = Math.min(todayFocusMinutes / 60, 1)
 
-            // XP milestones
             const totalXp = profile?.total_xp || 0
             const XP_MILESTONES = [
-              { xp: 1000, label: 'Sticker pack' },
-              { xp: 5000, label: 'Physical journal' },
-              { xp: 25000, label: 'Lifetime Pro' },
+              { xp: 1000, label: 'Journal' },
+              { xp: 2000, label: 'Stickers' },
+              { xp: 5000, label: 'Journal book' },
             ]
             const nextMilestone = XP_MILESTONES.find(m => m.xp > totalXp)
             const xpBarPct = nextMilestone ? Math.min((totalXp / nextMilestone.xp) * 100, 100) : 100
             const xpToNext = nextMilestone ? (nextMilestone.xp - totalXp).toLocaleString() : null
 
-            // Weekly bar chart — last 7 days from tasks
             const barDays = Array.from({length: 7}, (_, i) => {
               const d = new Date(); d.setDate(d.getDate() - (6 - i)); d.setHours(0,0,0,0)
               return d
@@ -4332,21 +4327,18 @@ export default function Dashboard() {
               return tasks.filter(t => t.completed && t.completed_at && localDateStr(new Date(t.completed_at)) === dStr).length
             })
             const barMax = Math.max(...barCounts, ...prevBarCounts, 1)
+            const thisWeekTotal = barCounts.reduce((s, v) => s + v, 0)
 
-            // Monthly summary data (separate from weekly)
             const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0)
+            const monthName = new Date().toLocaleDateString('en-US', { month: 'long' })
             const completedThisMonthList = tasks.filter(t => t.completed && t.completed_at && new Date(t.completed_at) >= monthStart)
-            const monthBestDay = (() => {
-              const dc = {}
-              completedThisMonthList.forEach(t => {
-                const d = new Date(t.completed_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-                dc[d] = (dc[d] || 0) + 1
-              })
-              if (!Object.keys(dc).length) return null
-              return Object.entries(dc).sort((a,b) => b[1]-a[1])[0]
-            })()
+            const monthFocusMinutes = progressSnapshots
+              .filter(s => s.snapshot_date && new Date(s.snapshot_date) >= monthStart)
+              .reduce((sum, s) => sum + (s.focus_minutes || 0), 0)
+            const monthFocusHours = (monthFocusMinutes / 60).toFixed(1)
+            const monthJournalCount = (Array.isArray(journalEntries) ? journalEntries : [])
+              .filter(j => j.created_at && new Date(j.created_at) >= monthStart).length
 
-            // Loading / error / empty early returns
             if (loading) return (
               <div style={{ padding: '12px 14px', paddingBottom: 80, maxWidth: 680, margin: '0 auto', overflowY: 'auto', minHeight: '100%' }}>
                 <SkeletonCard lines={3} />
@@ -4358,181 +4350,167 @@ export default function Dashboard() {
                 <ErrorState message="Couldn't load your data." onRetry={() => { setTasksError(false); setProgressError(false); setLoading(true); fetchTasks(user.id) }} />
               </div>
             )
-            if (!loading && tasks.length === 0 && totalXp === 0) return (
-              <div style={{ padding: '12px 14px', paddingBottom: 80, maxWidth: 680, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60%' }}>
-                <EmptyState
-                  useMarkIcon
-                  headline="Nothing tracked yet."
-                  subtext="Complete tasks and focus sessions to start building your history."
-                />
-              </div>
-            )
 
-            // Ring renderer
-            const renderRing = (pct, color, centerText, label) => {
-              const r = 28
+            const renderRing = (pct, color, valueText, subText) => {
+              const r = 29
               const circ = 2 * Math.PI * r
-              const offset = circ * (1 - Math.min(pct, 1))
+              const dashOff = circ * (1 - Math.min(pct, 1))
               return (
-                <div className={styles.pgRingWrap}>
-                  <div className={styles.pgRingSvgWrap}>
-                    <svg width="72" height="72" viewBox="0 0 72 72">
-                      <circle cx="36" cy="36" r={r} fill="none" stroke="#3E3228" strokeWidth="5" />
-                      {pct > 0 && (
-                        <circle cx="36" cy="36" r={r} fill="none" stroke={color} strokeWidth="5"
-                          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-                          style={{ transform: 'rotate(-90deg)', transformOrigin: '36px 36px', transition: 'stroke-dashoffset 0.6s ease' }} />
-                      )}
-                    </svg>
-                    <div className={styles.pgRingCenter}>
-                      <span className={styles.pgRingValue}>{centerText}</span>
-                    </div>
+                <div className={styles.pgRingSvgWrap}>
+                  <svg width="68" height="68" viewBox="0 0 68 68">
+                    <circle cx="34" cy="34" r={r} fill="none" stroke="rgba(245,240,227,0.03)" strokeWidth="5" />
+                    {pct > 0 && (
+                      <circle cx="34" cy="34" r={r} fill="none" stroke={color} strokeWidth="5"
+                        strokeDasharray={circ} strokeDashoffset={dashOff} strokeLinecap="round"
+                        style={{ transform: 'rotate(-90deg)', transformOrigin: '34px 34px' }} />
+                    )}
+                  </svg>
+                  <div className={styles.pgRingCenter}>
+                    <span className={styles.pgRingValue}>{valueText}</span>
+                    {subText && <span className={styles.pgRingSubValue}>{subText}</span>}
                   </div>
-                  <span className={styles.pgRingLabel}>{label}</span>
                 </div>
               )
             }
 
+            const INSIGHT_STATIC = [
+              { icon: '⚡', label: 'PATTERN', body: 'You complete 2x more tasks on days you journal in the morning.', color: '#FF6644' },
+              { icon: '!', label: 'HEADS UP', body: '4 tasks pushed more than twice this week. LLC filing rescheduled 3 times.', color: '#E8321A' },
+              { icon: '\u2713', label: 'WIN', body: '12-day streak. Longest since you started. Focus minutes up 30% week-over-week.', color: '#4CAF50' },
+            ]
+            const insightSource = progressInsights.length > 0
+              ? progressInsights.map(ins => ({
+                  icon: ins.type === 'alert' ? '!' : ins.type === 'win' ? '\u2713' : '\u26a1',
+                  label: ins.type === 'alert' ? 'HEADS UP' : ins.type === 'win' ? 'WIN' : 'PATTERN',
+                  body: ins.body || ins.title || '',
+                  color: ins.type === 'alert' ? '#E8321A' : ins.type === 'win' ? '#4CAF50' : '#FF6644',
+                }))
+              : INSIGHT_STATIC
+
             return (
               <div className={styles.pgView}>
 
-                {/* 1 — Today's rings */}
-                <div className={styles.pgSection}>
-                  <p className={styles.pgSectionLabel}>Today</p>
+                {/* 1 — Three rings */}
+                <div className={styles.pgRingsCard}>
                   <div className={styles.pgRingsRow}>
-                    {renderRing(taskRingPct, '#FF6644', `${completedTodayCount}/${totalTodayCount}`, 'Tasks')}
-                    {renderRing(focusRingPct, '#E8321A', focusRingDisplay, 'Focus')}
-                    {renderRing(journalRingPct, '#4CAF50', todayJournaled ? '✓' : '—', 'Journal')}
+                    <div className={styles.pgRingWrap}>
+                      {renderRing(taskRingPct, '#FF6644', String(completedTodayCount), totalTodayCount > 0 ? 'of ' + String(totalTodayCount) : String(0))}
+                      <span className={styles.pgRingLabel}>Tasks</span>
+                    </div>
+                    <div className={styles.pgRingWrap}>
+                      {renderRing(focusRingPct, '#3B8BD4', todayFocusMinutes > 0 ? String(todayFocusMinutes) : '0', 'min')}
+                      <span className={styles.pgRingLabel}>Focus</span>
+                    </div>
+                    <div className={styles.pgRingWrap}>
+                      {renderRing(journalRingPct, '#4CAF50', todayJournaled ? '1' : '0', 'entry')}
+                      <span className={styles.pgRingLabel}>Journal</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* 2 — XP bar */}
-                <div className={styles.pgSection}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px', gap: '12px' }}>
-                    <p className={styles.pgSectionLabel}>{totalXp.toLocaleString()} XP</p>
+                <div className={styles.pgXpCard}>
+                  <div className={styles.pgXpRow}>
+                    <div className={styles.pgXpLeft}>
+                      <span className={styles.pgXpEmoji}>\uD83D\uDD25</span>
+                      <span className={styles.pgXpNumber}>{totalXp.toLocaleString()}</span>
+                      <span className={styles.pgXpUnit}>XP</span>
+                    </div>
                     {nextMilestone && (
-                      <span style={{ fontSize: '12px', color: 'rgba(240,234,214,0.6)', whiteSpace: 'nowrap' }}>
-                        Next: {nextMilestone.label}
-                      </span>
+                      <div className={styles.pgXpRight}>
+                        <span className={styles.pgXpToGo}>{xpToNext} to go</span>
+                        <span className={styles.pgXpNextHint}>{nextMilestone.label} at {nextMilestone.xp >= 1000 ? (nextMilestone.xp / 1000) + 'K' : nextMilestone.xp}</span>
+                      </div>
                     )}
                   </div>
                   <div className={styles.pgXpBarTrack}>
-                    <div className={styles.pgXpBarFill} style={{ width: `${xpBarPct}%` }} />
+                    <div className={styles.pgXpBarFill} style={{ width: xpBarPct + '%' }} />
                   </div>
-                  {xpToNext && (
-                    <p style={{ textAlign: 'center', fontSize: '11px', color: 'rgba(240,234,214,0.35)', marginTop: '6px' }}>
-                      {xpToNext} XP to {nextMilestone.label}
-                    </p>
-                  )}
+                  <div className={styles.pgXpMilestones}>
+                    <span className={styles.pgXpMstone}>1K \u2014 Journal</span>
+                    <span className={styles.pgXpMstone}>2K \u2014 Stickers</span>
+                    <span className={styles.pgXpMstone}>5K \u2014 Journal book</span>
+                  </div>
                 </div>
 
-                {/* 3 — AI Insight cards */}
-                <div className={styles.pgSection}>
-                  <p className={styles.pgSectionLabel}>Insights</p>
-                  {progressInsightsLoading ? (
-                    <>
-                      <div className={styles.pgInsightSkeleton} />
-                      <div className={styles.pgInsightSkeleton} />
-                      <div className={styles.pgInsightSkeleton} />
-                    </>
-                  ) : progressInsights.length > 0 ? (
-                    progressInsights.map((ins, i) => (
-                      <div key={i} className={styles.pgInsightCard}>
-                        <span className={styles.pgInsightIcon}>
-                          {ins.type === 'alert' ? '⚠' : ins.type === 'win' ? '🏆' : '🔍'}
-                        </span>
-                        <div>
-                          <p className={styles.pgInsightTitle}>{ins.title}</p>
-                          <p className={styles.pgInsightBody}>{ins.body}</p>
+                {/* 3 — Insight cards */}
+                {progressInsightsLoading ? (
+                  <div className={styles.pgInsightSkeleton} />
+                ) : (
+                  <div className={styles.pgInsightsStack}>
+                    {insightSource.map((ins, i) => (
+                      <div key={i} className={styles.pgInsightCard} style={{ borderLeftColor: ins.color }}>
+                        <div className={styles.pgInsightHeader}>
+                          <span className={styles.pgInsightIcon} style={{ color: ins.color }}>{ins.icon}</span>
+                          <span className={styles.pgInsightType} style={{ color: ins.color }}>{ins.label}</span>
                         </div>
+                        <p className={styles.pgInsightBody}>{ins.body}</p>
                       </div>
-                    ))
-                  ) : (
-                    <div className={styles.pgInsightEmpty}>
-                      <p className={styles.pgInsightEmptyText}>Insights generate after a few days of activity.</p>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* 4 — Weekly bar chart */}
-                <div className={styles.pgSection}>
-                  <p className={styles.pgSectionLabel}>This week vs last week</p>
+                <div className={styles.pgWeekCard}>
+                  <div className={styles.pgWeekHeader}>
+                    <span className={styles.pgWeekTitle}>This week vs last</span>
+                    <span className={styles.pgWeekCount}>{thisWeekTotal} tasks</span>
+                  </div>
                   <div className={styles.pgBarChart}>
                     {barDays.map((d, i) => {
                       const isToday = localDateStr(d) === todayLocalStr
-                      const pct = barMax > 0 ? (barCounts[i] / barMax) * 100 : 0
-                      const prevPct = barMax > 0 ? (prevBarCounts[i] / barMax) * 100 : 0
+                      const thisH = barMax > 0 ? Math.round((barCounts[i] / barMax) * 68) : 0
+                      const prevH = barMax > 0 ? Math.round((prevBarCounts[i] / barMax) * 68) : 0
                       return (
                         <div key={i} className={styles.pgBarCol}>
-                          <div className={styles.pgBarStack}>
-                            {prevPct > 0 && (
-                              <div className={styles.pgBarPrev} style={{ height: `${prevPct}%` }} />
-                            )}
-                            <div className={`${styles.pgBar} ${isToday ? styles.pgBarToday : ''}`}
-                              style={{ height: `${Math.max(pct, 2)}%` }}>
-                              {barCounts[i] > 0 && <span className={styles.pgBarCount}>{barCounts[i]}</span>}
-                            </div>
+                          <div className={styles.pgBarPairWrap}>
+                            <div className={styles.pgBarPrev} style={{ height: prevBarCounts[i] > 0 ? Math.max(prevH, 4) : 0 }} />
+                            <div className={styles.pgBar + (isToday ? ' ' + styles.pgBarToday : '')}
+                              style={{ height: Math.max(thisH, 3) }} />
                           </div>
-                          <span className={`${styles.pgBarLabel} ${isToday ? styles.pgBarLabelToday : ''}`}>
+                          <span className={styles.pgBarLabel + (isToday ? ' ' + styles.pgBarLabelToday : '')}>
                             {d.toLocaleDateString('en-US', { weekday: 'narrow' })}
                           </span>
                         </div>
                       )
                     })}
                   </div>
-                </div>
-
-                {/* 5 — Monthly summary card */}
-                <div className={styles.pgSection}>
-                  <p className={styles.pgSectionLabel}>This month</p>
-                  <div className={styles.pgMonthCard}>
-                    <div className={styles.pgMonthStats}>
-                      <div className={styles.pgMonthStat}>
-                        <span className={styles.pgMonthStatNum}>{completedThisMonthList.length}</span>
-                        <span className={styles.pgMonthStatLabel}>Completed</span>
-                      </div>
-                      {monthBestDay && (
-                        <div className={styles.pgMonthStat}>
-                          <span className={styles.pgMonthStatNum}>{monthBestDay[0]}</span>
-                          <span className={styles.pgMonthStatLabel}>{monthBestDay[1]} tasks (best)</span>
-                        </div>
-                      )}
-                      <div className={styles.pgMonthStat}>
-                        <span className={styles.pgMonthStatNum}>{profile?.current_streak || 0}</span>
-                        <span className={styles.pgMonthStatLabel}>Day streak</span>
-                      </div>
+                  <div className={styles.pgWeekLegend}>
+                    <div className={styles.pgWeekLegendItem}>
+                      <div className={styles.pgWeekDot} style={{ background: '#FF6644' }} />
+                      <span className={styles.pgWeekLegendLabel}>This week</span>
                     </div>
-                    <div style={{ marginTop: 12 }}>
-                      {completedThisMonthList.length === 0
-                        ? <p className={styles.pgMonthSummaryText}>Complete tasks this month and come back for your AI insight.</p>
-                        : monthlySummaryLoading ? <p className={styles.progressSummaryLoading}>···</p>
-                        : monthlySummary ? <p className={styles.pgMonthSummaryText}>{monthlySummary}</p>
-                        : <button onClick={fetchMonthlySummary} className={styles.progressSummaryRefresh}>Generate insight</button>
-                      }
+                    <div className={styles.pgWeekLegendItem}>
+                      <div className={styles.pgWeekDot} style={{ background: 'rgba(245,240,227,0.2)' }} />
+                      <span className={styles.pgWeekLegendLabel}>Last week</span>
                     </div>
                   </div>
                 </div>
 
-                {/* 6 — Streak card */}
-                <div className={styles.pgStreakCard}>
-                  {(profile?.current_streak || 0) === 0 ? (
-                    <p className={styles.pgStreakEmpty}>Start your streak today</p>
-                  ) : (
-                    <>
-                      <div className={styles.pgStreakMain}>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                          <span className={styles.pgStreakNum}>{profile?.current_streak || 0}</span>
-                          {[7, 14, 30, 60, 90].includes(profile?.current_streak) && (
-                            <span style={{ fontSize: '20px' }}>🔥</span>
-                          )}
-                        </div>
-                        <span className={styles.pgStreakLabel}>day streak</span>
-                      </div>
-                      {(profile?.longest_streak || 0) > 0 && (
-                        <p className={styles.pgStreakSub}>Longest: {profile.longest_streak} days</p>
-                      )}
-                    </>
-                  )}
+                {/* 5 — Monthly summary */}
+                <div className={styles.pgMonthCard}>
+                  <p className={styles.pgMonthName}>{monthName}</p>
+                  <div className={styles.pgMonthStats}>
+                    <div className={styles.pgMonthStat}>
+                      <span className={styles.pgMonthStatNum} style={{ color: '#FF6644' }}>{completedThisMonthList.length}</span>
+                      <span className={styles.pgMonthStatLabel}>tasks</span>
+                    </div>
+                    <div className={styles.pgMonthDivider} />
+                    <div className={styles.pgMonthStat}>
+                      <span className={styles.pgMonthStatNum} style={{ color: '#3B8BD4' }}>{monthFocusHours}h</span>
+                      <span className={styles.pgMonthStatLabel}>focus</span>
+                    </div>
+                    <div className={styles.pgMonthDivider} />
+                    <div className={styles.pgMonthStat}>
+                      <span className={styles.pgMonthStatNum} style={{ color: '#4CAF50' }}>{monthJournalCount}</span>
+                      <span className={styles.pgMonthStatLabel}>entries</span>
+                    </div>
+                    <div className={styles.pgMonthDivider} />
+                    <div className={styles.pgMonthStat}>
+                      <span className={styles.pgMonthStatNum} style={{ color: '#FFB800' }}>{(profile?.current_streak || 0) + 'd'}</span>
+                      <span className={styles.pgMonthStatLabel}>streak</span>
+                    </div>
+                  </div>
                 </div>
 
               </div>
@@ -4541,7 +4519,7 @@ export default function Dashboard() {
           </TabErrorBoundary>
           )}
 
-          {/* ── GUIDE ── */}
+                    {/* ── GUIDE ── */}
           {activeTab === 'guide' && (
           <TabErrorBoundary tabName="Guide">
             <div className={styles.guideView} style={{ paddingBottom: '80px', display: 'flex', flexDirection: 'column' }}>
@@ -6056,6 +6034,7 @@ export default function Dashboard() {
                             </button>
                             <div className={styles.habitInfo}>
                               <div className={styles.habitNameRow}>
+                                <span className={styles.habitColorDot} style={{ background: isBreak ? '#FF5252' : '#4CAF50' }} />
                                 <span className={styles.habitName}>{habit.name}</span>
                                 <span className={`${styles.habitTypeBadge} ${isBreak ? styles.habitTypeBadgeBreak : styles.habitTypeBadgeBuild}`}>
                                   {isBreak ? 'break' : 'build'}

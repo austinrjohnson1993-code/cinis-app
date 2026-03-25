@@ -3297,7 +3297,7 @@
 
 /* Circle checkbox */
 .habitCheck {
-  width: 24px; height: 24px; border-radius: 50%;
+  width: 28px; height: 28px; border-radius: 50%;
   border: 2px solid rgba(255,102,68,0.3);
   background: transparent; flex-shrink: 0; cursor: pointer;
   transition: all 0.2s; display: flex; align-items: center; justify-content: center;
@@ -3318,6 +3318,10 @@
 /* Habit info */
 .habitInfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .habitNameRow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.habitColorDot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; transition: all 0.2s;
+}
 .habitName {
   font-family: 'Figtree', sans-serif; font-size: 14px; font-weight: 500;
   color: #F0EAD6; line-height: 1.3;
@@ -4470,334 +4474,336 @@
 .calPanelAddBtn:hover { background: rgba(255,102,68,0.08); border-color: rgba(255,102,68,0.6); }
 
 /* ════════════════════════════════════════════
-   PROGRESS S17 REBUILD (pg* prefix)
+   PROGRESS TAB (pg* prefix)
    ════════════════════════════════════════════ */
 
 .pgView {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 10px;
   padding: 12px 14px 80px;
   max-width: 680px;
   margin: 0 auto;
 }
 
-.pgSection {
-  margin-bottom: 24px;
+/* ── Rings card ── */
+.pgRingsCard {
+  background: #3E3228;
+  border: 1px solid rgba(245,240,227,0.08);
+  border-radius: 12px;
+  padding: 20px 12px 16px;
 }
-.pgSectionLabel {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #FF6644;
-  margin-bottom: 12px;
-}
-
-/* Today's rings */
 .pgRingsRow {
   display: flex;
   align-items: flex-start;
-  justify-content: space-around;
-  gap: 8px;
-  background: #1e1409;
-  border: 1px solid rgba(255,200,120,0.1);
-  border-radius: 16px;
-  padding: 20px 12px 16px;
+  justify-content: center;
+  gap: 14px;
 }
 .pgRingWrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex: 1;
 }
 .pgRingSvgWrap {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 68px;
+  height: 68px;
 }
 .pgRingCenter {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1px;
 }
 .pgRingValue {
   font-family: 'Sora', sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  color: #F0EAD6;
+  font-size: 17px;
+  font-weight: 700;
+  color: #F5F0E3;
   text-align: center;
+  line-height: 1;
+}
+.pgRingSubValue {
+  font-size: 7px;
+  color: rgba(245,240,227,0.5);
+  font-family: 'Figtree', sans-serif;
+  text-align: center;
+  line-height: 1;
 }
 .pgRingLabel {
-  font-size: 11px;
-  font-weight: 400;
-  color: rgba(240,234,214,0.5);
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(245,240,227,0.45);
   font-family: 'Figtree', sans-serif;
   text-align: center;
 }
 
-/* XP bar */
-.pgXpHeader {
+/* ── XP card ── */
+.pgXpCard {
+  background: #3E3228;
+  border: 1px solid rgba(245,240,227,0.08);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.pgXpRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
-.pgXpValue {
+.pgXpLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.pgXpEmoji {
+  font-size: 15px;
+  line-height: 1;
+}
+.pgXpNumber {
   font-family: 'Sora', sans-serif;
-  font-size: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #FFB800;
+  line-height: 1;
+}
+.pgXpUnit {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,184,0,0.65);
+  font-family: 'Figtree', sans-serif;
+}
+.pgXpRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.pgXpToGo {
+  font-size: 11px;
   font-weight: 600;
   color: #FFB800;
+  font-family: 'Figtree', sans-serif;
+}
+.pgXpNextHint {
+  font-size: 8px;
+  color: rgba(245,240,227,0.38);
+  font-family: 'Figtree', sans-serif;
 }
 .pgXpBarTrack {
-  position: relative;
-  height: 8px;
-  background: #3E3228;
-  border-radius: 4px;
-  overflow: visible;
-  margin-bottom: 24px;
+  height: 6px;
+  background: rgba(245,240,227,0.07);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
 }
 .pgXpBarFill {
   height: 100%;
-  background: linear-gradient(90deg, #CC8800, #FFB800);
-  border-radius: 4px;
+  background: linear-gradient(90deg, #FFB800, #FF6644);
+  border-radius: 3px;
   transition: width 0.5s ease;
 }
-.pgXpMilestoneMarker {
-  position: absolute;
-  top: -2px;
-  transform: translateX(-50%);
+.pgXpMilestones {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+  justify-content: space-between;
 }
-.pgXpMilestoneTick {
-  width: 2px;
-  height: 12px;
-  background: rgba(240,234,214,0.3);
-  border-radius: 1px;
-}
-.pgXpMilestoneLabel {
-  font-size: 9px;
-  font-weight: 500;
-  color: rgba(240,234,214,0.35);
+.pgXpMstone {
+  font-size: 8px;
+  color: rgba(245,240,227,0.3);
   font-family: 'Figtree', sans-serif;
-  white-space: nowrap;
-  margin-top: 2px;
-}
-.pgXpNextLabel {
-  font-size: 12px;
-  color: rgba(240,234,214,0.35);
-  font-family: 'Figtree', sans-serif;
-  margin-top: -20px;
 }
 
-/* AI insights */
-.pgInsightCard {
+/* ── Insight cards ── */
+.pgInsightsStack {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: #1e1409;
-  border: 1px solid rgba(255,200,120,0.1);
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 6px;
+}
+.pgInsightCard {
+  background: #3E3228;
+  border: 1px solid rgba(245,240,227,0.08);
+  border-left: 3px solid #FF6644;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.pgInsightHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 .pgInsightIcon {
-  font-size: 18px;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.pgInsightTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: #F0EAD6;
+  font-size: 11px;
+  font-weight: 800;
   font-family: 'Figtree', sans-serif;
-  margin-bottom: 3px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.pgInsightType {
+  font-size: 9px;
+  font-weight: 800;
+  font-family: 'Figtree', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .pgInsightBody {
-  font-size: 12px;
-  color: rgba(240,234,214,0.55);
+  font-size: 11px;
+  color: rgba(245,240,227,0.56);
   font-family: 'Figtree', sans-serif;
   line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 .pgInsightSkeleton {
-  height: 64px;
-  background: #1e1409;
-  border: 1px solid rgba(255,200,120,0.06);
-  border-radius: 12px;
-  margin-bottom: 8px;
+  height: 120px;
+  background: #3E3228;
+  border: 1px solid rgba(245,240,227,0.06);
+  border-radius: 10px;
   animation: pgSkeletonPulse 1.4s ease-in-out infinite;
 }
 @keyframes pgSkeletonPulse {
   0%, 100% { opacity: 0.6; }
   50%       { opacity: 1; }
 }
-.pgInsightEmpty {
-  background: #1e1409;
-  border: 1px solid rgba(255,200,120,0.08);
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-}
-.pgInsightEmptyText {
-  font-size: 13px;
-  color: rgba(240,234,214,0.3);
-  font-family: 'Figtree', sans-serif;
-}
 
-/* Weekly bar chart */
+/* ── Weekly chart ── */
+.pgWeekCard {
+  background: #3E3228;
+  border: 1px solid rgba(245,240,227,0.08);
+  border-radius: 12px;
+  padding: 12px;
+}
+.pgWeekHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.pgWeekTitle {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(245,240,227,0.45);
+  font-family: 'Figtree', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.pgWeekCount {
+  font-family: 'Sora', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(245,240,227,0.4);
+}
 .pgBarChart {
   display: flex;
   align-items: flex-end;
-  gap: 6px;
-  height: 100px;
-  background: #1e1409;
-  border: 1px solid rgba(255,200,120,0.1);
-  border-radius: 12px;
-  padding: 12px 12px 8px;
+  gap: 5px;
+  margin-bottom: 10px;
 }
 .pgBarCol {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   flex: 1;
-  height: 100%;
-  justify-content: flex-end;
 }
-.pgBarStack {
-  position: relative;
-  width: 100%;
-  flex: 1;
+.pgBarPairWrap {
   display: flex;
   align-items: flex-end;
-  justify-content: center;
+  gap: 2px;
 }
 .pgBarPrev {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(62,50,40,0.8);
-  border-radius: 3px 3px 0 0;
-  opacity: 0.4;
+  width: 8px;
+  background: rgba(245,240,227,0.15);
+  border-radius: 2px 2px 0 0;
 }
 .pgBar {
-  width: 100%;
-  background: #3E3228;
-  border-radius: 3px 3px 0 0;
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  transition: height 0.5s ease;
+  width: 8px;
+  background: rgba(245,240,227,0.22);
+  border-radius: 2px 2px 0 0;
   min-height: 3px;
 }
 .pgBarToday { background: #FF6644 !important; }
-.pgBarCount {
-  font-size: 9px;
-  font-weight: 700;
-  color: rgba(240,234,214,0.7);
-  font-family: 'Sora', sans-serif;
-  margin-top: 2px;
-}
-.pgBarToday .pgBarCount { color: #211A14; }
 .pgBarLabel {
   font-size: 9px;
   font-weight: 500;
-  color: rgba(240,234,214,0.35);
+  color: rgba(245,240,227,0.3);
   font-family: 'Figtree', sans-serif;
   text-transform: uppercase;
 }
 .pgBarLabelToday { color: #FF6644; }
+.pgWeekLegend {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.pgWeekLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.pgWeekDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.pgWeekLegendLabel {
+  font-size: 9px;
+  color: rgba(245,240,227,0.4);
+  font-family: 'Figtree', sans-serif;
+}
 
-/* Monthly card */
+/* ── Monthly card ── */
 .pgMonthCard {
-  background: #1e1409;
-  border: 1px solid rgba(255,200,120,0.1);
+  background: #3E3228;
+  border: 1px solid rgba(245,240,227,0.08);
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px 14px;
+}
+.pgMonthName {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245,240,227,0.4);
+  font-family: 'Figtree', sans-serif;
+  margin-bottom: 10px;
 }
 .pgMonthStats {
   display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
+  align-items: center;
 }
 .pgMonthStat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 3px;
   flex: 1;
-  min-width: 80px;
 }
 .pgMonthStatNum {
   font-family: 'Sora', sans-serif;
-  font-size: 22px;
-  font-weight: 600;
-  color: #F0EAD6;
+  font-size: 16px;
+  font-weight: 700;
   line-height: 1;
 }
 .pgMonthStatLabel {
-  font-size: 11px;
-  color: rgba(240,234,214,0.4);
+  font-size: 8px;
+  color: rgba(245,240,227,0.38);
   font-family: 'Figtree', sans-serif;
 }
-.pgMonthSummaryText {
-  font-size: 13px;
-  color: rgba(240,234,214,0.55);
-  font-family: 'Figtree', sans-serif;
-  line-height: 1.6;
+.pgMonthDivider {
+  width: 0.5px;
+  height: 32px;
+  background: rgba(245,240,227,0.12);
+  flex-shrink: 0;
 }
 
-/* Streak card */
-.pgStreakCard {
-  background: #1e1409;
-  border: 1px solid rgba(255,200,120,0.1);
-  border-radius: 16px;
-  padding: 20px;
-  text-align: center;
-  margin-bottom: 16px;
-}
-.pgStreakMain {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 8px;
-}
-.pgStreakNum {
-  font-family: 'Sora', sans-serif;
-  font-size: 32px;
-  font-weight: 600;
-  color: #FF6644;
-  line-height: 1;
-}
-.pgStreakLabel {
-  font-size: 14px;
-  color: rgba(240,234,214,0.6);
-  font-family: 'Figtree', sans-serif;
-}
-.pgStreakSub {
-  font-size: 12px;
-  color: rgba(240,234,214,0.35);
-  font-family: 'Figtree', sans-serif;
-  margin-top: 6px;
-}
-.pgStreakEmpty {
-  font-size: 14px;
-  color: rgba(240,234,214,0.3);
-  font-family: 'Figtree', sans-serif;
-  font-style: italic;
-}
+/* legacy */
+.progressSummaryLoading { color: rgba(245,240,227,0.35); font-size: 1.2rem; letter-spacing: 4px; }
+.progressSummaryRefresh { background: transparent; border: 1px solid rgba(245,240,227,0.15); border-radius: 8px; padding: 8px 16px; color: rgba(245,240,227,0.5); font-size: 0.85rem; font-family: 'Figtree', sans-serif; cursor: pointer; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PART A — VOICE FAB
