@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cinis-v1';
+const CACHE_NAME = 'cinis-v20260324';
 const PRECACHE_URLS = ['/', '/dashboard', '/login'];
 
 self.addEventListener('install', function(event) {
@@ -27,6 +27,25 @@ self.addEventListener('fetch', function(event) {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
+  // Network-first for JS/CSS — always try fresh to prevent stale assets
+  if (event.request.url.match(/\.(js|css)$/)) {
+    event.respondWith(
+      fetch(event.request)
+        .then(function(response) {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(function() {
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Network-first for navigation, fall back to cache
   event.respondWith(
     fetch(event.request)
       .then(function(response) {

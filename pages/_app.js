@@ -11,6 +11,15 @@ export default function App({ Component, pageProps }) {
     }
   }, []);
 
+  // Force SW update check on every page load to prevent stale assets
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(reg => reg.update());
+      });
+    }
+  }, []);
+
   return (
     <>
       <Head>
