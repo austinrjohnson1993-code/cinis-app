@@ -756,6 +756,9 @@ export default function Dashboard() {
   // Finance Plans sub-tab (calculators)
   const [expandedPlanCalc, setExpandedPlanCalc] = useState(null)
   const [planCalcInputs, setPlanCalcInputs] = useState({})
+  const [knowledgeFilter, setKnowledgeFilter] = useState('All')
+  const [learnFilter, setLearnFilter] = useState('All')
+  const [expandedInsightCat, setExpandedInsightCat] = useState(null)
 
   // Journal history (up to 20 past entries)
   const [journalHistory, setJournalHistory] = useState([])
@@ -4534,11 +4537,10 @@ export default function Dashboard() {
 
               {/* Sub-tab nav */}
               <div className={styles.financeSubTabs}>
-                {[['bills',<Receipt size={18} />,'Bills'],['budget',<Wallet size={18} />,'Budget'],['plans',<Scales size={18} />,'Plans'],['insights',<ChartLineUp size={18} />,'Insights']].map(([id, icon, label]) => (
+                {[['bills','Bills'],['budget','Budget'],['plans','Plans'],['knowledge','Knowledge'],['learn','Learn'],['insights','Insights']].map(([id, label]) => (
                   <button key={id} onClick={() => setFinanceSub(id)}
                     className={`${styles.financeSubTab} ${financeSub === id ? styles.financeSubTabActive : ''}`}>
-                    <span className={styles.subTabIcon}>{icon}</span>
-                    <span className={styles.subTabLabel}>{label}</span>
+                    {label}
                   </button>
                 ))}
               </div>
@@ -5121,101 +5123,280 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {/* ── KNOWLEDGE ── */}
+              {financeSub === 'knowledge' && (() => {
+                const KNOWLEDGE_CARDS = [
+                  {
+                    id: 'pay-first',
+                    tag: 'Savings',
+                    title: 'Pay yourself first',
+                    body: `Move money to savings the moment you get paid — before you pay bills, before you spend. What's left is your spending money. You never miss what you never see.`,
+                  },
+                  {
+                    id: '50-30-20',
+                    tag: 'Budgeting',
+                    title: 'The 50/30/20 rule',
+                    body: `50% of take-home to needs. 30% to wants. 20% to savings and debt. It's not a rule — it's a starting point. The real goal is knowing which bucket your money belongs to before you spend it.`,
+                  },
+                  {
+                    id: 'impulse',
+                    tag: 'Impulse',
+                    title: 'The 72-hour rule',
+                    body: `Before any non-essential purchase, wait 72 hours. Most impulse urges fade completely. The ones that don't are worth having.`,
+                  },
+                  {
+                    id: 'credit-util',
+                    tag: 'Credit',
+                    title: 'Credit utilization',
+                    body: `Keep credit card balances below 30% of your limit — ideally under 10%. This single factor is 30% of your credit score. Pay it down before the statement closes, not just before the due date.`,
+                  },
+                  {
+                    id: 'emergency',
+                    tag: 'Savings',
+                    title: 'Emergency fund first',
+                    body: `Before paying extra on debt, build a $1,000 emergency buffer. Before investing, build 3–6 months of expenses. An emergency fund converts financial crises into minor inconveniences.`,
+                  },
+                  {
+                    id: 'subscriptions',
+                    tag: 'Spending',
+                    title: 'Subscription creep',
+                    body: `The average person pays for 3–5 subscriptions they've forgotten about. Set a calendar reminder every 6 months to audit every recurring charge. Cancel anything you haven't used in 30 days.`,
+                  },
+                  {
+                    id: 'system',
+                    tag: 'System',
+                    title: 'Automate everything',
+                    body: `Automate savings transfers on payday. Automate minimum debt payments. Automate bill payments. The goal is a financial system that works without willpower. Your job is to set the rules, not enforce them.`,
+                  },
+                  {
+                    id: 'sinking',
+                    tag: 'Budgeting',
+                    title: 'Sinking funds',
+                    body: `Big predictable expenses — car insurance, holidays, annual subscriptions — should have their own savings bucket. Divide the annual cost by 12 and transfer that amount monthly. When the bill arrives, the money is already there.`,
+                  },
+                ]
+                const filters = ['All', 'Budgeting', 'Spending', 'Credit', 'Savings', 'Impulse', 'System']
+                const filtered = knowledgeFilter === 'All' ? KNOWLEDGE_CARDS : KNOWLEDGE_CARDS.filter(c => c.tag === knowledgeFilter)
+                return (
+                  <div style={{ paddingBottom: 80 }}>
+                    <div className={styles.fkFilterRow}>
+                      {filters.map(f => (
+                        <button key={f} className={`${styles.fkFilterChip} ${knowledgeFilter === f ? styles.fkFilterChipActive : ''}`}
+                          onClick={() => setKnowledgeFilter(f)}>{f}</button>
+                      ))}
+                    </div>
+                    <div style={{ padding: '0 14px' }}>
+                      {filtered.map(card => (
+                        <div key={card.id} className={styles.fkCard}>
+                          <div className={styles.fkCardTag}>{card.tag}</div>
+                          <div className={styles.fkCardTitle}>{card.title}</div>
+                          <div className={styles.fkCardBody}>{card.body}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* ── LEARN ── */}
+              {financeSub === 'learn' && (() => {
+                const GUIDES = [
+                  { id: 'start-budget', tag: 'Guides', title: 'Build your first budget in 20 minutes', desc: `A step-by-step walkthrough for people who have never budgeted before.` },
+                  { id: 'debt-plan', tag: 'Guides', title: 'Make a debt payoff plan that actually works', desc: `Avalanche vs snowball, what to pay first, and how to stay motivated.` },
+                  { id: 'credit-score', tag: 'Guides', title: 'Understand your credit score in plain English', desc: 'What the 5 factors are, what matters most, and how to move the number.' },
+                  { id: 'emergency', tag: 'Guides', title: 'How to build an emergency fund', desc: 'Starting from zero, step by step, even on a tight budget.' },
+                ]
+                const TOOLS = [
+                  { id: 'nerdwallet', tag: 'Tools', title: 'NerdWallet', desc: 'Compare credit cards, savings rates, and loans.', href: '#' },
+                  { id: 'mint', tag: 'Tools', title: 'Credit Karma', desc: 'Free credit score monitoring and alerts.', href: '#' },
+                  { id: 'ynab', tag: 'Tools', title: 'YNAB', desc: 'Zero-based budgeting for people who want to go deep.', href: '#' },
+                  { id: 'compound', tag: 'Calculators', title: 'Investor.gov Compound Calculator', desc: 'Official compound interest calculator from the SEC.', href: '#' },
+                ]
+                const learnFilters = ['All', 'Guides', 'Calculators', 'Research', 'Tools']
+                const allItems = [...GUIDES, ...TOOLS]
+                const filteredLearn = learnFilter === 'All' ? allItems : allItems.filter(i => i.tag === learnFilter)
+                const showGuides = learnFilter === 'All' || learnFilter === 'Guides'
+                const showTools = learnFilter === 'All' || learnFilter === 'Calculators' || learnFilter === 'Tools'
+                return (
+                  <div style={{ paddingBottom: 80 }}>
+                    <div className={styles.fkFilterRow}>
+                      {learnFilters.map(f => (
+                        <button key={f} className={`${styles.fkFilterChip} ${learnFilter === f ? styles.fkFilterChipActive : ''}`}
+                          onClick={() => setLearnFilter(f)}>{f}</button>
+                      ))}
+                    </div>
+                    <div style={{ padding: '0 14px' }}>
+                      {/* Featured */}
+                      {learnFilter === 'All' && (
+                        <div className={styles.flFeatured}>
+                          <div className={styles.flFeaturedTag}>Featured</div>
+                          <div className={styles.flFeaturedTitle}>The one financial move that changes everything</div>
+                          <div className={styles.flFeaturedBody}>Automate your savings the day you get paid. Not the day before bills are due. The day money lands. Even $50/paycheck compounds into a financial cushion most people never build.</div>
+                        </div>
+                      )}
+                      {/* Quick guides */}
+                      {showGuides && (
+                        <>
+                          <div className={styles.flSectionLabel}>Quick guides</div>
+                          {GUIDES.map(g => (
+                            <div key={g.id} className={styles.flGuideCard}>
+                              <div className={styles.flGuideTitle}>{g.title}</div>
+                              <div className={styles.flGuideDesc}>{g.desc}</div>
+                              <span className={styles.flGuideTag}>{g.tag}</span>
+                            </div>
+                          ))}
+                        </>
+                      )}
+                      {/* Tools */}
+                      {showTools && (
+                        <>
+                          <div className={styles.flSectionLabel} style={{ marginTop: showGuides ? 24 : 0 }}>Free tools & resources</div>
+                          {TOOLS.map(t => (
+                            <div key={t.id} className={styles.flToolCard}>
+                              <div>
+                                <div className={styles.flGuideTitle}>{t.title}</div>
+                                <div className={styles.flGuideDesc}>{t.desc}</div>
+                              </div>
+                              <span className={styles.flToolTag}>{t.tag}</span>
+                            </div>
+                          ))}
+                        </>
+                      )}
+                      {/* Coach CTA */}
+                      <div className={styles.flCoachCta}>
+                        <div className={styles.flCoachTitle}>Want a personalized plan?</div>
+                        <div className={styles.flCoachBody}>Ask Cinis to build a custom financial plan based on your income, bills, and goals.</div>
+                        <button className={styles.addTaskBtn} style={{ marginTop: 12 }}
+                          onClick={() => setFinanceSub('insights')}>See my financial health →</button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
               {/* ── INSIGHTS ── */}
               {financeSub === 'insights' && (() => {
                 const totalBills = bills.length
                 const autoPayBills = bills.filter(b => b.autopay).length
                 const autopayCoverage = totalBills > 0 ? (autoPayBills / totalBills) * 25 : 0
                 const billTracking = totalBills > 0 ? 25 : 0
-                const budgetSet = monthlyIncome > 0 ? 25 : 0
+                const budgetSet = (profile?.monthly_income || monthlyIncome) > 0 ? 25 : 0
                 const spendLogged = spendLog.length > 0 ? 25 : 0
                 const score = Math.round(autopayCoverage + billTracking + budgetSet + spendLogged)
-                const scoreColor = score <= 40 ? '#E8321A' : score <= 70 ? '#FFB800' : '#4CAF50'
-                const circumference = 2 * Math.PI * 40
+                const HP = '#FF6644'
+                const EMBER = '#E8321A'
+                const scoreColor = score <= 40 ? EMBER : score <= 70 ? '#FFB800' : HP
+                const circumference = 2 * Math.PI * 54
                 const strokeDash = (score / 100) * circumference
+
+                const CATEGORIES = [
+                  { label: 'Bill tracking', pts: billTracking, max: 25, tip: billTracking < 25 ? 'Add your recurring bills to get started' : 'All bills tracked' },
+                  { label: 'Budget set', pts: budgetSet, max: 25, tip: budgetSet < 25 ? 'Set your income in the Budget tab' : 'Income is set' },
+                  { label: 'Autopay coverage', pts: Math.round(autopayCoverage), max: 25, tip: autopayCoverage < 25 ? `${autoPayBills}/${totalBills} bills on autopay — enable more` : 'All bills automated' },
+                  { label: 'Spend logged', pts: spendLogged, max: 25, tip: spendLogged < 25 ? 'Log a purchase in Budget today' : 'Spending tracked today' },
+                ]
 
                 const tips = []
                 if (autopayCoverage < 12.5 && totalBills > 0) {
                   const manualBill = bills.find(b => !b.autopay)
-                  tips.push({ icon: '⚡', title: `Turn on autopay for ${manualBill?.name || 'your bills'}`, body: 'Stop missing due dates and late fees. Autopay takes 5 minutes to set up.' })
+                  tips.push({ type: 'Alert', icon: '⚡', title: `Turn on autopay for ${manualBill?.name || 'your bills'}`, body: 'Stop missing due dates and late fees. Takes 5 minutes to set up.' })
                 }
-                if (budgetSet === 0) tips.push({ icon: '💰', title: 'Set your income', body: 'Set your income to unlock your daily spending number.' })
-                if (spendLogged === 0) tips.push({ icon: '📊', title: 'Log one purchase today', body: 'Log one purchase today to start tracking your money.' })
-                if (score > 75) tips.push({ icon: '🏆', title: "You're tracking well", body: 'Consider adding a savings goal. Even $25/week compounds fast.' })
-                if (billTracking === 0) tips.push({ icon: '🧾', title: 'Track your bills', body: 'Add recurring bills to see where your money goes each month.' })
-                if (tips.length === 0) tips.push({ icon: '🌟', title: 'Solid foundation', body: 'Income set, bills tracked, autopay on, spending logged. You\'re ahead of most.' })
+                if (budgetSet === 0) tips.push({ type: 'Pattern', icon: '💰', title: 'Set your income', body: 'Set your income to unlock your daily spending number.' })
+                if (spendLogged === 0) tips.push({ type: 'Pattern', icon: '📊', title: 'Log one purchase today', body: 'Start tracking your money with one entry in Budget.' })
+                if (score > 75) tips.push({ type: 'Win', icon: '🏆', title: "You're tracking well", body: 'Consider adding a savings goal. Even $25/week compounds fast.' })
+                if (billTracking === 0) tips.push({ type: 'Alert', icon: '🧾', title: 'Track your bills', body: 'Add recurring bills to see where your money goes.' })
+                if (tips.length === 0) tips.push({ type: 'Win', icon: '🌟', title: 'Solid foundation', body: 'Income set, bills tracked, autopay on, spending logged.' })
+
+                const fastest80 = CATEGORIES.filter(c => c.pts < c.max).slice(0, 2)
+
                 return (
                   <div style={{ padding: '12px 14px 80px' }}>
-                    <div className={styles.insightScoreBlock}>
-                      <svg width="100" height="100" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(240,234,214,0.08)" strokeWidth="8" />
-                        <circle cx="50" cy="50" r="40" fill="none" stroke={scoreColor} strokeWidth="8"
-                          strokeDasharray={`${strokeDash} ${circumference}`}
-                          strokeDashoffset={circumference * 0.25}
-                          strokeLinecap="round"
-                          style={{ transition: 'stroke-dasharray 0.5s ease' }}
-                        />
-                        <text x="50" y="50" textAnchor="middle" dominantBaseline="central"
-                          fill={scoreColor} fontSize="20" fontWeight="700" fontFamily="Sora, sans-serif">
-                          {score}
-                        </text>
-                      </svg>
-                      <div>
-                        <div className={styles.insightScoreLabel}>Financial health</div>
-                        <div className={styles.insightScoreSub}>
-                          {score <= 40 ? 'Getting started' : score <= 70 ? 'On track' : 'Strong foundation'}
+                    {/* Score ring */}
+                    <div className={styles.fiScoreCard}>
+                      <div className={styles.fiScoreRing}>
+                        <svg width="124" height="124" viewBox="0 0 124 124">
+                          <circle cx="62" cy="62" r="54" fill="none" stroke="rgba(240,234,214,0.07)" strokeWidth="10" />
+                          <circle cx="62" cy="62" r="54" fill="none"
+                            stroke={scoreColor} strokeWidth="10"
+                            strokeDasharray={`${strokeDash} ${circumference}`}
+                            strokeDashoffset={circumference * 0.25}
+                            strokeLinecap="round"
+                            style={{ transition: 'stroke-dasharray 0.6s ease' }}
+                          />
+                          <text x="62" y="57" textAnchor="middle" dominantBaseline="central"
+                            fill={scoreColor} fontSize="26" fontWeight="700" fontFamily="Sora, sans-serif">{score}</text>
+                          <text x="62" y="77" textAnchor="middle" dominantBaseline="central"
+                            fill="rgba(240,234,214,0.4)" fontSize="11" fontFamily="Figtree, sans-serif">out of 100</text>
+                        </svg>
+                      </div>
+                      <div className={styles.fiScoreInfo}>
+                        <div className={styles.fiScoreLabel}>Financial health</div>
+                        <div className={styles.fiScoreGrade} style={{ color: scoreColor }}>
+                          {score <= 40 ? 'Getting started' : score <= 70 ? 'Building up' : score <= 90 ? 'On track' : 'Strong'}
                         </div>
+                        <div className={styles.fiScoreDesc}>Score updates as you add bills, log spending, and set your income.</div>
                       </div>
                     </div>
 
-                    <div className={styles.budgetCard} style={{ marginBottom: 20 }}>
-                      {[
-                        { label: 'Bill tracking', pts: billTracking, max: 25 },
-                        { label: 'Budget set', pts: budgetSet, max: 25 },
-                        { label: 'Autopay coverage', pts: Math.round(autopayCoverage), max: 25 },
-                        { label: 'Spend logged', pts: spendLogged, max: 25 },
-                      ].map(({ label, pts, max }) => (
-                        <div key={label} className={styles.budgetRow}>
-                          <span className={styles.budgetRowLabel}>{label}</span>
-                          <span className={pts === max ? styles.surplusPositive : styles.budgetRowAmt}>{pts}/{max} pts</span>
+                    {/* How score works */}
+                    <div className={styles.fiExplainerCard}>
+                      <div className={styles.fiExplainerTitle}>How your score works</div>
+                      <div className={styles.fiExplainerBody}>Your score is built from 4 categories, 25 points each. The more you track, the more useful it becomes.</div>
+                    </div>
+
+                    {/* Score breakdown */}
+                    <div className={styles.fiBreakdownCard}>
+                      {CATEGORIES.map(cat => (
+                        <div key={cat.label} className={styles.fiCatRow}>
+                          <div className={styles.fiCatTop}>
+                            <span className={styles.fiCatLabel}>{cat.label}</span>
+                            <span className={styles.fiCatPts} style={{ color: cat.pts === cat.max ? '#4CAF50' : 'rgba(240,234,214,0.5)' }}>{cat.pts}/{cat.max}</span>
+                          </div>
+                          <div className={styles.fiCatBar}>
+                            <div className={styles.fiCatBarFill} style={{ width: `${(cat.pts / cat.max) * 100}%`, background: cat.pts === cat.max ? '#4CAF50' : HP }} />
+                          </div>
+                          <div className={styles.fiCatTip}>{cat.tip}</div>
                         </div>
                       ))}
                     </div>
 
+                    {/* Fastest path to 80 */}
+                    {score < 80 && fastest80.length > 0 && (
+                      <div className={styles.fiActionCard}>
+                        <div className={styles.fiActionTitle}>Fastest path to 80</div>
+                        {fastest80.map(cat => (
+                          <div key={cat.label} className={styles.fiActionItem}>
+                            <span className={styles.fiActionBullet}>→</span>
+                            <span>{cat.tip}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* AI observation cards */}
                     {tips.slice(0, 3).map((tip, i) => (
-                      <div key={i} className={styles.financeInsightCard}>
-                        <span className={styles.financeInsightCardIcon}>{tip.icon}</span>
+                      <div key={i} className={`${styles.fiObsCard} ${tip.type === 'Alert' ? styles.fiObsAlert : tip.type === 'Win' ? styles.fiObsWin : styles.fiObsPattern}`}>
+                        <div className={styles.fiObsType}>{tip.type}</div>
+                        <div className={styles.fiObsIcon}>{tip.icon}</div>
                         <div>
-                          <div className={styles.financeInsightCardTitle}>{tip.title}</div>
-                          <div className={styles.financeInsightCardBody}>{tip.body}</div>
+                          <div className={styles.fiObsTitle}>{tip.title}</div>
+                          <div className={styles.fiObsBody}>{tip.body}</div>
                         </div>
                       </div>
                     ))}
+
+                    {/* Coach CTA */}
+                    <div className={styles.flCoachCta}>
+                      <div className={styles.flCoachTitle}>Get a personalized breakdown</div>
+                      <div className={styles.flCoachBody}>Ask Cinis what your score means and how to improve it specifically for your situation.</div>
+                      <button className={styles.addTaskBtn} style={{ marginTop: 12, width: '100%' }}
+                        onClick={() => switchTab('checkin')}>Ask Cinis about this →</button>
+                    </div>
                   </div>
                 )
               })()}
 
-              {/* Ask Cinis button */}
-              <div style={{ padding: '0 14px 80px', marginTop: '20px' }}>
-                <button
-                  onClick={() => {
-                    switchTab('checkin')
-                    setTimeout(() => {
-                      const input = document.querySelector('input[placeholder*="What"]') || document.querySelector('textarea')
-                      if (input) {
-                        input.value = "What's my financial picture?"
-                        input.focus()
-                        input.dispatchEvent(new Event('input', { bubbles: true }))
-                        input.form?.dispatchEvent(new Event('submit', { bubbles: true }))
-                      }
-                    }, 100)
-                  }}
-                  className={styles.addTaskBtn}
-                  style={{ width: '100%', marginBottom: '10px' }}
-                >
-                  Ask Cinis about this
-                </button>
-              </div>
+
             </div>
           </TabErrorBoundary>
           )}

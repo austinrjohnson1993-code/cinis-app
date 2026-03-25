@@ -2141,22 +2141,27 @@
    ════════════════════════════════════════════ */
 
 .financeSubTabs {
-  display: flex; gap: 0; margin-bottom: 24px;
-  border-bottom: 1px solid rgba(255,200,120,0.1);
+  display: flex; gap: 6px; padding: 12px 14px 8px;
+  overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
+  border-bottom: 1px solid rgba(240,234,214,0.06);
+  margin-bottom: 4px;
 }
+.financeSubTabs::-webkit-scrollbar { display: none; }
 .financeSubTab {
-  background: none; border: none; border-bottom: 2px solid transparent;
-  padding: 10px 12px; font-family: 'Figtree', sans-serif; cursor: pointer;
-  transition: all 0.15s; margin-bottom: -1px;
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  opacity: 0.45; min-width: 60px;
+  background: #3E3228; border: 1px solid rgba(240,234,214,0.1);
+  border-radius: 100px; padding: 6px 14px;
+  font-family: 'Figtree', sans-serif; font-size: 10px;
+  font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(240,234,214,0.5); cursor: pointer;
+  transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
 }
-.financeSubTab:hover { opacity: 0.7; }
-.financeSubTabActive { border-bottom-color: var(--accent) !important; opacity: 1 !important; }
-.financeSubTabActive .subTabLabel { color: var(--accent); }
-.financeSubTabActive .subTabIcon { opacity: 1; }
+.financeSubTab:hover { color: rgba(240,234,214,0.8); border-color: rgba(240,234,214,0.2); }
+.financeSubTabActive {
+  background: #FF6644 !important; border-color: #FF6644 !important;
+  color: #211A14 !important;
+}
 
-/* Shared icon+label inside sub-tab buttons */
+/* Shared icon+label (legacy compat) */
 .subTabIcon { font-size: 20px; line-height: 1; }
 .subTabLabel {
   font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
@@ -5638,4 +5643,220 @@
   background: #FF6644;
   border-radius: 4px;
   transition: width 0.4s ease;
+}
+
+/* ════════════════════════════════════════════
+   FINANCE — KNOWLEDGE sub-tab
+   ════════════════════════════════════════════ */
+.fkFilterRow {
+  display: flex; gap: 6px; padding: 12px 14px 4px;
+  overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
+}
+.fkFilterRow::-webkit-scrollbar { display: none; }
+.fkFilterChip {
+  background: rgba(240,234,214,0.05);
+  border: 1px solid rgba(240,234,214,0.12);
+  border-radius: 100px; padding: 5px 14px;
+  font-family: 'Figtree', sans-serif; font-size: 11px;
+  font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: rgba(240,234,214,0.45); cursor: pointer;
+  transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.fkFilterChip:hover { color: rgba(240,234,214,0.75); border-color: rgba(240,234,214,0.25); }
+.fkFilterChipActive {
+  background: rgba(232,50,26,0.12) !important;
+  border-color: rgba(232,50,26,0.4) !important;
+  color: #E8321A !important;
+}
+.fkCard {
+  background: #3E3228;
+  border: 1px solid rgba(240,234,214,0.08);
+  border-radius: 12px; padding: 16px; margin-bottom: 10px;
+}
+.fkCardTag {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: #FF6644;
+  font-family: 'Figtree', sans-serif; margin-bottom: 6px;
+}
+.fkCardTitle {
+  font-size: 0.98rem; font-weight: 700; color: #F0EAD6;
+  font-family: 'Figtree', sans-serif; margin-bottom: 8px;
+}
+.fkCardBody {
+  font-size: 0.88rem; color: rgba(240,234,214,0.6);
+  font-family: 'Figtree', sans-serif; line-height: 1.6;
+}
+
+/* ════════════════════════════════════════════
+   FINANCE — LEARN sub-tab
+   ════════════════════════════════════════════ */
+.flFeatured {
+  background: #3E3228;
+  border: 1px solid rgba(240,234,214,0.08);
+  border-left: 3px solid #FF6644;
+  border-radius: 0 12px 12px 0;
+  padding: 16px; margin-bottom: 20px;
+}
+.flFeaturedTag {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: #FF6644;
+  font-family: 'Figtree', sans-serif; margin-bottom: 6px;
+}
+.flFeaturedTitle {
+  font-size: 1.0rem; font-weight: 700; color: #F0EAD6;
+  font-family: 'Figtree', sans-serif; margin-bottom: 8px;
+}
+.flFeaturedBody {
+  font-size: 0.88rem; color: rgba(240,234,214,0.6);
+  font-family: 'Figtree', sans-serif; line-height: 1.6;
+}
+.flSectionLabel {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(240,234,214,0.35);
+  font-family: 'Figtree', sans-serif; margin-bottom: 10px;
+}
+.flGuideCard {
+  background: #3E3228; border: 1px solid rgba(240,234,214,0.08);
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 8px;
+}
+.flGuideTitle {
+  font-size: 0.92rem; font-weight: 600; color: #F0EAD6;
+  font-family: 'Figtree', sans-serif; margin-bottom: 4px;
+}
+.flGuideDesc {
+  font-size: 0.82rem; color: rgba(240,234,214,0.5);
+  font-family: 'Figtree', sans-serif; line-height: 1.5; margin-bottom: 8px;
+}
+.flGuideTag {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: rgba(240,234,214,0.3);
+  border: 1px solid rgba(240,234,214,0.1); border-radius: 100px;
+  padding: 2px 8px; font-family: 'Figtree', sans-serif;
+}
+.flToolCard {
+  background: #3E3228; border: 1px solid rgba(240,234,214,0.08);
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 8px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+.flToolTag {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #FF6644;
+  background: rgba(255,102,68,0.1); border: 1px solid rgba(255,102,68,0.2);
+  border-radius: 100px; padding: 3px 9px;
+  font-family: 'Figtree', sans-serif; white-space: nowrap; flex-shrink: 0;
+}
+.flCoachCta {
+  background: rgba(255,102,68,0.06); border: 1px solid rgba(255,102,68,0.15);
+  border-radius: 12px; padding: 18px; margin-top: 20px;
+}
+.flCoachTitle {
+  font-size: 0.98rem; font-weight: 700; color: #F0EAD6;
+  font-family: 'Figtree', sans-serif; margin-bottom: 6px;
+}
+.flCoachBody {
+  font-size: 0.85rem; color: rgba(240,234,214,0.55);
+  font-family: 'Figtree', sans-serif; line-height: 1.5;
+}
+
+/* ════════════════════════════════════════════
+   FINANCE — INSIGHTS sub-tab (enhanced)
+   ════════════════════════════════════════════ */
+.fiScoreCard {
+  background: #3E3228; border: 1px solid rgba(240,234,214,0.08);
+  border-radius: 16px; padding: 20px;
+  display: flex; align-items: center; gap: 20px;
+  margin-bottom: 14px;
+}
+.fiScoreRing { flex-shrink: 0; }
+.fiScoreInfo { flex: 1; }
+.fiScoreLabel {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(240,234,214,0.4);
+  font-family: 'Figtree', sans-serif; margin-bottom: 4px;
+}
+.fiScoreGrade {
+  font-size: 1.2rem; font-weight: 700;
+  font-family: 'Figtree', sans-serif; margin-bottom: 6px;
+}
+.fiScoreDesc {
+  font-size: 0.78rem; color: rgba(240,234,214,0.4);
+  font-family: 'Figtree', sans-serif; line-height: 1.5;
+}
+.fiExplainerCard {
+  background: rgba(240,234,214,0.04); border: 1px solid rgba(240,234,214,0.07);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+}
+.fiExplainerTitle {
+  font-size: 0.82rem; font-weight: 700; color: rgba(240,234,214,0.6);
+  font-family: 'Figtree', sans-serif; margin-bottom: 4px;
+}
+.fiExplainerBody {
+  font-size: 0.8rem; color: rgba(240,234,214,0.4);
+  font-family: 'Figtree', sans-serif; line-height: 1.5;
+}
+.fiBreakdownCard {
+  background: #3E3228; border: 1px solid rgba(240,234,214,0.08);
+  border-radius: 12px; padding: 16px; margin-bottom: 14px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.fiCatRow { display: flex; flex-direction: column; gap: 5px; }
+.fiCatTop { display: flex; justify-content: space-between; align-items: center; }
+.fiCatLabel {
+  font-size: 0.85rem; font-weight: 600; color: rgba(240,234,214,0.75);
+  font-family: 'Figtree', sans-serif;
+}
+.fiCatPts {
+  font-size: 0.8rem; font-weight: 600;
+  font-family: 'Sora', sans-serif;
+}
+.fiCatBar {
+  height: 6px; background: rgba(240,234,214,0.07);
+  border-radius: 3px; overflow: hidden;
+}
+.fiCatBarFill {
+  height: 100%; border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.fiCatTip {
+  font-size: 0.75rem; color: rgba(240,234,214,0.35);
+  font-family: 'Figtree', sans-serif;
+}
+.fiActionCard {
+  background: rgba(255,102,68,0.07);
+  border: 1px solid rgba(255,102,68,0.2);
+  border-left: 3px solid #FF6644;
+  border-radius: 0 12px 12px 0;
+  padding: 14px 16px; margin-bottom: 14px;
+}
+.fiActionTitle {
+  font-size: 0.88rem; font-weight: 700; color: #FF6644;
+  font-family: 'Figtree', sans-serif; margin-bottom: 8px;
+}
+.fiActionItem {
+  font-size: 0.85rem; color: rgba(240,234,214,0.65);
+  font-family: 'Figtree', sans-serif;
+  display: flex; gap: 8px; margin-bottom: 5px;
+}
+.fiActionBullet { color: #FF6644; font-weight: 700; flex-shrink: 0; }
+.fiObsCard {
+  display: flex; align-items: flex-start; gap: 12px;
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+  position: relative;
+}
+.fiObsAlert { background: rgba(232,50,26,0.07); border: 1px solid rgba(232,50,26,0.18); }
+.fiObsPattern { background: rgba(255,184,0,0.06); border: 1px solid rgba(255,184,0,0.15); }
+.fiObsWin { background: rgba(76,175,80,0.07); border: 1px solid rgba(76,175,80,0.18); }
+.fiObsType {
+  position: absolute; top: 10px; right: 12px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  font-family: 'Figtree', sans-serif; color: rgba(240,234,214,0.3);
+}
+.fiObsIcon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+.fiObsTitle {
+  font-size: 0.9rem; font-weight: 700; color: #F0EAD6;
+  font-family: 'Figtree', sans-serif; margin-bottom: 4px;
+}
+.fiObsBody {
+  font-size: 0.82rem; color: rgba(240,234,214,0.55);
+  font-family: 'Figtree', sans-serif; line-height: 1.5;
 }
