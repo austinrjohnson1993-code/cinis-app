@@ -248,13 +248,22 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
       <div className={styles.view}>
 
         {/* Sub-tab nav */}
-        <div className={styles.financeSubTabs}>
-          {[['bills','Bills'],['budget','Budget'],['plans','Plans'],['knowledge','Knowledge'],['learn','Learn'],['insights','Insights']].map(([id, label]) => (
-            <button key={id} onClick={() => setFinanceSub(id)}
-              className={`${styles.financeSubTab} ${financeSub === id ? styles.financeSubTabActive : ''}`}>
-              {label}
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: 6, padding: '12px 14px 0', overflowX: 'auto' }}>
+          {[['bills','Bills'],['budget','Budget'],['plans','Plans'],['knowledge','Knowledge'],['learn','Learn'],['insights','Insights']].map(([id, label]) => {
+            const isActive = financeSub === id
+            return (
+              <button key={id} onClick={() => setFinanceSub(id)}
+                style={{
+                  padding: '5px 12px', borderRadius: 20, whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0,
+                  background: isActive ? 'rgba(255,102,68,0.15)' : '#3E3228',
+                  color: isActive ? '#FF6644' : 'rgba(245,240,227,0.32)',
+                  border: isActive ? '1px solid rgba(255,102,68,0.25)' : '1px solid rgba(245,240,227,0.12)',
+                  fontFamily: "'Figtree', sans-serif", fontSize: 10, fontWeight: isActive ? 500 : 400,
+                }}>
+                {label}
+              </button>
+            )
+          })}
         </div>
 
         {/* ── BILLS ── */}
@@ -271,9 +280,10 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
               </div>
             ) : bills.length === 0 ? (
               <>
-                <div className={styles.viewHeader}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 14px 0', marginBottom: 16 }}>
                   <div>
-                    <h1 className={styles.greetingText}>Monthly expenses</h1>
+                    <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(245,240,227,0.32)', fontFamily: "'Figtree', sans-serif" }}>Finance</span>
+                    <h1 style={{ margin: '2px 0 0', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 600, color: '#F5F0E3' }}>Bills</h1>
                     <p className={styles.financeTotal}>{fmtMoney(monthlyTotal)}<span className={styles.financeTotalSub}>/mo</span></p>
                   </div>
                   <button onClick={() => setShowAddBillModal(true)} className={styles.addTaskBtn}>+ Add bill</button>
@@ -288,9 +298,10 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
               </>
             ) : (
             <>
-            <div className={styles.viewHeader}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 14px 0', marginBottom: 16 }}>
               <div>
-                <h1 className={styles.greetingText}>Monthly expenses</h1>
+                <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(245,240,227,0.32)', fontFamily: "'Figtree', sans-serif" }}>Finance</span>
+                <h1 style={{ margin: '2px 0 0', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 600, color: '#F5F0E3' }}>Bills</h1>
                 <p className={styles.financeTotal}>{fmtMoney(monthlyTotal)}<span className={styles.financeTotalSub}>/mo</span></p>
               </div>
               <button onClick={() => setShowAddBillModal(true)} className={styles.addTaskBtn}>+ Add bill</button>

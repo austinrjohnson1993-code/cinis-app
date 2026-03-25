@@ -8,29 +8,38 @@ export default function TabNutrition({ user, profile, showToast, loggedFetch }) 
   const COL = {
     coal: '#211A14', char: '#3E3228', ash: '#F5F0E3',
     ember: '#E8321A', hot: '#FF6644', green: '#4CAF50',
-    blue: '#3B8BD4', dim: '#F5F0E390', faint: '#F5F0E360',
+    blue: '#3B8BD4', gold: '#FFB800',
+    dim: '#F5F0E390', faint: '#F5F0E360',
     ghost: '#F5F0E350', micro: '#F5F0E338', border: '#F5F0E318',
     charBorder: '#F5F0E31E', charLight: '#F5F0E30C',
   }
   const fig = "'Figtree', -apple-system, sans-serif"
   const sora = "'Sora', sans-serif"
 
-  const MacroRing = ({ value, target, label, color, unit = '' }) => (
-    <div style={{ flex: 1, textAlign: 'center' }}>
-      <div style={{ position: 'relative', width: 48, height: 48, margin: '0 auto 4px' }}>
-        <svg width="100%" height="100%" viewBox="0 0 48 48">
-          <circle cx="24" cy="24" r="20" fill="none" stroke={COL.charLight} strokeWidth="4"/>
-          <circle cx="24" cy="24" r="20" fill="none" stroke={color} strokeWidth="4"
-            strokeLinecap="round" strokeDasharray="126"
-            strokeDashoffset={126 - (126 * Math.min(value / target, 1))}
-            transform="rotate(-90 24 24)"/>
-        </svg>
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontFamily: sora, fontSize: 11, fontWeight: 600, color }}>{value}{unit}</div>
+  const MacroRing = ({ value, target, label, color, unit = '' }) => {
+    const r = 30
+    const circ = 2 * Math.PI * r
+    const pct = Math.min(value / target, 1)
+    return (
+      <div style={{ flex: 1, textAlign: 'center' }}>
+        <div style={{ position: 'relative', width: 72, height: 72, margin: '0 auto 4px' }}>
+          <svg width="72" height="72" viewBox="0 0 72 72">
+            <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(245,240,227,0.08)" strokeWidth="6"/>
+            <circle cx="36" cy="36" r={r} fill="none" stroke={color} strokeWidth="6"
+              strokeLinecap="round" strokeDasharray={circ}
+              strokeDashoffset={circ * (1 - pct)}
+              transform="rotate(-90 36 36)"/>
+          </svg>
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span style={{ fontFamily: sora, fontSize: 15, fontWeight: 600, color }}>{value}</span>
+            {unit && <span style={{ fontSize: 7, color: COL.ghost }}>{unit}</span>}
+          </div>
+        </div>
+        <div style={{ fontSize: 9, color: COL.ghost, fontFamily: fig }}>/ {target}{unit}</div>
+        <div style={{ fontSize: 8, color: COL.ghost, fontFamily: fig, marginTop: 5, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
       </div>
-      <div style={{ fontSize: 9, color: COL.ghost, fontFamily: fig }}>/ {target}{unit}</div>
-      <div style={{ fontSize: 9, color: COL.faint, fontFamily: fig, marginTop: 1, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
-    </div>
-  )
+    )
+  }
 
   const NCard = ({ children, style, borderLeft }) => (
     <div style={{ background: COL.char, borderRadius: 10, padding: 12, marginBottom: 8, borderLeft: borderLeft || 'none', ...style }}>{children}</div>
@@ -52,52 +61,68 @@ export default function TabNutrition({ user, profile, showToast, loggedFetch }) 
     <span style={{ padding: '5px 12px', borderRadius: 14, fontFamily: fig, fontSize: 10, background: active ? COL.ember : COL.char, color: active ? COL.ash : COL.dim }}>{children}</span>
   )
 
-  const nutrTabs = ['Log', 'Stack', 'Meals', 'Body', 'Knowledge', 'Learn', 'Insights']
+  const nutrTabs = ['Log', 'Meals', 'Stack', 'Body', 'Insights', 'Knowledge', 'Learn']
 
   // ── LOG ──
   const logContent = (
     <div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-        <MacroRing value={1840} target={2400} label="Calories" color={COL.ember} />
-        <MacroRing value={128} target={180} label="Protein" color={COL.hot} unit="g" />
-        <MacroRing value={195} target={280} label="Carbs" color={COL.dim} unit="g" />
-        <MacroRing value={52} target={80} label="Fat" color={COL.dim} unit="g" />
+      {/* Header */}
+      <div style={{ marginBottom: 12 }}>
+        <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.06em', color: COL.ghost, fontFamily: fig }}>Nutrition</span>
+        <h1 style={{ margin: '2px 0 0', fontFamily: sora, fontSize: 20, fontWeight: 600, color: COL.ash }}>Today</h1>
       </div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-        <div style={{ flex: 1, background: COL.char, borderRadius: 10, padding: 10, marginBottom: 0 }}>
-          <NRow>
-            <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: COL.blue, fontFamily: fig, marginBottom: 0 }}>Water</div>
-            <span style={{ fontSize: 9, color: COL.ghost, fontFamily: fig }}>{nutrWaterCount} / 10 glasses</span>
-          </NRow>
-          <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
-            {Array.from({ length: 10 }).map((_, i) => (
+
+      {/* Macro rings */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 16 }}>
+        <MacroRing value={1840} target={2400} label="Calories" color={COL.hot} unit="kcal" />
+        <MacroRing value={128} target={180} label="Protein" color={COL.ember} unit="g" />
+        <MacroRing value={195} target={280} label="Carbs" color={COL.gold} unit="g" />
+        <MacroRing value={52} target={80} label="Fat" color={COL.blue} unit="g" />
+      </div>
+
+      {/* Protein callout */}
+      <div style={{ background: COL.char, borderRadius: 8, padding: '10px 12px', marginBottom: 14 }}>
+        <span style={{ fontFamily: sora, fontSize: 14, fontWeight: 600, color: COL.ash }}>52g protein remaining</span>
+        <p style={{ fontSize: 10, color: COL.ghost, fontFamily: fig, margin: '3px 0 0' }}>Hit your target by eating ~2 scoops whey or 7oz chicken</p>
+      </div>
+
+      {/* Water tracker */}
+      <div style={{ background: COL.char, borderRadius: 10, padding: 12, marginBottom: 14 }}>
+        <NRow>
+          <span style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: COL.blue, fontFamily: fig }}>Water</span>
+          <span style={{ fontFamily: sora, fontSize: 9, color: COL.ghost }}>{nutrWaterCount} / 8 glasses</span>
+        </NRow>
+        <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+          {Array.from({ length: 8 }).map((_, i) => {
+            const filled = i < nutrWaterCount
+            return (
               <div key={i}
                 onClick={() => setNutrWaterCount(i < nutrWaterCount ? i : i + 1)}
-                style={{ width: 18, height: 18, borderRadius: '50%', background: i < nutrWaterCount ? `${COL.blue}30` : 'transparent', border: `1px solid ${i < nutrWaterCount ? `${COL.blue}60` : COL.charBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, color: i < nutrWaterCount ? COL.blue : COL.micro, cursor: 'pointer' }}>
-                {i < nutrWaterCount ? '✓' : ''}
+                style={{
+                  width: 28, height: 28, borderRadius: 8, cursor: 'pointer',
+                  background: filled ? `${COL.blue}30` : 'rgba(245,240,227,0.08)',
+                  border: `1px solid ${filled ? `${COL.blue}60` : COL.charBorder}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 12, color: filled ? COL.blue : COL.micro,
+                }}>
+                {filled ? '💧' : ''}
               </div>
-            ))}
-          </div>
-        </div>
-        <div style={{ flex: '0 0 85px', background: COL.char, borderRadius: 10, padding: 10, marginBottom: 0, textAlign: 'center' }}>
-          <div style={{ fontFamily: sora, fontSize: 20, fontWeight: 600, color: COL.hot }}>52g</div>
-          <div style={{ fontSize: 9, color: COL.ghost, fontFamily: fig }}>protein left</div>
-          <div style={{ fontSize: 8, color: COL.micro, fontFamily: fig, marginTop: 2 }}>~2 scoops or 7oz chicken</div>
+            )
+          })}
         </div>
       </div>
-      <NRow style={{ margin: '8px 0 6px' }}>
-        <SLabel>Today's meals</SLabel>
-        <span style={{ fontSize: 10, color: COL.ember, fontFamily: fig }}>+ Log meal</span>
-      </NRow>
+
+      {/* Meal slots */}
+      <SLabel>Today's meals</SLabel>
       {[
         { name: 'Breakfast', time: '9:15 AM', food: '4 eggs scrambled, 2 toast, coffee w/ cream', cal: 540, p: 32, carb: 38, f: 28 },
-        { name: 'Pre-workout', time: '12:30 PM', food: 'Protein shake (2 scoops whey, banana, 2 tbsp PB, 1/2 cup oats)', cal: 620, p: 48, carb: 72, f: 12 },
-        { name: 'Post-workout', time: '2:45 PM', food: 'Chicken breast 8oz, 1.5 cup white rice, 1 cup broccoli', cal: 680, p: 48, carb: 85, f: 12 },
+        { name: 'Lunch', time: '12:30 PM', food: 'Protein shake (2 scoops whey, banana, 2 tbsp PB, 1/2 cup oats)', cal: 620, p: 48, carb: 72, f: 12 },
+        { name: 'Dinner', time: '2:45 PM', food: 'Chicken breast 8oz, 1.5 cup white rice, 1 cup broccoli', cal: 680, p: 48, carb: 85, f: 12 },
       ].map((ml, i) => (
-        <NCard key={i} style={{ padding: 10, borderRadius: 8 }}>
+        <NCard key={i} style={{ padding: 10, borderRadius: 10, marginBottom: 8 }}>
           <NRow style={{ marginBottom: 4 }}>
-            <span style={{ fontSize: 13, fontWeight: 500, color: COL.ash, fontFamily: fig }}>{ml.name}</span>
-            <span style={{ fontSize: 9, color: COL.ghost, fontFamily: fig, background: COL.charLight, padding: '2px 6px', borderRadius: 4 }}>{ml.time}</span>
+            <span style={{ fontFamily: fig, fontSize: 12, fontWeight: 600, color: COL.ash }}>{ml.name}</span>
+            <span style={{ fontSize: 9, color: COL.ghost, fontFamily: fig }}>{ml.time}</span>
           </NRow>
           <div style={{ fontSize: 11, color: `${COL.ash}aa`, fontFamily: fig }}>{ml.food}</div>
           <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
@@ -109,13 +134,16 @@ export default function TabNutrition({ user, profile, showToast, loggedFetch }) 
           </div>
         </NCard>
       ))}
-      <div style={{ border: `0.5px dashed ${COL.charBorder}`, borderRadius: 8, padding: 10, marginBottom: 8 }}>
+      {/* Empty dinner slot */}
+      <div style={{ border: `0.5px dashed ${COL.charBorder}`, borderRadius: 10, padding: 12, marginBottom: 8 }}>
         <NRow>
-          <span style={{ fontSize: 13, color: COL.ghost, fontFamily: fig }}>Dinner</span>
+          <span style={{ fontFamily: fig, fontSize: 12, fontWeight: 600, color: COL.ghost }}>Snacks</span>
           <span style={{ fontSize: 9, color: COL.ghost, fontFamily: fig }}>Not logged</span>
         </NRow>
-        <div style={{ fontSize: 11, color: COL.dim, fontFamily: fig, fontStyle: 'italic', marginTop: 4 }}>52g protein remaining — hit it here</div>
+        <div style={{ fontSize: 11, color: COL.ghost, fontFamily: fig, fontStyle: 'italic', marginTop: 4 }}>+ Log Snacks</div>
       </div>
+
+      {/* Quick add */}
       <NCard>
         <SLabel>Quick add</SLabel>
         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
@@ -402,18 +430,24 @@ export default function TabNutrition({ user, profile, showToast, loggedFetch }) 
   return (
     <div style={{ paddingBottom: 80, background: COL.coal, minHeight: '100vh' }}>
       {/* Sub-tab nav */}
-      <div style={{ display: 'flex', borderBottom: `0.5px solid ${COL.charBorder}`, marginBottom: 14, overflowX: 'auto' }}>
+      <div style={{ display: 'flex', gap: 6, padding: '12px 14px', overflowX: 'auto' }}>
         {nutrTabs.map(tab => {
           const isActive = nutrSubTab === tab.toLowerCase()
           return (
-            <div key={tab} onClick={() => setNutrSubTab(tab.toLowerCase())}
-              style={{ fontFamily: fig, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', color: isActive ? COL.ember : COL.ghost, padding: '8px 10px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, borderBottom: isActive ? `2px solid ${COL.ember}` : '2px solid transparent' }}>
+            <button key={tab} onClick={() => setNutrSubTab(tab.toLowerCase())}
+              style={{
+                padding: '5px 12px', borderRadius: 20, whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0,
+                background: isActive ? 'rgba(232,50,26,0.15)' : COL.char,
+                color: isActive ? COL.ember : COL.ghost,
+                border: isActive ? '1px solid rgba(232,50,26,0.25)' : `1px solid ${COL.charBorder}`,
+                fontFamily: fig, fontSize: 10, fontWeight: isActive ? 500 : 400,
+              }}>
               {tab}
-            </div>
+            </button>
           )
         })}
       </div>
-      <div style={{ padding: 18 }}>
+      <div style={{ padding: '0 14px' }}>
         {tabContentMap[nutrSubTab] || logContent}
       </div>
     </div>
