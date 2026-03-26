@@ -235,6 +235,9 @@ export default function Dashboard() {
             ))}
           </nav>
           <div className={styles.sidebarFooter}>
+            {profile?.session_count > 0 && (
+              <span className={styles.sessionBadge}>Session #{profile.session_count}</span>
+            )}
             <span className={styles.sidebarEmail}>{user?.email}</span>
             <button onClick={handleSignOut} className={styles.signOutBtn}>Sign out</button>
             <button onClick={handleRunRollover} className={styles.rolloverDevBtn}>Run rollover</button>

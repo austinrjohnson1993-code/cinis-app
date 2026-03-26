@@ -73,6 +73,10 @@
   display: flex; flex-direction: column; gap: 10px;
   padding: 20px 8px 0; border-top: 1px solid rgba(255,200,120,0.08);
 }
+.sessionBadge {
+  font-family: 'Sora', sans-serif; font-size: 0.68rem; font-weight: 500;
+  color: rgba(240,234,214,0.4); letter-spacing: 0.04em;
+}
 .sidebarEmail { font-size: 0.72rem; color: rgba(240,234,214,0.25); word-break: break-all; }
 .signOutBtn {
   background: transparent; border: 1px solid rgba(255,200,120,0.12); border-radius: 100px;

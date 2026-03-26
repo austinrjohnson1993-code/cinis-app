@@ -65,24 +65,22 @@ self.addEventListener('fetch', function(event) {
 });
 
 self.addEventListener('push', function(event) {
-  const data = event.data.json();
+  const data = event.data ? event.data.json() : {};
+  const title = data.title || 'Cinis';
   const options = {
-    body: data.body,
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    vibrate: [200, 100, 200],
+    body: data.body || 'Time to check in.',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-72x72.png',
+    tag: data.tag || 'cinis-checkin',
+    renotify: true,
     data: { url: data.url || '/dashboard' },
-    actions: [
-      { action: 'open', title: 'Open Cinis' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ]
+    actions: data.actions || []
   };
-  event.waitUntil(self.registration.showNotification(data.title, options));
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  if (event.action === 'open' || !event.action) {
-    event.waitUntil(clients.openWindow(event.notification.data.url));
-  }
+  const url = event.notification.data?.url || '/dashboard';
+  event.waitUntil(clients.openWindow(url));
 });

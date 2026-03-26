@@ -1,4 +1,4 @@
-# FocusBuddy PRIMER
+# Cinis PRIMER
 Updated: March 17, 2026 · Session 9 · ~8 hrs this session · ~70 hrs total
 
 ## Score

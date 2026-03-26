@@ -1,0 +1,10 @@
+{
+    "timestamp": "2026-03-26T16:58:12+00:00",
+    "loop_count": 1,
+    "calls_made_this_hour": 3,
+    "max_calls_per_hour": 100,
+    "last_action": "circuit_breaker_open",
+    "status": "halted",
+    "exit_reason": "stagnation_detected",
+    "next_reset": "12:58:12"
+}
