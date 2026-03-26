@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import withAuth from '../../lib/authGuard'
 
 function getAdminClient() {
   return createClient(
@@ -7,13 +8,11 @@ function getAdminClient() {
   )
 }
 
-export default async function handler(req, res) {
+async function handler(req, res, userId) {
   const supabaseAdmin = getAdminClient()
 
-  // GET ?userId=xxx — fetch all active alarms for user, ordered by alarm_time
+  // GET — fetch all active alarms for user, ordered by alarm_time
   if (req.method === 'GET') {
-    const { userId } = req.query
-    if (!userId) return res.status(400).json({ error: 'userId required' })
 
     const { data: alarms, error } = await supabaseAdmin
       .from('alarms')
@@ -30,11 +29,11 @@ export default async function handler(req, res) {
     return res.status(200).json({ alarms })
   }
 
-  // POST { userId, alarm_time, title, task_id } — create alarm
+  // POST { alarm_time, title, task_id } — create alarm
   if (req.method === 'POST') {
-    const { userId, alarm_time, title, task_id } = req.body
-    if (!userId || !alarm_time || !title) {
-      return res.status(400).json({ error: 'userId, alarm_time, and title required' })
+    const { alarm_time, title, task_id } = req.body
+    if (!alarm_time || !title) {
+      return res.status(400).json({ error: 'alarm_time and title required' })
     }
 
     const { data: alarm, error } = await supabaseAdmin
@@ -108,3 +107,5 @@ export default async function handler(req, res) {
 
   return res.status(405).json({ error: 'Method not allowed' })
 }
+
+export default withAuth(handler)

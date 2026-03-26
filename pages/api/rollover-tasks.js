@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import withAuth from '../../lib/authGuard'
 
 // Uses service role key so this can update rows across all users (bypasses RLS)
 function getAdminClient() {
@@ -46,7 +47,7 @@ export async function runRollover() {
   return { rolled: overdueTasks.length, tasks: overdueTasks.map(t => t.title) }
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
@@ -57,3 +58,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: err.message })
   }
 }
+
+export default withAuth(handler)

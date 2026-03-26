@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import withAuth from '../../lib/authGuard'
 
 function getAdminClient() {
   return createClient(
@@ -7,13 +8,11 @@ function getAdminClient() {
   )
 }
 
-export default async function handler(req, res) {
+async function handler(req, res, userId) {
   const supabaseAdmin = getAdminClient()
 
-  // GET ?userId=xxx — fetch habits + last 7 days completions
+  // GET — fetch habits + last 7 days completions
   if (req.method === 'GET') {
-    const { userId } = req.query
-    if (!userId) return res.status(400).json({ error: 'userId required' })
 
     const since = new Date()
     since.setDate(since.getDate() - 7)
@@ -44,10 +43,9 @@ export default async function handler(req, res) {
     })
   }
 
-  // POST { userId, name, habit_type?, description?, frequency? } — create habit
+  // POST { name, habit_type?, description?, frequency? } — create habit
   if (req.method === 'POST') {
-    const { userId, name, habit_type, description, frequency } = req.body
-    if (!userId) return res.status(400).json({ error: 'userId required' })
+    const { name, habit_type, description, frequency } = req.body
     if (!name || !name.trim()) return res.status(400).json({ error: 'name required' })
 
     const { data: habit, error } = await supabaseAdmin
@@ -71,10 +69,10 @@ export default async function handler(req, res) {
     return res.status(201).json({ habit })
   }
 
-  // DELETE ?userId=xxx&habitId=xxx — archive habit
+  // DELETE ?habitId=xxx — archive habit
   if (req.method === 'DELETE') {
-    const { userId, habitId } = req.query
-    if (!userId || !habitId) return res.status(400).json({ error: 'userId and habitId required' })
+    const { habitId } = req.query
+    if (!habitId) return res.status(400).json({ error: 'habitId required' })
 
     const { error } = await supabaseAdmin
       .from('habits')
@@ -92,3 +90,5 @@ export default async function handler(req, res) {
 
   return res.status(405).json({ error: 'Method not allowed' })
 }
+
+export default withAuth(handler)

@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { buildPersonaPrompt } from '../../lib/persona'
+import withAuth from '../../lib/authGuard'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -17,11 +18,11 @@ const PROMPTS = {
   progress: (task, dur) => `The user made progress on "${task}" in ${dur} min but didn't finish. Short encouragement + one concrete next step. Under 2 sentences.`,
 }
 
-export default async function handler(req, res) {
+async function handler(req, res, userId) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { userId, outcome, taskTitle, focusDuration } = req.body
-  if (!userId || !outcome) return res.status(400).json({ error: 'userId and outcome required' })
+  const { outcome, taskTitle, focusDuration } = req.body
+  if (!outcome) return res.status(400).json({ error: 'outcome required' })
 
   const supabaseAdmin = getAdminClient()
   const { data: profile } = await supabaseAdmin.from('profiles').select('*').eq('id', userId).single()
@@ -43,3 +44,5 @@ export default async function handler(req, res) {
     return res.status(200).json({ message: "What felt hardest about starting that?" })
   }
 }
+
+export default withAuth(handler)

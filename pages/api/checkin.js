@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { buildPersonaPrompt } from '../../lib/persona'
 import { compressAndSaveMemory } from '../../lib/memoryCompression'
 import { checkDailyRateLimit, rateLimitErrorResponse } from '../../lib/rateLimit'
+import withAuth from '../../lib/authGuard'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -773,12 +774,11 @@ async function logCheckinMessage(supabaseAdmin, userId, role, content, personaBl
 
 export const config = { maxDuration: 30 }
 
-export default async function handler(req, res) {
+async function handler(req, res, userId) {
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { userId, checkInType, messages, timezone, tasks: clientTasks } = req.body
-  if (!userId) return res.status(400).json({ error: 'userId required' })
+  const { checkInType, messages, timezone, tasks: clientTasks } = req.body
 
   // ── Next Move fast path ────────────────────────────────────────────────────
   if (checkInType === 'next_move') {
@@ -1129,3 +1129,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: err.message })
   }
 }
+
+export default withAuth(handler)

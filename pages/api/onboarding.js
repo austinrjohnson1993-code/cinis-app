@@ -1,4 +1,5 @@
 import { coachingMessage } from '../../lib/anthropic';
+import withAuth from '../../lib/authGuard';
 
 const ONBOARDING_SYSTEM_PROMPT = `You are Cinis — conducting a deep onboarding conversation with a new user. Your goal is to genuinely understand who this person is so the app can serve them well from day one.
 
@@ -31,7 +32,7 @@ PERSONA OPTIONS (suggest at the end):
 
 When wrapping up, briefly explain your persona suggestion based on what they told you. Keep it to 2-3 sentences. Then add [ONBOARDING_COMPLETE].`;
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -60,3 +61,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Something went wrong', detail: error.message });
   }
 }
+
+export default withAuth(handler);

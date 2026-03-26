@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import withAuth from '../../lib/authGuard'
 
 function getAdminClient() {
   return createClient(
@@ -52,16 +53,10 @@ function sanitizeInsight(text) {
   return cleaned || null
 }
 
-export default async function handler(req, res) {
+async function handler(req, res, userId) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
 
-  // userId is read from query params — confirmed correct
-  // TERMINAL 1 NOTE: all progress fetch calls must include userId:
-  //   fetch(`/api/progress?type=daily&userId=${user.id}&timezone=${tz}`)
-  //   fetch(`/api/progress?type=weekly&userId=${user.id}`)
-  //   fetch(`/api/progress?type=monthly&userId=${user.id}`)
-  const { userId, type = 'weekly', timezone = 'UTC' } = req.query
-  if (!userId) return res.status(400).json({ error: 'userId required' })
+  const { type = 'weekly', timezone = 'UTC' } = req.query
 
   const supabaseAdmin = getAdminClient()
 
@@ -236,3 +231,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Something went wrong loading progress data' })
   }
 }
+
+export default withAuth(handler)

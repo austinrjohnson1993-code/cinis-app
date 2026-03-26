@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import withAuth from '../../../lib/authGuard'
 
 function getAdminClient() {
   return createClient(
@@ -7,11 +8,10 @@ function getAdminClient() {
   )
 }
 
-export default async function handler(req, res) {
+async function handler(req, res, userId) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { userId, limit } = req.query
-  if (!userId) return res.status(400).json({ error: 'userId required' })
+  const { limit } = req.query
 
   const safeLimit = Math.min(parseInt(limit) || 30, 100)
 
@@ -36,3 +36,5 @@ export default async function handler(req, res) {
 
   return res.status(200).json({ entries: entries || [] })
 }
+
+export default withAuth(handler)
