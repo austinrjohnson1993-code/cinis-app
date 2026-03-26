@@ -2,7 +2,8 @@
   "hooks": {
     "SessionStart": [
       {
-        "command": "bash /Users/ryanjohnson/Documents/focusbuddy-app/scripts/session_start.sh"
+        "type": "command",
+        "command": "bash /Users/ryanjohnson/Documents/Cinis-app/scripts/session_start.sh"
       }
     ]
   }
