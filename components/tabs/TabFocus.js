@@ -190,7 +190,7 @@ export default function TabFocus({
             <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginBottom: 20 }}>
               {[5, 15, 25, 45, 60].map(d => (
                 <div key={d} onClick={() => { setFocusDuration(d); setFocusCustom('') }} style={{
-                  width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 44, height: 44, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontFamily: sf, fontSize: 13, fontWeight: 500, cursor: 'pointer',
                   background: focusDuration === d && !focusCustom ? '#FF664425' : '#3E3228',
                   color: focusDuration === d && !focusCustom ? '#FF6644' : '#F5F0E350',
@@ -281,15 +281,17 @@ export default function TabFocus({
                 <div style={{ fontFamily: ff, fontSize: 12, fontWeight: 500, color: '#F5F0E3' }}>Focus shield</div>
                 <div style={{ fontSize: 10, color: '#F5F0E350', fontFamily: ff }}>Notifications + apps blocked</div>
               </div>
-              <div onClick={() => setFocusShieldOn(v => !v)} style={{
-                width: 36, height: 20, borderRadius: 10, cursor: 'pointer', position: 'relative',
-                background: focusShieldOn ? '#E8321A' : '#F5F0E333',
-                transition: 'background .2s'
-              }}>
-                <div style={{
-                  width: 16, height: 16, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2,
-                  left: focusShieldOn ? 18 : 2, transition: 'left .2s'
-                }} />
+              <div style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div onClick={() => setFocusShieldOn(v => !v)} style={{
+                  width: 36, height: 20, borderRadius: 10, cursor: 'pointer', position: 'relative',
+                  background: focusShieldOn ? '#E8321A' : '#F5F0E333',
+                  transition: 'background .2s'
+                }}>
+                  <div style={{
+                    width: 16, height: 16, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2,
+                    left: focusShieldOn ? 18 : 2, transition: 'left .2s'
+                  }} />
+                </div>
               </div>
             </div>
 

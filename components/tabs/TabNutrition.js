@@ -98,14 +98,16 @@ export default function TabNutrition({ user, profile, showToast, loggedFetch }) 
             return (
               <div key={i}
                 onClick={() => setNutrWaterCount(i < nutrWaterCount ? i : i + 1)}
-                style={{
-                  width: 28, height: 28, borderRadius: 8, cursor: 'pointer',
+                style={{ flex: 1, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: 8,
                   background: filled ? `${COL.blue}30` : 'rgba(245,240,227,0.08)',
                   border: `1px solid ${filled ? `${COL.blue}60` : COL.charBorder}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 12, color: filled ? COL.blue : COL.micro,
                 }}>
-                {filled ? '💧' : ''}
+                  {filled ? '💧' : ''}
+                </div>
               </div>
             )
           })}
