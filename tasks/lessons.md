@@ -26,7 +26,7 @@
 
 ## Launching Claude Code Correctly
 - /model /compact /plugin /skills are Claude Code slash commands — NOT raw zsh.
-- Launch first: cd ~/Documents/focusbuddy-app && claude --dangerously-skip-permissions
+- Launch first: cd ~/Documents/Cinis-app && claude --dangerously-skip-permissions
 - Then run slash commands inside Claude Code.
 - session_start.sh fires automatically via .claude/settings.json startup hook.
 

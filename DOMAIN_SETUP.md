@@ -18,7 +18,7 @@ Steps to connect the custom domain to Vercel.
 
 ## 2. Vercel
 
-1. Go to [Vercel Dashboard](https://vercel.com) → select project **focusbuddy-app**
+1. Go to [Vercel Dashboard](https://vercel.com) → select project **Cinis-app**
 2. **Settings** → **Domains**
 3. Click **Add** and enter: `focus-buddy.app` → confirm
 4. Click **Add** again and enter: `www.focus-buddy.app` → confirm
