@@ -8,6 +8,9 @@ function getAdminClient() {
 }
 
 export default async function handler(req, res) {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ error: 'Not found' })
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   // Authenticate via Bearer token

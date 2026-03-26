@@ -236,7 +236,7 @@ async function callClaude(messages, systemPrompt, useTools = true) {
 
 // ── Tool execution ───────────────────────────────────────────────────────────
 
-async function executeTool(toolName, input, supabaseAdmin, userId) {
+async function executeTool(toolName, input, supabaseAdmin, userId, profile = null) {
 
   if (toolName === 'reschedule_task') {
     const { task_id, scheduled_for, due_time } = input
@@ -647,7 +647,7 @@ async function executeTool(toolName, input, supabaseAdmin, userId) {
       return { result: 'error', error: 'Failed to calculate daily number' }
     }
 
-    const monthlyIncome = 5000 // TODO: fetch from profile.monthly_income
+    const monthlyIncome = profile?.monthly_income || 0
     const monthlyBills = (allBills || []).reduce((sum, b) => sum + (b.amount || 0), 0)
     const todaySpent = (todaySpending || []).reduce((sum, s) => sum + (s.amount || 0), 0)
     const baseDaily = ((monthlyIncome - monthlyBills) / 30).toFixed(2)
@@ -998,7 +998,7 @@ export default async function handler(req, res) {
     try {
       let { text, toolUses, rawContent } = await callClaude(messages, systemPrompt)
       const actions = await Promise.all(
-        toolUses.map(tu => executeTool(tu.name, tu.input, supabaseAdmin, userId))
+        toolUses.map(tu => executeTool(tu.name, tu.input, supabaseAdmin, userId, profile))
       )
       // Two-step tool_use: get confirmation text after tool execution
       if (toolUses.length > 0) {
@@ -1082,7 +1082,7 @@ export default async function handler(req, res) {
     const openingMessages = [{ role: 'user', content: contextPrompt }]
     let { text, toolUses, rawContent } = await callClaude(openingMessages, systemPrompt, !noTools)
     const toolActions = await Promise.all(
-      toolUses.map(tu => executeTool(tu.name, tu.input, supabaseAdmin, userId))
+      toolUses.map(tu => executeTool(tu.name, tu.input, supabaseAdmin, userId, profile))
     )
     // Two-step tool_use: get confirmation text after tool execution
     if (toolUses.length > 0) {
