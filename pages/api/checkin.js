@@ -1157,6 +1157,15 @@ export default async function handler(req, res) {
       console.log('[checkin] opening tool follow-up text:', confirmText?.slice(0, 100))
     }
     console.log(`[checkin] ${type} for ${userId}: ${toolActions.length + actionsExecuted.length} actions executed`)
+    // Increment session_count for opening check-ins (fire-and-forget)
+    supabaseAdmin.from('profiles')
+      .select('session_count').eq('id', userId).single()
+      .then(({ data }) => {
+        const current = data?.session_count || 0
+        supabaseAdmin.from('profiles').update({ session_count: current + 1 }).eq('id', userId).then(() => {
+          console.log(`[checkin] session_count incremented to ${current + 1} for ${userId}`)
+        })
+      }).catch(err => console.error('[checkin] session_count increment failed:', err))
     // Log AI response for opening messages
     logCheckinMessage(supabaseAdmin, userId, 'assistant', text, personaBlend).catch(() => {})
     // Fire-and-forget memory compression for opening messages after 3+ exchanges (6+ total)
