@@ -27,7 +27,8 @@ export default function App({ Component, pageProps }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#ff4d1c" />
-        <link rel="icon" href="/icons/icon-192x192.png" />
+        <link rel="icon" type="image/png" href="/icons/icon-192x192.png" />
+        <link rel="shortcut icon" type="image/png" href="/icons/icon-192x192.png" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta property="og:title" content="Cinis — Where start meets finished." />
         <meta property="og:description" content="An AI productivity coach built for people with ADHD and executive function challenges. Start easier. Finish more." />
