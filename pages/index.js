@@ -738,7 +738,7 @@ export default function Home() {
             CINIS
           </span>
           <div className="nav-links">
-            <a href="/login" className="nav-link">Sign in</a>
+            <a href="https://cinis.app/login" className="nav-link">Sign in</a>
             <button onClick={() => router.push('/signup')} className="nav-cta">Get started</button>
           </div>
         </nav>
@@ -892,6 +892,7 @@ export default function Home() {
             <a href="https://twitter.com" className="footer-link">Twitter</a>
             <a href="https://instagram.com" className="footer-link">Instagram</a>
             <a href="/privacy" className="footer-link">Privacy</a>
+            <a href="https://cinis.app/terms" className="footer-link">Terms</a>
           </div>
           <p className="footer-micro">Cinis · Early Access 2026</p>
         </footer>
