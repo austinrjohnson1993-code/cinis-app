@@ -36,12 +36,10 @@ export default function Upgrade() {
   const handleCheckout = async (plan) => {
     setCheckingOut(true)
     try {
-      const res = await fetch('/api/stripe/checkout-session', {
+      const res = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          price_id: plan === 'monthly' ? process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY : process.env.NEXT_PUBLIC_STRIPE_PRICE_YEARLY
-        }),
+        body: JSON.stringify({ plan }),
         credentials: 'include',
       })
       const data = await res.json()
