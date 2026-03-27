@@ -3,7 +3,6 @@ import styles from '../../styles/Landing.module.css'
 
 export default function WaitlistForm() {
   const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
@@ -17,7 +16,7 @@ export default function WaitlistForm() {
       const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, phone }),
+        body: JSON.stringify({ email }),
       })
       if (res.ok) {
         setSubmitted(true)
@@ -41,25 +40,15 @@ export default function WaitlistForm() {
 
   return (
     <form onSubmit={handleSubmit} className={styles.waitlistForm}>
-      <div className={styles.waitlistInputRow}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          className={styles.waitlistInput}
-          required
-          autoComplete="email"
-        />
-        <input
-          type="tel"
-          placeholder="Phone"
-          value={phone}
-          onChange={e => setPhone(e.target.value)}
-          className={styles.waitlistInput}
-          autoComplete="tel"
-        />
-      </div>
+      <input
+        type="email"
+        placeholder="your@email.com"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        className={styles.waitlistInput}
+        required
+        autoComplete="email"
+      />
       {error && <div className={styles.waitlistError}>{error}</div>}
       <button
         type="submit"
@@ -68,7 +57,7 @@ export default function WaitlistForm() {
       >
         {loading ? 'Joining...' : 'Get early access'}
       </button>
-      <p className={styles.waitlistMicro}>No card. No commitment.</p>
+      <p className={styles.waitlistMicro}>No card. No commitment. Early access open now.</p>
     </form>
   )
 }

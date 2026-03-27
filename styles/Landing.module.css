@@ -1296,7 +1296,7 @@
 
 .pricingHeadline {
   font-family: 'Sora', sans-serif;
-  font-size: 22px;
+  font-size: clamp(22px, 4vw, 28px);
   font-weight: 800;
   color: #F0EAD6;
   margin-bottom: 4px;
@@ -1304,11 +1304,18 @@
 
 .pricingSub {
   font-family: 'Sora', sans-serif;
-  font-size: 22px;
+  font-size: clamp(18px, 3.5vw, 22px);
   font-weight: 300;
   font-style: italic;
-  color: rgba(240,234,214,0.35);
-  margin-bottom: 36px;
+  color: rgba(240,234,214,0.3);
+  margin-bottom: 8px;
+}
+
+.pricingDesc {
+  font-family: 'Figtree', sans-serif;
+  font-size: 13px;
+  color: rgba(240,234,214,0.18);
+  margin-bottom: 40px;
 }
 
 .pricingTiers {
@@ -1332,8 +1339,8 @@
 
 .tierLeft {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .tierName {
@@ -1343,23 +1350,33 @@
   color: #F0EAD6;
 }
 
-.tierPrice {
-  font-family: 'Sora', sans-serif;
-  font-size: 24px;
-  font-weight: 800;
-  color: #F0EAD6;
+.tierDesc {
+  font-family: 'Figtree', sans-serif;
+  font-size: 12px;
+  color: rgba(240,234,214,0.3);
 }
 
-.tierPriceSub {
-  font-size: 12px;
-  font-weight: 400;
-  color: rgba(240,234,214,0.4);
+.tierPrice {
+  font-family: 'Sora', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: #F0EAD6;
+  text-align: right;
+}
+
+.tierPriceHot {
+  color: #FF6644;
+}
+
+.tierPer {
+  font-family: 'Figtree', sans-serif;
+  font-size: 11px;
+  color: rgba(240,234,214,0.18);
+  text-align: right;
 }
 
 .tierRight {
-  font-family: 'Figtree', sans-serif;
-  font-size: 12px;
-  color: rgba(240,234,214,0.4);
+  text-align: right;
 }
 
 .tierCardPro {
@@ -1386,8 +1403,22 @@
 .tierPriceGold { color: #FFB800; }
 .tierSavings {
   font-family: 'Figtree', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 700;
   color: #FFB800;
+  text-align: right;
+  margin-top: 2px;
+}
+
+.pricingClose {
+  font-family: 'Figtree', sans-serif;
+  font-size: 13px;
+  color: rgba(240,234,214,0.18);
+  margin-bottom: 26px;
+}
+
+.pricingClose strong {
+  color: #FF6644;
 }
 
 .pricingFormWrap {
@@ -1397,16 +1428,17 @@
 }
 
 @media (min-width: 600px) {
-  .pricingTiers { flex-direction: row; }
+  .pricingTiers { flex-direction: row; max-width: 100%; }
   .tierCard {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
     flex: 1;
-    gap: 6px;
-    padding: 24px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
-  .tierLeft { flex-direction: column; align-items: center; gap: 4px; }
+  .tierRight { text-align: left; }
+  .tierPrice { text-align: left; }
+  .tierPer { text-align: left; }
+  .tierSavings { text-align: left; }
 }
 
 @media (min-width: 1024px) {
@@ -1513,6 +1545,12 @@
   line-height: 1.28;
   color: #F0EAD6;
   margin-bottom: 30px;
+}
+
+.empathyHeadlineEm {
+  font-style: italic;
+  color: #FF6644;
+  font-weight: 300;
 }
 
 .empathyBody {
