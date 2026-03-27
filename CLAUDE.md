@@ -128,6 +128,30 @@ Wave 3 autonomous builds: use ralph in T6. Write T8 spec → drop into .ralph/PR
 
 ---
 
+## LIBRARY COMPONENTS — Import from these, not custom implementations
+
+**lib/CinisMark.js**
+- Canonical rounded mark component — use for any new mark usage (not sharp-polygon version)
+- Import: `import CinisMark from '../lib/CinisMark'`
+
+**lib/constants.js PRICING**
+- Single source of truth for all subscription pricing
+- Includes tiers, feature limits, annual discount logic
+- Import: `import { PRICING } from '../lib/constants'`
+
+**lib/toast.js**
+- Toast notification system — use this, not custom toast implementations
+- Supports success, error, warning, info messages
+- Import: `import toast from '../lib/toast'`
+
+**Dashboard imports — DO NOT refactor**
+- Dashboard.js uses THEMES from components/tabs/shared.js
+- Dashboard.js uses applyAccentColor from lib/accentColor.js
+- Do not move to lib/constants.js — these are tightly coupled to tab system
+- T1 owns dashboard.js — do not touch from other terminals
+
+---
+
 ## OUTPUT FORMAT — EVERY TERMINAL RESPONSE
 
 ```

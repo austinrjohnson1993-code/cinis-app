@@ -36,14 +36,48 @@
 - [ ] Brand colors correct across all tabs
 - [ ] Rounded Cinis mark everywhere (not sharp-polygon)
 
+## COMPLETED — Session 27
+- [x] Stripe code clean / ready for live key swap
+- [x] Onboarding animations wired
+- [x] Password reset flow built
+- [x] Font size corrections (229 fixes)
+- [x] All 3 cron routes fixed + CRON_SECRET live
+- [x] Landing page sign-in link corrected
+- [x] Footer Terms link added
+- [x] getcinis.com domain references scrubbed
+- [x] OG meta tags fixed to absolute URLs
+- [x] Rounded mark canonical component (lib/CinisMark.js)
+- [x] Monthly insight distinct from weekly
+- [x] Delete account cancels Stripe subscription before deletion
+- [x] Nested focusbuddy-app directory deleted
+- [x] FocusBuddy references purged from migration comments
+- [x] Pricing constants centralized (lib/constants.js PRICING)
+- [x] delete-account.js secured with authGuard
+- [x] seed-test-data.js and reset-test-data.js gated in production
+- [x] backfill-baseline-profiles.js secured with admin key
+- [x] Savings percentage consistent (41%) across all pricing files
+- [x] authGuard naming normalized across all API routes
+- [x] TERMINAL_CONTEXT.md stale references updated
+
 ## IMPORTANT — Should have at launch
 - [ ] VAPID_KEY + VAPID_PUBLIC_KEY duplicates removed from Vercel
-- [ ] getcinis.app fully rebranded
-- [ ] OG meta image updated on cinis.app
+- [x] getcinis.app fully rebranded
+- [x] OG meta image updated on cinis.app
 - [ ] Favicon is rounded Cinis mark
 - [ ] Push notification toggle in Settings wired end-to-end
-- [ ] 5–10 beta testers identified and onboarded
 - [ ] At least 1 real Pro subscriber confirmed
+
+## BLOCKING — Remaining for launch
+- [ ] LLC filed
+- [ ] Stripe live mode activated (swap 2 env vars in Vercel)
+- [ ] Stripe Pro flip confirmed end-to-end with real card
+- [ ] Twilio A2P 10DLC registration
+- [ ] All social platform logos updated to rounded mark
+- [ ] 5+ beta testers identified and onboarded
+- [ ] Resend sender domain verified
+- [ ] getcinis.app landing page built and live
+- [ ] Human QC pass — every tab, every flow
+- [ ] Voice FAB built and tested
 
 ## Ryan Personal Actions
 - [ ] File LLC — CRITICAL
