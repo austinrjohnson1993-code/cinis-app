@@ -6,13 +6,19 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+  // Block in production — local admin tool only
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
   // Only allow POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Secret check
-  if (req.body.secret !== process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  // Admin key check
+  const adminKey = req.headers['x-admin-key'];
+  if (adminKey !== process.env.ADMIN_SECRET_KEY) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
