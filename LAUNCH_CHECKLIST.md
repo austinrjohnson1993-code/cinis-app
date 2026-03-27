@@ -38,7 +38,7 @@
 
 ## IMPORTANT — Should have at launch
 - [ ] VAPID_KEY + VAPID_PUBLIC_KEY duplicates removed from Vercel
-- [ ] getcinis.com fully rebranded
+- [ ] getcinis.app fully rebranded
 - [ ] OG meta image updated on cinis.app
 - [ ] Favicon is rounded Cinis mark
 - [ ] Push notification toggle in Settings wired end-to-end
