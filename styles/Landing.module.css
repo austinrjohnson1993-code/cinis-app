@@ -371,7 +371,8 @@
   flex-direction: column;
   gap: 10px;
   width: 100%;
-  max-width: 360px;
+  max-width: 380px;
+  margin: 0 auto;
   animation: fadeUp 0.5s ease-out 0.8s both;
 }
 
@@ -1385,18 +1386,19 @@
 
 .tierBadgePro {
   position: absolute;
-  top: -9px;
-  right: 16px;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
   font-family: 'Sora', sans-serif;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   padding: 3px 10px;
   border-radius: 20px;
   text-transform: uppercase;
-  background: rgba(255,102,68,0.15);
-  color: #FF6644;
-  border: 1px solid rgba(255,102,68,0.3);
+  background: #FF6644;
+  color: #fff;
+  white-space: nowrap;
 }
 
 .tierCardAnnual { border-color: rgba(255,184,0,0.25); }
@@ -1422,7 +1424,7 @@
 }
 
 .pricingFormWrap {
-  max-width: 480px;
+  max-width: 380px;
   margin: 0 auto;
   text-align: center;
 }
