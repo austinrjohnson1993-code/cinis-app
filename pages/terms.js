@@ -62,7 +62,7 @@ export default function Terms() {
               Cinis offers a free tier and a Pro subscription. Pro is available at:
             </p>
             <ul className={styles.ul}>
-              <li><strong>Monthly</strong> — $9.99/month, billed monthly.</li>
+              <li><strong>Monthly</strong> — $14/month, billed monthly.</li>
               <li><strong>Yearly</strong> — $99/year, billed annually (equivalent to ~$8.25/month).</li>
             </ul>
             <p className={styles.p}>

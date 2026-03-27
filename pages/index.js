@@ -2,10 +2,6 @@ import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import dynamic from 'next/dynamic'
-
-const CinisIntro = dynamic(() => import('../components/CinisIntro'), { ssr: false })
-
 const AnimatedMark = ({ phase }) => {
   return (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ marginBottom: 28 }}>
@@ -61,7 +57,6 @@ const EmberParticles = ({ ready }) => {
 
 export default function Home() {
   const router = useRouter()
-  const [introComplete, setIntroComplete] = useState(false)
   const [phase, setPhase] = useState(0)
   const [embersReady, setEmbersReady] = useState(false)
   const [formSubmitted, setFormSubmitted] = useState(false)
@@ -168,6 +163,14 @@ export default function Home() {
         <title>Cinis — AI coaching for ADHD and executive function</title>
         <meta name="description" content="The part of your brain that keeps you on track." />
         <style>{`
+          @keyframes pageEntry {
+            0%   { opacity: 0; transform: translateY(12px); }
+            100% { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes markEntry {
+            0%   { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1);    opacity: 1; }
+          }
           @keyframes textReveal {
             0% { clip-path: inset(0 100% 0 0); opacity: 1; }
             100% { clip-path: inset(0 0% 0 0); opacity: 1; }
@@ -728,16 +731,14 @@ export default function Home() {
         `}</style>
       </Head>
 
-      <CinisIntro onComplete={() => setIntroComplete(true)} />
-
-      <div className="page">
+      <div className="page" style={{ animation: 'pageEntry 0.6s ease-out forwards' }}>
         <div id="cursor-glow" />
         <div id="grain-overlay" />
 
         {/* NAV */}
         <nav className="nav">
           <span className="nav-logo">
-            <svg width="20" height="20" viewBox="0 0 64 64" fill="none" style={{ flexShrink: 0 }}>
+            <svg width="20" height="20" viewBox="0 0 64 64" fill="none" style={{ flexShrink: 0, animation: 'markEntry 0.4s ease-out forwards' }}>
               <polygon points="32,4 54,16 54,42 32,54 10,42 10,16" fill="#FF6644"/>
               <polygon points="32,7 51,18 51,40 32,52 13,40 13,18" fill="#120704"/>
             </svg>
