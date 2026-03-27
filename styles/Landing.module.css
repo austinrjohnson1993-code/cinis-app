@@ -484,12 +484,7 @@
   .headlineLeadin { font-size: 15px; }
   .headlineSep { font-size: 15px; }
 
-  .waitlistForm { max-width: 460px; }
-
-  .waitlistInputRow {
-    flex-direction: row;
-    gap: 10px;
-  }
+  .heroCopy .waitlistForm { max-width: 460px; }
 
   .taglineEyebrow { text-align: left; }
 }
@@ -1330,12 +1325,13 @@
 .tierCard {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(240,234,214,0.08);
-  border-radius: 14px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 18px 22px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: relative;
+  overflow: visible;
 }
 
 .tierLeft {
@@ -1381,7 +1377,8 @@
 }
 
 .tierCardPro {
-  border-color: rgba(255,102,68,0.35);
+  border-color: rgba(255,102,68,0.22);
+  background: rgba(255,102,68,0.04);
 }
 
 .tierBadgePro {
