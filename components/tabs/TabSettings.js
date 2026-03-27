@@ -103,7 +103,7 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
   const saveTheme = async (theme) => {
     setActiveTheme(theme)
     setProfile(prev => ({ ...prev, accent_color: theme.id }))
-    if (typeof localStorage !== 'undefined') localStorage.setItem('fb_accent_color', theme.id)
+    if (typeof localStorage !== 'undefined') localStorage.setItem('cinis_accent_color', theme.id)
     applyTheme(theme)
     if (user) {
       const themeId = theme.name?.toLowerCase() || theme.id
@@ -175,7 +175,7 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
         })
         if (!res.ok) throw new Error('Failed to disable notifications')
         setProfile(prev => ({ ...prev, push_notifications_enabled: false }))
-        try { localStorage.removeItem('fb_push_enabled') } catch {}
+        try { localStorage.removeItem('cinis_push_enabled') } catch {}
         showToast('Push notifications disabled')
       } else {
         // Turning ON
@@ -194,7 +194,7 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
         if (!res.ok) throw new Error('Failed to save subscription')
         setProfile(prev => ({ ...prev, push_notifications_enabled: true }))
         setNotifPermission('granted')
-        try { localStorage.setItem('fb_push_enabled', 'true') } catch {}
+        try { localStorage.setItem('cinis_push_enabled', 'true') } catch {}
         showToast('Push notifications enabled')
       }
     } catch (err) {

@@ -583,7 +583,7 @@ export default function Onboarding() {
       <div className={styles.page}>
         <div className={styles.savingContainer}>
           <div className={styles.savingLogo}>
-            <span className="brand"><span className="focus">Focus</span><span className="buddy">Buddy</span></span>
+            <span className="brand">Cinis</span>
           </div>
           <p className={styles.savingText}>Setting up your space...</p>
         </div>

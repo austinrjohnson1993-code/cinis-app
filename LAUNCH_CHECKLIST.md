@@ -32,7 +32,7 @@
 
 ### Visual — Must Match Mockup
 - [ ] All 11 tabs QC confirmed by Solver 3
-- [ ] Zero FocusBuddy references in app or landing page
+- [x] Zero FocusBuddy references in app or landing page
 - [ ] Brand colors correct across all tabs
 - [ ] Rounded Cinis mark everywhere (not sharp-polygon)
 
@@ -64,7 +64,7 @@
 - [x] getcinis.app fully rebranded
 - [x] OG meta image updated on cinis.app
 - [ ] Favicon is rounded Cinis mark
-- [ ] Push notification toggle in Settings wired end-to-end
+- [x] Push notification toggle in Settings wired end-to-end
 - [ ] At least 1 real Pro subscriber confirmed
 
 ## BLOCKING — Remaining for launch
@@ -77,7 +77,7 @@
 - [ ] Resend sender domain verified
 - [ ] getcinis.app landing page built and live
 - [ ] Human QC pass — every tab, every flow
-- [ ] Voice FAB built and tested
+- [x] Voice FAB built and tested
 
 ## Ryan Personal Actions
 - [ ] File LLC — CRITICAL

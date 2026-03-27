@@ -54,10 +54,7 @@ export default function Dashboard() {
   // Voice FAB
   const [voiceFabState, setVoiceFabState] = useState('idle')
   const voiceFabRecognitionRef = useRef(null)
-
-  // Debug
   const debugRef = useRef({ lastCall: null, lastError: null })
-  const isDebug = typeof window !== 'undefined' && window.location.search.includes('debug=true')
 
   const loggedFetch = useCallback(async (url, opts = {}) => {
     const t0 = Date.now()
@@ -80,7 +77,7 @@ export default function Dashboard() {
   // ── Auth + data fetch ────────────────────────────────────────────────────
   useEffect(() => {
     try {
-      const savedColor = localStorage.getItem('fb_accent_color')
+      const savedColor = localStorage.getItem('cinis_accent_color') || localStorage.getItem('fb_accent_color')
       if (savedColor) {
         const theme = THEMES.find(t => t.id === savedColor) || THEMES.find(t => t.accent === savedColor)
         if (theme) applyTheme(theme)
@@ -104,7 +101,7 @@ export default function Dashboard() {
         const savedTheme = THEMES.find(t => t.id === data.accent_color) || THEMES.find(t => t.accent === data.accent_color) || THEMES[0]
         applyTheme(savedTheme)
         setActiveTheme(savedTheme)
-        if (typeof localStorage !== 'undefined') localStorage.setItem('fb_accent_color', savedTheme.id)
+        if (typeof localStorage !== 'undefined') localStorage.setItem('cinis_accent_color', savedTheme.id)
       }
     } else {
       router.push('/onboarding')

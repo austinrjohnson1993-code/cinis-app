@@ -178,4 +178,12 @@ This file is read at the start of every session. Lessons compound.
 
 ---
 
-*CLAUDE.md v1.0 · Cinis · March 23, 2026 · Auto-read on session start · Update when process changes*
+---
+
+## Cowork
+
+Before any bug fix or cross-file change: request Cowork audit first. Cowork diagnoses, terminals fix. See docs/COWORK_CAPABILITIES.md for full capabilities. Rule: no terminal goes into a bug fix cold.
+
+---
+
+*CLAUDE.md v1.1 · Cinis · March 27, 2026 · Auto-read on session start · Update when process changes*

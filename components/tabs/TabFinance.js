@@ -590,7 +590,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                       className={`${styles.budgetPlanPill} ${budgetPlan === plan ? styles.budgetPlanPillActive : ''}`}
                       onClick={() => {
                         setBudgetPlan(plan)
-                        if (typeof localStorage !== 'undefined') localStorage.setItem('fb_budget_plan', plan)
+                        if (typeof localStorage !== 'undefined') localStorage.setItem('cinis_budget_plan', plan)
                       }}>{plan}</button>
                   ))}
                 </div>

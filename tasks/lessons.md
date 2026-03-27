@@ -38,7 +38,7 @@ Hot Pool is default for ALL interactive elements. Ember is ONLY for delete, over
 Numbers/wordmark/timer: Sora · Everything else: Figtree · No other fonts.
 
 ## Layout Constants
-Sidebar: 106px wide · Content padding: 12px 14px · paddingBottom: 80px (FAB clearance) · Card radius: 10px standard, 8px compact
+Sidebar: 220px wide, padding 28px 16px · Content padding: 12px 14px · paddingBottom: 80px (FAB clearance) · Card radius: 12px standard, 8px compact
 
 ## Transplant Rule
 Mockup = spec. Terminal copies it wholesale. Does not interpret, approximate, or improve it.

@@ -23,7 +23,7 @@ export default function Pricing() {
 
   const handleGoPro = async () => {
     try {
-      const res = await fetch('/api/stripe-checkout', { method: 'POST' })
+      const res = await fetch('/api/stripe/create-checkout-session', { method: 'POST' })
       const data = await res.json()
       if (data.url) window.location.href = data.url
     } catch {

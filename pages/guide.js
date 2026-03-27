@@ -75,7 +75,7 @@ export default function Guide() {
   // Restore user's saved theme accent on mount so guide matches the app
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('fb_accent_color')
+      const saved = localStorage.getItem('cinis_accent_color') || localStorage.getItem('fb_accent_color')
       if (saved) {
         const accent = THEME_ACCENT_MAP[saved] || (saved.startsWith('#') ? saved : null)
         if (accent) applyAccentColor(accent)
