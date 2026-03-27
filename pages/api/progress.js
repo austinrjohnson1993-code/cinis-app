@@ -1,12 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
 import withAuth from '../../lib/authGuard'
+import getAdminClient from '../../lib/supabaseAdmin'
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 const NEW_USER_INSIGHT = "Welcome to Cinis. This is day one — your first win starts here. Add your first task and let's start building."
 

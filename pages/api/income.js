@@ -1,14 +1,9 @@
-import { createClient } from '@supabase/supabase-js'
 import withAuth from '../../lib/authGuard'
+import getAdminClient from '../../lib/supabaseAdmin'
 
 const VALID_FREQUENCIES = ['weekly', 'biweekly', 'bimonthly', 'monthly']
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 async function handler(req, res, userId) {
   const supabaseAdmin = getAdminClient()

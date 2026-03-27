@@ -1,12 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
 import { stripe } from '../../lib/stripe'
+import getAdminClient from '../../lib/supabaseAdmin'
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 function parseCookies(cookieHeader = '') {
   return Object.fromEntries(

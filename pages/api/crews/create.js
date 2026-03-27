@@ -1,14 +1,9 @@
-import { createClient } from '@supabase/supabase-js'
 import withAuth from '../../../lib/authGuard'
 import { sanitizeTitle } from '../../../lib/sanitize'
 import crypto from 'crypto'
+import getAdminClient from '../../../lib/supabaseAdmin'
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 async function handler(req, res, userId) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })

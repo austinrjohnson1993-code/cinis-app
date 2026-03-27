@@ -1,12 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import getAdminClient from '../../lib/supabaseAdmin'
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 const FROM_ADDRESS = 'Cinis <noreply@getcinis.app>'
 

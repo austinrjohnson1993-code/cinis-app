@@ -5,8 +5,9 @@ import { supabase } from '../../lib/supabase'
 import { THEMES, applyTheme, PERSONAS_LIST, TabErrorBoundary } from './shared'
 
 function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4)
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const clean = (base64String || '').trim()
+  const padding = '='.repeat((4 - clean.length % 4) % 4)
+  const base64 = (clean + padding).replace(/-/g, '+').replace(/_/g, '/')
   const rawData = window.atob(base64)
   const outputArray = new Uint8Array(rawData.length)
   for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i)

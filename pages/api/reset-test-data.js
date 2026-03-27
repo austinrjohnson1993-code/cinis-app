@@ -1,11 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
+import getAdminClient from '../../lib/supabaseAdmin'
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 const CLEARABLE_TABLES = ['tasks', 'bills', 'journal_entries', 'progress_snapshots', 'alarms']
 

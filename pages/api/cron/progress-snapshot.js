@@ -1,12 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
 import { runProgressSnapshot } from '../progress-snapshot'
+import getAdminClient from '../../../lib/supabaseAdmin'
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 // Called daily at midnight by Vercel cron (see vercel.json)
 export default async function handler(req, res) {

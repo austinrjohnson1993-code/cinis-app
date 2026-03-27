@@ -5,7 +5,7 @@
 //   VAPID_PRIVATE_KEY=...       (private key, server only)
 
 import webpush from 'web-push';
-import { createClient } from '@supabase/supabase-js';
+import getAdminClient from '../../lib/supabaseAdmin';
 import withAuth from '../../lib/authGuard';
 
 webpush.setVapidDetails(
@@ -13,13 +13,6 @@ webpush.setVapidDetails(
   process.env.VAPID_PUBLIC_KEY,
   process.env.VAPID_PRIVATE_KEY
 );
-
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
-}
 
 async function handler(req, res, userId) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });

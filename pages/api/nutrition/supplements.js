@@ -1,13 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
 import withAuth from '../../../lib/authGuard'
 import { sanitizeTitle, sanitizeNotes } from '../../../lib/sanitize'
+import getAdminClient from '../../../lib/supabaseAdmin'
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 const VALID_TIMINGS = ['morning', 'pre-workout', 'evening']
 const TIMING_ORDER = { morning: 0, 'pre-workout': 1, evening: 2 }

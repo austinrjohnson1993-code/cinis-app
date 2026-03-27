@@ -1,11 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
+import getAdminClient from '../../lib/supabaseAdmin'
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 export default async function handler(req, res) {
   if (process.env.NODE_ENV === 'production') {

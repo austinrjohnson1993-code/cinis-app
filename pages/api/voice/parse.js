@@ -1,15 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
 import withAuth from '../../../lib/authGuard'
 import { sanitizeTitle } from '../../../lib/sanitize'
+import getAdminClient from '../../../lib/supabaseAdmin'
 
 export const config = { api: { bodyParser: true } }
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 const SYSTEM_PROMPT = `You are a task parser. Extract structured data from natural language input.
 Respond ONLY with a valid JSON object. No explanation, no markdown, no backticks.

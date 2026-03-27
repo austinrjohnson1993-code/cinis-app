@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
 import withAuth from '../../lib/authGuard'
+import getAdminClient from '../../lib/supabaseAdmin'
 
 const ALLOWED_FIELDS = [
   'full_name', 'accent_color', 'persona_blend', 'persona_voice',
@@ -8,12 +8,7 @@ const ALLOWED_FIELDS = [
   'monthly_income', 'income_frequency',
 ]
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 async function handler(req, res, userId) {
   if (!['POST', 'PATCH'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' })

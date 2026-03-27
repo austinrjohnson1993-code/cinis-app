@@ -1,14 +1,9 @@
-import { createClient } from '@supabase/supabase-js'
 import { buildPersonaPrompt } from '../../../lib/persona'
 import { coachingMessage } from '../../../lib/anthropic'
+import getAdminClient from '../../../lib/supabaseAdmin'
 const { sendPushToUsers } = require('../../../lib/push')
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 function fmtTask(t) {
   let s = `"${t.title}"`

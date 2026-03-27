@@ -1,18 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { createClient } from '@supabase/supabase-js'
 import { buildPersonaPrompt } from '../../lib/persona'
 import { checkDailyRateLimit, rateLimitErrorResponse } from '../../lib/rateLimit'
 import withAuth from '../../lib/authGuard'
 import { sanitizeContent } from '../../lib/sanitize'
+import getAdminClient from '../../lib/supabaseAdmin'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 const CLOSING_PHRASES = ['see you', 'glad it landed', 'take care', 'good luck', 'until next time']
 

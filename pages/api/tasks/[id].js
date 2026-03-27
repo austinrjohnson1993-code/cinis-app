@@ -1,13 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
 import withAuth from '../../../lib/authGuard'
 import { sanitizeTitle } from '../../../lib/sanitize'
+import getAdminClient from '../../../lib/supabaseAdmin'
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 const VALID_TASK_TYPES = ['task', 'bill', 'appointment', 'chore']
 

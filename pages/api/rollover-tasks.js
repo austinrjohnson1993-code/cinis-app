@@ -1,13 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
 import withAuth from '../../lib/authGuard'
+import getAdminClient from '../../lib/supabaseAdmin'
 
 // Uses service role key so this can update rows across all users (bypasses RLS)
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 export async function runRollover() {
   const supabaseAdmin = getAdminClient()

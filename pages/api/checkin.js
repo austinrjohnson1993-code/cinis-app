@@ -1,17 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { createClient } from '@supabase/supabase-js'
+import getAdminClient from '../../lib/supabaseAdmin'
 import { buildPersonaPrompt } from '../../lib/persona'
 import { compressAndSaveMemory } from '../../lib/memoryCompression'
 import { checkDailyRateLimit, rateLimitErrorResponse } from '../../lib/rateLimit'
 import withAuth from '../../lib/authGuard'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
-function getAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  return createClient(url, key)
-}
 
 // ── Tool definitions ─────────────────────────────────────────────────────────
 

@@ -1,16 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { createClient } from '@supabase/supabase-js'
 import { buildPersonaPrompt } from '../../lib/persona'
 import withAuth from '../../lib/authGuard'
+import getAdminClient from '../../lib/supabaseAdmin'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 const PROMPTS = {
   stuck: (task, dur) => `The user finished a ${dur}-min session on "${task}" and got stuck. Give one specific unblocking question or action. Under 2 sentences. No fluff.`,

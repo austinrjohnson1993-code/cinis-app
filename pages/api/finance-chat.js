@@ -1,13 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
 import { coachingMessage } from '../../lib/anthropic'
 import withAuth from '../../lib/authGuard'
+import getAdminClient from '../../lib/supabaseAdmin'
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 const SYSTEM_PROMPT = `You are Cinis's financial coach. Be practical and specific. Reference their actual numbers. Suggest one actionable thing at a time. Never shame. Point them toward specific app features when relevant. Keep responses under 4 sentences.`
 

@@ -1,13 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
+import getAdminClient from '../../lib/supabaseAdmin'
 import withAuth from '../../lib/authGuard'
 import { sanitizeTitle, sanitizeNotes } from '../../lib/sanitize'
-
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
 
 const VALID_FREQUENCIES = ['monthly', 'weekly', 'yearly', 'quarterly', 'one-time', 'bimonthly']
 const VALID_CATEGORIES = ['housing', 'utilities', 'subscriptions', 'insurance', 'debt', 'medical', 'transport', 'food', 'other']

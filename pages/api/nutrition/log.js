@@ -1,13 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
 import withAuth from '../../../lib/authGuard'
 import { sanitizeTitle, sanitizeNotes } from '../../../lib/sanitize'
+import getAdminClient from '../../../lib/supabaseAdmin'
 
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
-}
+
 
 const VALID_MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack', 'pre-workout', 'post-workout']
 
