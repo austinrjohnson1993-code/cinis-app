@@ -7,19 +7,18 @@ export default function LandingFooter() {
       <div className={styles.footerInner}>
         <div className={styles.footerLeft}>
           <a href="#" className={styles.footerLogo}>
-            <CinisMark size={14} />
+            <CinisMark size={18} />
             CINIS
           </a>
           <p className={styles.footerTagline}>Where start meets finished.</p>
         </div>
         <div className={styles.footerRight}>
           <div className={styles.footerLinks}>
-            <a href="https://twitter.com/getcinis" className={styles.footerLink}>Twitter</a>
-            <a href="https://instagram.com/getcinis" className={styles.footerLink}>Instagram</a>
+            <a href="https://twitter.com/cinis_app" className={styles.footerLink} target="_blank" rel="noopener noreferrer">Twitter</a>
+            <a href="https://instagram.com/cinis_app" className={styles.footerLink} target="_blank" rel="noopener noreferrer">Instagram</a>
             <a href="/privacy" className={styles.footerLink}>Privacy</a>
             <a href="/terms" className={styles.footerLink}>Terms</a>
           </div>
-          <p className={styles.footerMicro}>Cinis · Early Access 2026</p>
         </div>
       </div>
     </footer>

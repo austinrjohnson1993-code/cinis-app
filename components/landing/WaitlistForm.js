@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import styles from '../../styles/Landing.module.css'
 
-export default function WaitlistForm({ layout = 'stacked' }) {
+export default function WaitlistForm() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
@@ -33,7 +33,7 @@ export default function WaitlistForm({ layout = 'stacked' }) {
   if (submitted) {
     return (
       <div className={styles.waitlistSuccess}>
-        <div className={styles.waitlistSuccessHeadline}>You&apos;re on the list. 🔥</div>
+        <div className={styles.waitlistSuccessHeadline}>You&apos;re on the list.</div>
         <div className={styles.waitlistSuccessSub}>We launch April 14. You&apos;ll hear from us that morning.</div>
       </div>
     )
@@ -68,7 +68,7 @@ export default function WaitlistForm({ layout = 'stacked' }) {
       >
         {loading ? 'Joining...' : 'Get early access'}
       </button>
-      <p className={styles.waitlistMicro}>Free to start. No credit card.</p>
+      <p className={styles.waitlistMicro}>No card. No commitment.</p>
     </form>
   )
 }
