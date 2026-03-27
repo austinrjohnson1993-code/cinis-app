@@ -79,3 +79,15 @@ Read mockup completely → replace section entirely → wire real data → build
 6. Missing bodyParser:false — always check stripe/webhook.js after refactors near it.
 
 *Update immediately when a new pattern is discovered. Never delete old lessons.*
+
+## S28 Lessons
+
+- Always delete old codebases from the working directory. The nested focusbuddy-app directory caused every AI tool to double-scan. Archive outside project root.
+- Migration files are in database/migrations/ not supabase/migrations/.
+- Pricing must never be hardcoded in components. import { PRICING } from lib/constants is the only source of truth.
+- authGuard default import is withAuth — not withAuthGuard. All 41 routes normalized. Never use named import.
+- delete-account.js had no auth guard. Any unauthenticated POST could delete any account. Always verify new routes have auth before pushing.
+- Sidebar dimensions: 220px wide, 28px 16px padding — not 106px. Update terminal context after layout refactors.
+- getcinis.app correct Vercel DNS: A record → 76.76.21.21, CNAME → cname.vercel-dns.com.
+- Cowork is the best reconnaissance tool. Use it before writing terminal prompts for any audit or scan work.
+- When Gemini is available, bounce hard bugs off it after 3 failed Claude Code passes.

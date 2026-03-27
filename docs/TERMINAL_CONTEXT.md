@@ -12,12 +12,13 @@ Read this before every task.
 - Body: Figtree. Numbers/wordmark: Sora.
 - Wordmark: CINIS, Sora 600, 0.16em, uppercase
 - Tagline: "Where start meets finished."
-- NEVER: Cormorant Garamond, $9.99, "FocusBuddy"
+- NEVER: Cormorant Garamond, $9.99, "FocusBuddy", pricing hardcoded in components — always import from lib/constants.js PRICING
+- Correct price: $14/month, $99/year, 41% annual savings
 
 ## Layout
-- paddingBottom: 80px on all scrollable content (Voice FAB clearance)
+- paddingBottom: 80px on all scrollable content (bottom nav bar clearance)
 - Content padding: 12px 14px on all tabs
-- Sidebar: width 106px, padding 12px 8px
+- Sidebar: width 220px, padding 28px 16px (defined inline in dashboard.js, styled via .sidebar class in Dashboard.module.css)
 - Cards: background Char, border rgba(240,234,214,0.08), radius 12px
 - Inputs: radius 8px, background Char
 

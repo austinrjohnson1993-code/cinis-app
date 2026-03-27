@@ -14,7 +14,7 @@ Updated: March 26, 2026 · Session 27 · ~10 hrs this session · ~178 hrs total
 - Onboarding animation strategy locked for next sprint
 
 ## Still Broken
-- dashboard.js importing hardcoded color values instead of COLORS from lib/constants.js — T1 owns
+- ~~dashboard.js importing hardcoded color values instead of COLORS from lib/constants.js — T1 owns~~ ✅
 - Finance Insights empty state copy — says wrong thing. Quick fix T2.
 - Timer font in Focus tab — still Playfair. Fix in visual polish pass.
 - Persona voice differentiation — deferred. Do not attempt without fresh strategy.
@@ -35,7 +35,7 @@ Updated: March 26, 2026 · Session 27 · ~10 hrs this session · ~178 hrs total
 1. Mobile nav build (assign to ralph/T6 Wave 3 autonomous)
 2. Stripe live keys integration (T2)
 3. Onboarding animation polish (T4)
-4. T1 dashboard.js refactor: import COLORS + FONTS from lib/constants
+4. ~~T1 dashboard.js refactor: import COLORS + FONTS from lib/constants~~ ✅
 5. T2 Finance Insights empty state copy fix
 6. After visual pass hits 8.0+ → rate limiting on AI endpoints
 
