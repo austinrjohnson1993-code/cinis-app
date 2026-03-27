@@ -92,8 +92,8 @@ function HeroMark({ size = 110 }) {
           stroke="#FF6644"
           strokeWidth="1.4"
           opacity="0.45"
-          strokeDasharray="220"
-          strokeDashoffset={tracing ? 0 : 220}
+          strokeDasharray="240"
+          strokeDashoffset={tracing ? 0 : 240}
           style={{ transition: 'stroke-dashoffset 2.2s cubic-bezier(0.25,0.46,0.45,0.94)' }}
         />
         {/* Outer fill (rounded corners) */}
