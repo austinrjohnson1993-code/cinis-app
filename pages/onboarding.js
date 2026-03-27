@@ -227,8 +227,19 @@ export default function Onboarding() {
     setTimeout(() => setPhase('reveal'), 1500)
   }
 
+  const [buildStep, setBuildStep] = useState(0)
+  const [buildFadeOut, setBuildFadeOut] = useState(false)
+
+  const BUILDING_STEPS = [
+    'Setting up your profile\u2026',
+    'Calibrating your coaching style\u2026',
+    'Preparing your dashboard\u2026',
+    'Ready.',
+  ]
+
   const handleConfirm = async () => {
     setPhase('building')
+    setBuildStep(0)
     const upsertData = {
       id: user.id,
       email: user.email,
@@ -242,13 +253,17 @@ export default function Onboarding() {
       tutorial_completed: false,
       created_at: new Date().toISOString(),
     }
-    // Save ranked_priorities gracefully — column may not exist yet
     if (mentalHealthContext) upsertData.mental_health_context = mentalHealthContext
+
+    // Step 1: save profile
     try {
       await supabase.from('profiles').upsert({ ...upsertData, ranked_priorities: rankItems })
     } catch {
       await supabase.from('profiles').upsert(upsertData)
     }
+    setBuildStep(1)
+
+    // Step 2: generate baseline
     try {
       await fetch('/api/generate-baseline-profile', {
         method: 'POST',
@@ -258,6 +273,16 @@ export default function Onboarding() {
     } catch (e) {
       console.error('[onboarding] baseline profile generation failed:', e)
     }
+    setBuildStep(2)
+
+    // Step 3: brief pause for "preparing dashboard"
+    await new Promise(r => setTimeout(r, 800))
+    setBuildStep(3)
+
+    // Step 4: fade out then navigate
+    await new Promise(r => setTimeout(r, 600))
+    setBuildFadeOut(true)
+    await new Promise(r => setTimeout(r, 500))
     router.push('/dashboard')
   }
 
@@ -549,12 +574,22 @@ export default function Onboarding() {
     return (
       <>
         <Head><title>Getting Started — Cinis</title></Head>
-        <div className={styles.page}>
+        <div className={`${styles.page} ${buildFadeOut ? styles.buildFadeOut : ''}`}>
           <div className={styles.buildingContainer}>
             <div className={styles.buildingMark}>
               <CinisMark size={56} />
             </div>
-            <p className={styles.buildingText}>Your coach is learning about you.</p>
+            <div className={styles.buildingSteps}>
+              {BUILDING_STEPS.map((step, i) => (
+                <p
+                  key={i}
+                  className={`${styles.buildingStep} ${i <= buildStep ? styles.buildingStepVisible : ''} ${i === buildStep ? styles.buildingStepActive : ''}`}
+                >
+                  {i < buildStep && <span className={styles.buildingCheck}>&check;</span>}
+                  {step}
+                </p>
+              ))}
+            </div>
           </div>
         </div>
       </>

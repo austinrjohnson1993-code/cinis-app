@@ -81,13 +81,54 @@
 }
 
 .buildingMark {
-  animation: markSpin 2s linear infinite;
+  animation: markPulse 2s ease-in-out infinite;
 }
 
-.buildingText {
-  font-size: 1.1rem;
-  color: rgba(240,234,214,0.6);
+@keyframes markPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+
+.buildingSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.buildingStep {
+  font-size: 0.88rem;
+  font-family: 'Figtree', sans-serif;
+  color: rgba(240,234,214,0.25);
   text-align: center;
+  transition: all 0.4s ease;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.buildingStepVisible {
+  opacity: 1;
+  transform: translateY(0);
+  color: rgba(240,234,214,0.35);
+}
+
+.buildingStepActive {
+  color: rgba(240,234,214,0.7);
+}
+
+.buildingCheck {
+  color: #FF6644;
+  margin-right: 6px;
+  font-weight: 700;
+}
+
+.buildFadeOut {
+  animation: pageFadeOut 0.5s ease forwards;
+}
+
+@keyframes pageFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 .savingLogo {

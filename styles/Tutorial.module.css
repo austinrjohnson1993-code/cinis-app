@@ -1,0 +1,181 @@
+/* ─────────────────────────────────────────────
+   TUTORIAL OVERLAY
+   Brand: Coal #211A14 · Char #3E3228 · Ash #F0EAD6
+          Hot #FF6644 · Ember #E8321A
+   Fonts: Sora (headings) · Figtree (body)
+   ───────────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17,13,6,0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: overlayIn 0.4s ease;
+  padding: 24px;
+}
+
+.overlayFadeOut {
+  animation: overlayOut 0.4s ease forwards;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes overlayOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ── Card ── */
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: #3E3228;
+  border: 1px solid rgba(240,234,214,0.07);
+  border-radius: 20px;
+  padding: 40px 32px 32px;
+  text-align: center;
+  animation: cardIn 0.35s ease;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Icon / Mark ── */
+
+.markWrap {
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepIcon {
+  font-size: 36px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+/* ── Typography ── */
+
+.title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.2rem, 4vw, 1.5rem);
+  color: #F0EAD6;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.body {
+  font-family: 'Figtree', sans-serif;
+  font-size: 0.9rem;
+  color: rgba(240,234,214,0.55);
+  line-height: 1.65;
+  margin-bottom: 28px;
+  max-width: 340px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── Progress dots ── */
+
+.dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(240,234,214,0.12);
+  transition: all 0.3s ease;
+}
+
+.dotActive {
+  background: #FF6644;
+  width: 20px;
+  border-radius: 3px;
+}
+
+/* ── Actions ── */
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.nextBtn {
+  background: #FF6644;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 36px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: opacity 0.18s, transform 0.15s;
+}
+
+.nextBtn:hover {
+  opacity: 0.89;
+  transform: translateY(-1px);
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: rgba(240,234,214,0.4);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  padding: 8px 12px;
+  transition: color 0.15s;
+}
+
+.backBtn:hover {
+  color: rgba(240,234,214,0.7);
+}
+
+.skipBtn {
+  background: none;
+  border: none;
+  color: rgba(240,234,214,0.22);
+  font-size: 0.75rem;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  margin-top: 16px;
+  padding: 4px 8px;
+  transition: color 0.15s;
+}
+
+.skipBtn:hover {
+  color: rgba(240,234,214,0.45);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 480px) {
+  .card {
+    padding: 32px 22px 24px;
+    border-radius: 16px;
+  }
+}

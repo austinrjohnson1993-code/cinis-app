@@ -9,6 +9,7 @@ import { applyAccentColor } from '../lib/accentColor'
 import CinisMark from '../lib/CinisMark'
 import { THEMES, applyTheme, TabErrorBoundary } from '../components/tabs/shared'
 import VoiceFAB from '../components/VoiceFAB'
+import TutorialOverlay from '../components/TutorialOverlay'
 
 // Tab components
 import TabTasks from '../components/tabs/TabTasks'
@@ -50,6 +51,7 @@ export default function Dashboard() {
   const [greeting, setGreeting] = useState('')
   const [activeTheme, setActiveTheme] = useState(THEMES[0])
   const [showMoreDrawer, setShowMoreDrawer] = useState(false)
+  const [showTutorial, setShowTutorial] = useState(false)
 
   // Voice FAB
   const [voiceFabState, setVoiceFabState] = useState('idle')
@@ -103,8 +105,20 @@ export default function Dashboard() {
         setActiveTheme(savedTheme)
         if (typeof localStorage !== 'undefined') localStorage.setItem('cinis_accent_color', savedTheme.id)
       }
+      // Show tutorial for new users
+      if (data.tutorial_completed === false) {
+        setShowTutorial(true)
+      }
     } else {
       router.push('/onboarding')
+    }
+  }
+
+  const handleTutorialComplete = async () => {
+    setShowTutorial(false)
+    if (user) {
+      await supabase.from('profiles').update({ tutorial_completed: true }).eq('id', user.id)
+      setProfile(prev => prev ? { ...prev, tutorial_completed: true } : prev)
     }
   }
 
@@ -298,6 +312,14 @@ export default function Dashboard() {
             <span className={styles.bottomNavLabel}>More</span>
           </button>
         </nav>
+
+        {/* TUTORIAL OVERLAY */}
+        {showTutorial && (
+          <TutorialOverlay
+            userName={profile?.full_name?.split(' ')[0] || ''}
+            onComplete={handleTutorialComplete}
+          />
+        )}
 
         {/* MORE DRAWER (mobile) — includes calendar */}
         {showMoreDrawer && (
