@@ -55,7 +55,7 @@ export default function UpgradeModal({ trigger, onClose }) {
           <span style={yearlyLinkBtn} onClick={() => handleUpgrade('yearly')}>
             {PRICING.annualLabel}
           </span>
-          {' '}(Save 40%)
+          {' '}(Save {PRICING.savingsPercent})
         </p>
         <div style={buttonRow}>
           <button style={laterBtn} onClick={onClose}>

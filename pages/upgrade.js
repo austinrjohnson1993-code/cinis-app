@@ -40,7 +40,7 @@ export default function Upgrade() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          price_id: plan === 'monthly' ? 'price_1TCRi82OSKmsLrz4fKxjcqyt' : 'price_1TCmBd2OSKmsLrz4A9AJ7qC9'
+          price_id: plan === 'monthly' ? process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY : process.env.NEXT_PUBLIC_STRIPE_PRICE_YEARLY
         }),
         credentials: 'include',
       })
@@ -98,7 +98,7 @@ export default function Upgrade() {
                 </div>
                 <div className={styles.yearlyPrice}>
                   <span className={styles.yearlyAmount}>{PRICING.annualLabel}</span>
-                  <span className={styles.saveBadge}>Save 40%</span>
+                  <span className={styles.saveBadge}>Save {PRICING.savingsPercent}</span>
                 </div>
               </div>
 
