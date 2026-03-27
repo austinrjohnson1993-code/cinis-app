@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { withAuthGuard } from '../../lib/authGuard'
+import withAuth from '../../lib/authGuard'
 
 function getAdminClient() {
   return createClient(
@@ -85,4 +85,4 @@ async function handler(req, res, userId) {
   }
 }
 
-export default withAuthGuard(handler)
+export default withAuth(handler)

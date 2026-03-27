@@ -6,7 +6,7 @@
 
 import webpush from 'web-push';
 import { createClient } from '@supabase/supabase-js';
-import { withAuthGuard } from '../../lib/authGuard';
+import withAuth from '../../lib/authGuard';
 
 webpush.setVapidDetails(
   'mailto:ryan@cinis.app',
@@ -57,4 +57,4 @@ async function handler(req, res, userId) {
   }
 }
 
-export default withAuthGuard(handler);
+export default withAuth(handler);

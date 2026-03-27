@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { withAuthGuard } from '../../../lib/authGuard';
+import withAuth from '../../../lib/authGuard';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -40,4 +40,4 @@ async function handler(req, res, userId) {
   }
 }
 
-export default withAuthGuard(handler);
+export default withAuth(handler);

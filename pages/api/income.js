@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { withAuthGuard } from '../../lib/authGuard'
+import withAuth from '../../lib/authGuard'
 
 const VALID_FREQUENCIES = ['weekly', 'biweekly', 'bimonthly', 'monthly']
 
@@ -64,4 +64,4 @@ async function handler(req, res, userId) {
   return res.status(405).json({ error: 'Method not allowed' })
 }
 
-export default withAuthGuard(handler)
+export default withAuth(handler)
