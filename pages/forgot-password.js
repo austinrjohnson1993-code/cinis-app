@@ -33,12 +33,15 @@ export default function ForgotPassword() {
       </Head>
       <div className={styles.page}>
         <div className={styles.card}>
-          <a href="/" style={{ display: 'inline-block', marginBottom: '28px', lineHeight: 0, textDecoration: 'none' }}>
-            <CinisMark size={40} />
+          <a href="/" className={styles.logoWrap}>
+            <CinisMark size={24} className={styles.mark} aria-hidden="true" />
+            <span className={styles.wordmark}>CINIS</span>
           </a>
 
+          <p className={styles.tagline}>Where start meets finished.</p>
+
           <h1 className={styles.heading}>Reset your password.</h1>
-          <p className={styles.sub}>Enter your email and we&apos;ll send you a reset link.</p>
+          <p className={styles.sub}>Enter your email and we&apos;ll send a reset link.</p>
 
           {sent ? (
             <div className={styles.success}>
@@ -65,7 +68,7 @@ export default function ForgotPassword() {
             </>
           )}
 
-          <p className={styles.signupLink} style={{ marginTop: '20px' }}>
+          <p className={styles.signupLink}>
             <a href="/login">← Back to sign in</a>
           </p>
         </div>

@@ -51,7 +51,7 @@ export default function Signup() {
         <div className={styles.card}>
 
           <a href="/" className={styles.logoWrap}>
-            <CinisMark size={30} className={styles.mark} aria-hidden="true" />
+            <CinisMark size={24} className={styles.mark} aria-hidden="true" />
             <span className={styles.wordmark}>CINIS</span>
           </a>
 

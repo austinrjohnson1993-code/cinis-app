@@ -43,7 +43,7 @@ export default function Login() {
         <div className={`${styles.card} ${leaving ? styles.cardLeaving : ''}`}>
 
           <a href="/" className={styles.logoWrap}>
-            <CinisMark size={30} className={styles.mark} aria-hidden="true" />
+            <CinisMark size={24} className={styles.mark} aria-hidden="true" />
             <span className={styles.wordmark}>CINIS</span>
           </a>
 
@@ -53,7 +53,7 @@ export default function Login() {
           <p className={styles.sub}>Sign in to your account.</p>
 
           {router.query.verified && (
-            <div style={{ background: 'rgba(255, 102, 68, 0.08)', border: '1px solid rgba(255, 102, 68, 0.2)', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', fontSize: '0.88rem', fontFamily: "'Figtree', sans-serif", color: '#FF6644', textAlign: 'center' }}>
+            <div className={styles.verifiedBanner}>
               Check your email to confirm your account.
             </div>
           )}
