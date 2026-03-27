@@ -27,6 +27,12 @@ function daysAgoStr(n) {
   return d.toISOString().slice(0, 10)
 }
 
+function getMonthStartStr() {
+  const d = new Date()
+  d.setDate(1)
+  return d.toISOString().slice(0, 10)
+}
+
 async function cacheInsights(supabaseAdmin, userId, cards) {
   const today = todayStr()
   const summary = JSON.stringify(cards)
