@@ -3,63 +3,9 @@ import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import CinisMark from '../lib/CinisMark'
-const AnimatedMark = ({ phase }) => {
-  return (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ marginBottom: 28 }}>
-      {phase && (
-        <>
-          <polygon points="32,2 56,15 56,43 32,56 8,43 8,15" fill="none" stroke="#FF6644" strokeWidth="1.1" opacity="0.45" style={{ animation: 'markBuild1 0.4s ease-out 0.1s forwards', opacity: 0 }} />
-          <polygon points="32,4 54,16 54,42 32,54 10,42 10,16" fill="#FF6644" style={{ animation: 'markBuild2 0.4s ease-out 0.2s forwards', opacity: 0 }} />
-          <polygon points="32,7 51,18 51,40 32,52 13,40 13,18" fill="#120704" style={{ animation: 'markBuild3 0.4s ease-out 0.3s forwards', opacity: 0 }} />
-          <polygon points="32,14 46,22 46,40 32,48 18,40 18,22" fill="#5A1005" style={{ animation: 'markBuild1 0.4s ease-out 0.4s forwards', opacity: 0 }} />
-          <polygon points="32,20 42,26 42,40 32,45 22,40 22,26" fill="#A82010" style={{ animation: 'markBuild2 0.4s ease-out 0.5s forwards', opacity: 0 }} />
-          <polygon points="32,26 38,29 38,40 32,43 26,40 26,29" fill="#E8321A" style={{ animation: 'markBuild3 0.4s ease-out 0.6s forwards', opacity: 0 }} />
-          <polygon points="32,29 45,40 40,43 32,47 24,43 19,40" fill="#FF6644" opacity="0.92" style={{ animation: 'markBuild1 0.4s ease-out 0.7s forwards', opacity: 0 }} />
-          <polygon points="32,33 41,40 38,42 32,45 26,42 23,40" fill="#FFD0C0" opacity="0.76" style={{ animation: 'markBuild2 0.4s ease-out 0.8s forwards', opacity: 0 }} />
-          <polygon points="32,36 37,40 36,41 32,43 28,41 27,40" fill="#FFF0EB" opacity="0.60" style={{ animation: 'markBuild3 0.4s ease-out 0.9s forwards', opacity: 0 }} />
-        </>
-      )}
-      <g style={{ animation: 'markGlow 3s ease-in-out 1s infinite' }} opacity="0">
-        <circle cx="32" cy="32" r="32" fill="#FF6644" opacity="0.1" />
-      </g>
-    </svg>
-  )
-}
-
-const EmberParticles = ({ ready }) => {
-  if (!ready) return null
-
-  const particles = Array.from({ length: 16 }, (_, i) => {
-    const angle = (i / 16) * Math.PI * 2
-    const distance = 80
-    const x = Math.cos(angle) * distance
-    const y = Math.sin(angle) * distance
-
-    return (
-      <div
-        key={i}
-        style={{
-          position: 'absolute',
-          width: 6,
-          height: 6,
-          background: '#FF6644',
-          borderRadius: '50%',
-          left: `calc(50% + ${x}px)`,
-          top: `calc(50% + ${y}px)`,
-          opacity: 0,
-          animation: `e${i + 1} 2s ease-in-out ${i * 0.1}s infinite`,
-        }}
-      />
-    )
-  })
-
-  return <div style={{ position: 'relative', height: 200, width: '100%' }}>{particles}</div>
-}
 
 export default function Home() {
   const router = useRouter()
-  const [phase, setPhase] = useState(0)
-  const [embersReady, setEmbersReady] = useState(false)
   const [formSubmitted, setFormSubmitted] = useState(false)
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -72,26 +18,6 @@ export default function Home() {
       if (session) router.push('/dashboard')
     })
   }, [router])
-
-  useEffect(() => {
-    const timings = [
-      { phase: 1, delay: 0 },
-      { phase: 2, delay: 100 },
-      { phase: 3, delay: 600 },
-      { phase: 4, delay: 1500 },
-      { phase: 5, delay: 1600 },
-      { phase: 6, delay: 2000 },
-      { phase: 7, delay: 2600 },
-    ]
-
-    const timers = timings.map(({ phase: p, delay }) => {
-      return setTimeout(() => setPhase(p), delay)
-    })
-
-    return () => {
-      timers.forEach(timer => clearTimeout(timer))
-    }
-  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -215,29 +141,6 @@ export default function Home() {
             70% { box-shadow: 0 0 0 14px rgba(255, 102, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 102, 68, 0); }
           }
-          @keyframes markBuild1 {
-            0% { opacity: 0; transform: scale(0.95); }
-            100% { opacity: 1; transform: scale(1); }
-          }
-          @keyframes markBuild2 {
-            0% { opacity: 0; transform: scale(0.9); }
-            100% { opacity: 1; transform: scale(1); }
-          }
-          @keyframes markBuild3 {
-            0% { opacity: 0; transform: scale(0.85); }
-            100% { opacity: 1; transform: scale(1); }
-          }
-          @keyframes markGlow {
-            0%, 100% { opacity: 0; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(1.2); }
-          }
-          ${Array.from({ length: 16 }, (_, i) => `
-            @keyframes e${i + 1} {
-              0% { opacity: 0; transform: translate(0, 0) scale(1); }
-              50% { opacity: 0.8; }
-              100% { opacity: 0; transform: translate(${Math.random() * 200 - 100}px, ${Math.random() * 200 - 100}px) scale(0); }
-            }
-          `).join('')}
           @keyframes wordIn {
             0% { opacity: 0; }
             100% { opacity: 1; }
@@ -766,15 +669,14 @@ export default function Home() {
         ) : (
           <div className="hero">
             <div style={{
-              animation: phase >= 1 ? 'markForge 0.8s ease-out forwards' : 'none',
+              animation: 'markForge 0.8s ease-out forwards',
               marginBottom: 28,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <AnimatedMark phase={phase >= 2} />
+              <CinisMark size={64} />
             </div>
-            {phase >= 4 && <EmberParticles ready={true} />}
 
             <div style={{
               fontFamily: "'Sora', sans-serif",
@@ -783,25 +685,25 @@ export default function Home() {
               letterSpacing: '0.16em',
               color: '#F5F0E3',
               marginBottom: 24,
-              opacity: phase >= 4 ? 1 : 0,
-              animation: phase >= 4 ? 'wordSlice 0.6s ease-out forwards' : 'none'
+              animation: 'wordSlice 0.6s ease-out 0.3s forwards',
+              opacity: 0,
             }}>
               CINIS
             </div>
 
-            <div className="eyebrow" style={{ animation: phase >= 5 ? 'fadeUp 0.5s ease-out forwards' : 'none' }}>
+            <div className="eyebrow" style={{ animation: 'fadeUp 0.5s ease-out 0.5s forwards', opacity: 0 }}>
               EARLY ACCESS
             </div>
 
-            <h2 className="headline" style={{ animation: phase >= 5 ? 'fadeUp 0.5s ease-out forwards' : 'none' }}>
+            <h2 className="headline" style={{ animation: 'fadeUp 0.5s ease-out 0.6s forwards', opacity: 0 }}>
               The part of your brain<br />that keeps you on track.
             </h2>
 
-            <p className="subhead" style={{ animation: phase >= 6 ? 'fadeUp 0.5s ease-out forwards' : 'none' }}>
+            <p className="subhead" style={{ animation: 'fadeUp 0.5s ease-out 0.7s forwards', opacity: 0 }}>
               Cinis learns how you work, reaches out before you fall behind, and remembers everything — so you don't have to.
             </p>
 
-            <form onSubmit={handleSubmit} className="form" style={{ animation: phase >= 7 ? 'slideUp 0.4s ease-out forwards' : 'none' }}>
+            <form onSubmit={handleSubmit} className="form" style={{ animation: 'slideUp 0.4s ease-out 0.8s forwards', opacity: 0 }}>
               <input type="tel" placeholder="+1 (555) 000-0000" value={phone} onChange={(e) => setPhone(e.target.value)} className="input" />
               <input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="input" required />
               {error && <span className="error">{error}</span>}
@@ -809,7 +711,7 @@ export default function Home() {
                 {loading ? 'Joining...' : 'Get early access'}
               </button>
             </form>
-            <p className="micro" style={{ animation: phase >= 7 ? 'fadeUp 0.4s ease-out forwards' : 'none' }}>Free to start. No credit card.</p>
+            <p className="micro" style={{ animation: 'fadeUp 0.4s ease-out 0.9s forwards', opacity: 0 }}>Free to start. No credit card.</p>
           </div>
         )}
 
