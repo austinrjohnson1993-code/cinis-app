@@ -34,7 +34,7 @@
 - [ ] All 11 tabs QC confirmed by Solver 3
 - [x] Zero FocusBuddy references in app or landing page
 - [ ] Brand colors correct across all tabs
-- [ ] Rounded Cinis mark everywhere (not sharp-polygon)
+- [x] Rounded Cinis mark everywhere (not sharp-polygon)
 
 ## COMPLETED — Session 27
 - [x] Stripe code clean / ready for live key swap
@@ -63,7 +63,7 @@
 - [ ] VAPID_KEY + VAPID_PUBLIC_KEY duplicates removed from Vercel
 - [x] getcinis.app fully rebranded
 - [x] OG meta image updated on cinis.app
-- [ ] Favicon is rounded Cinis mark
+- [x] Favicon is rounded Cinis mark
 - [x] Push notification toggle in Settings wired end-to-end
 - [ ] At least 1 real Pro subscriber confirmed
 
@@ -76,6 +76,7 @@
 - [ ] 5+ beta testers identified and onboarded
 - [ ] Resend sender domain verified
 - [ ] getcinis.app landing page built and live
+- [ ] Supabase custom domain — upgrade to Pro ($25/mo) → Project Settings → Custom Domains → set auth.getcinis.app → replaces raw Supabase URL on Google OAuth consent screen. Do this last before April 14.
 - [ ] Human QC pass — every tab, every flow
 - [x] Voice FAB built and tested
 
