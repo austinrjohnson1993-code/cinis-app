@@ -8,6 +8,7 @@ import { showToast as libShowToast, ToastContainer } from '../lib/toast.js'
 import { applyAccentColor } from '../lib/accentColor'
 import CinisMark from '../lib/CinisMark'
 import { THEMES, applyTheme, TabErrorBoundary } from '../components/tabs/shared'
+import VoiceFAB from '../components/VoiceFAB'
 
 // Tab components
 import TabTasks from '../components/tabs/TabTasks'
@@ -251,28 +252,11 @@ export default function Dashboard() {
         </main>
 
         {/* VOICE FAB */}
-        <button
-          className={`${styles.voiceFab} ${voiceFabState === 'recording' ? styles.voiceFabRecording : ''} ${voiceFabState === 'processing' ? styles.voiceFabProcessing : ''}`}
+        <VoiceFAB
+          state={voiceFabState}
           onClick={handleVoiceFabClick}
-          aria-label={voiceFabState === 'idle' ? 'Voice input' : voiceFabState === 'recording' ? 'Stop recording' : 'Processing'}
-        >
-          {voiceFabState === 'recording' ? (
-            <div className={styles.voiceWaveBars}>
-              <span className={styles.voiceWaveBar} />
-              <span className={styles.voiceWaveBar} />
-              <span className={styles.voiceWaveBar} />
-            </div>
-          ) : voiceFabState === 'processing' ? (
-            <div className={styles.voiceFabSpinner} />
-          ) : (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="9" y="2" width="6" height="12" rx="3" fill="white"/>
-              <path d="M5 11a7 7 0 0 0 14 0" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="12" y1="18" x2="12" y2="22" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="9" y1="22" x2="15" y2="22" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          )}
-        </button>
+          hide={activeTab === 'focus'}
+        />
 
         {/* TOAST */}
         <ToastContainer />

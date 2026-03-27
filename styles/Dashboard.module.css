@@ -4822,41 +4822,46 @@
 
 .voiceFab {
   position: fixed;
-  bottom: 80px;
+  bottom: 90px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 200;
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(255, 102, 68, 0.15);
-  border: 1.5px solid #FF6644;
-  color: #FF6644;
-  backdrop-filter: blur(8px);
+  background: #FF6644;
+  border: none;
+  color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(255,102,68,0.2);
-  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 20px rgba(255,102,68,0.35);
+  animation: fabIdlePulse 3s ease-in-out infinite;
+  transition: transform 0.15s ease, background 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.voiceFab:hover { background: rgba(255, 102, 68, 0.25); }
+.voiceFab:hover { background: #ff7a5c; }
 .voiceFab:active { transform: translateX(-50%) scale(0.93); }
 .voiceFabRecording {
-  background: rgba(255, 102, 68, 0.3);
-  animation: fabBorderPulse 1.2s ease-in-out infinite;
-  box-shadow: 0 0 0 4px rgba(255,102,68,0.15);
+  background: #E8321A;
+  animation: fabRipple 1s ease-out infinite;
+  box-shadow: 0 4px 20px rgba(232,50,26,0.45);
 }
 .voiceFabProcessing {
+  background: #FF6644;
   animation: none;
-  background: rgba(255, 102, 68, 0.2);
-  opacity: 0.7;
+  opacity: 0.75;
   cursor: default;
 }
-@keyframes fabBorderPulse {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(255,102,68,0.2); }
-  50%       { box-shadow: 0 0 0 8px rgba(255,102,68,0.0); }
+@keyframes fabIdlePulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(255,102,68,0.35); }
+  50%       { box-shadow: 0 4px 28px rgba(255,102,68,0.6); }
+}
+@keyframes fabRipple {
+  0%   { box-shadow: 0 0 0 0 rgba(232,50,26,0.5), 0 0 0 0 rgba(232,50,26,0.3); }
+  60%  { box-shadow: 0 0 0 10px rgba(232,50,26,0.0), 0 0 0 20px rgba(232,50,26,0.0); }
+  100% { box-shadow: 0 0 0 0 rgba(232,50,26,0.0), 0 0 0 0 rgba(232,50,26,0.0); }
 }
 
 
