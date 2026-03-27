@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 import Head from 'next/head'
 import styles from '../styles/Auth.module.css'
+import CinisMark from '../lib/CinisMark'
 
 export default function Signup() {
   const router = useRouter()
@@ -50,17 +51,7 @@ export default function Signup() {
         <div className={styles.card}>
 
           <a href="/" className={styles.logoWrap}>
-            <svg width="30" height="30" viewBox="0 0 64 64" fill="none" aria-hidden="true" className={styles.mark}>
-              <defs>
-                <linearGradient id="logogradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#FF6644"/>
-                  <stop offset="100%" stopColor="#E8321A"/>
-                </linearGradient>
-              </defs>
-              <path d="M 12 8 Q 8 8 8 12 L 8 52 Q 8 56 12 56 L 52 56 Q 56 56 56 52 L 56 12 Q 56 8 52 8 L 12 8" fill="url(#logogradient)" stroke="none"/>
-              <path d="M32 18 Q26 23 26 28 Q26 36 32 40 Q38 36 38 28 Q38 23 32 18" fill="#211A14"/>
-              <circle cx="32" cy="34" r="3" fill="#FF6644"/>
-            </svg>
+            <CinisMark size={30} className={styles.mark} aria-hidden="true" />
             <span className={styles.wordmark}>CINIS</span>
           </a>
 

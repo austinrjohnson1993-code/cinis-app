@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 import Head from 'next/head'
 import styles from '../styles/Auth.module.css'
+import CinisMark from '../lib/CinisMark'
 
 export default function ResetPassword() {
   const router = useRouter()
@@ -74,11 +75,7 @@ export default function ResetPassword() {
         <div className={styles.card}>
 
           <a href="/" className={styles.logoWrap}>
-            <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true" className={styles.mark}>
-              <rect width="30" height="30" rx="8" fill="#FF6644"/>
-              <path d="M15 7s-6 5-6 9.5a6 6 0 0012 0C21 12 15 7 15 7z" fill="#211A14"/>
-              <circle cx="15" cy="18" r="2.2" fill="#FF6644"/>
-            </svg>
+            <CinisMark size={30} className={styles.mark} aria-hidden="true" />
             <span className={styles.wordmark}>CINIS</span>
           </a>
 
