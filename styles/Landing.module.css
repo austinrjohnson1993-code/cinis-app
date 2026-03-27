@@ -222,6 +222,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  order: -1;
 }
 
 /* Tagline eyebrow */
@@ -468,6 +469,7 @@
   .heroMarkWrap {
     flex: 0 0 360px;
     position: relative;
+    order: 0;
   }
 
   .markSvg { width: 220px; height: 220px; }
