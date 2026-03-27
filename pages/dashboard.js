@@ -275,24 +275,12 @@ export default function Dashboard() {
             )
           })}
 
-          {/* Center: Cinis mark (voice input on mobile) */}
-          <button
-            className={`${styles.bottomNavCenter} ${voiceFabState === 'recording' ? styles.bottomNavCenterRecording : ''}`}
+          {/* Center: voice FAB (mobile) */}
+          <VoiceFAB
+            state={voiceFabState}
             onClick={handleVoiceFabClick}
-            aria-label={voiceFabState === 'idle' ? 'Voice input' : voiceFabState === 'recording' ? 'Stop recording' : 'Processing'}
-          >
-            {voiceFabState === 'recording' ? (
-              <div className={styles.voiceWaveBars}>
-                <span className={styles.voiceWaveBar} />
-                <span className={styles.voiceWaveBar} />
-                <span className={styles.voiceWaveBar} />
-              </div>
-            ) : voiceFabState === 'processing' ? (
-              <div className={styles.voiceFabSpinner} />
-            ) : (
-              <CinisMark size={28} aria-hidden="true" />
-            )}
-          </button>
+            hide={false}
+          />
 
           {/* Right: focus */}
           <button onClick={() => switchTab('focus')}
