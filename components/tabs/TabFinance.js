@@ -25,6 +25,8 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
   const [addingBill, setAddingBill] = useState(false)
   const [billsLoading, setBillsLoading] = useState(false)
   const [billsError, setBillsError] = useState(false)
+  const [editingBill, setEditingBill] = useState(null)
+  const [updatingBill, setUpdatingBill] = useState(false)
 
   // ── Finance sub-tabs ─────────────────────────────────────────────────────
   const [financeSub, setFinanceSub] = useState('bills')
@@ -54,6 +56,12 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
   const [knowledgeFilter, setKnowledgeFilter] = useState('All')
   const [learnFilter, setLearnFilter] = useState('All')
   const [expandedInsightCat, setExpandedInsightCat] = useState(null)
+
+  // ── Finance inline chat ───────────────────────────────────────────────────
+  const [financeChatOpen, setFinanceChatOpen] = useState(false)
+  const [financeChatMessages, setFinanceChatMessages] = useState([])
+  const [financeChatInput, setFinanceChatInput] = useState('')
+  const [financeChatSending, setFinanceChatSending] = useState(false)
 
   // ── Bill voice input ─────────────────────────────────────────────────────
   const [billListening, setBillListening] = useState(false)
@@ -160,6 +168,93 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
   const deleteBill = async (id) => {
     await supabase.from('bills').delete().eq('id', id)
     setBills(prev => prev.filter(b => b.id !== id))
+  }
+
+  const openEditBill = (bill) => {
+    setEditingBill(bill)
+    setNewBillName(bill.name || '')
+    setNewBillAmount(bill.amount != null ? String(bill.amount) : '')
+    setNewBillDueDay(bill.due_day != null ? String(bill.due_day) : '')
+    setNewBillFrequency(bill.frequency || 'monthly')
+    setNewBillCategory(bill.category || '')
+    setNewBillAutoTask(bill.auto_task ?? true)
+    setNewBillAutopay(bill.autopay ?? false)
+    setNewBillNotes(bill.notes || '')
+    setNewBillAccount(bill.account || '')
+    setNewBillFirstDate(bill.first_date != null ? String(bill.first_date) : '')
+    setNewBillSecondDate(bill.second_date != null ? String(bill.second_date) : '')
+    setBillType(bill.bill_type || 'bill')
+    setBillInterestRate(bill.interest_rate != null ? String(bill.interest_rate) : '')
+    setShowAddBillModal(true)
+  }
+
+  const updateBill = async (e) => {
+    e.preventDefault()
+    if (!newBillName.trim() || !newBillAmount || !editingBill) return
+    setUpdatingBill(true)
+    try {
+      const res = await loggedFetch('/api/bills', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingBill.id,
+          name: newBillName.trim(),
+          amount: parseFloat(newBillAmount),
+          due_day: newBillFrequency === 'bimonthly' ? null : (newBillDueDay ? parseInt(newBillDueDay) : null),
+          frequency: newBillFrequency,
+          category: newBillCategory || 'Other',
+          autopay: newBillAutopay,
+          auto_task: newBillAutoTask,
+          bill_type: billType,
+          notes: newBillNotes || null,
+          account: newBillAccount || null,
+          ...(newBillFrequency === 'bimonthly' && newBillFirstDate ? { first_date: parseInt(newBillFirstDate), second_date: parseInt(newBillSecondDate) || null } : {}),
+          ...(billInterestRate ? { interest_rate: parseFloat(billInterestRate) } : {}),
+        })
+      })
+      const data = await res.json()
+      if (res.ok && data.bill) {
+        setBills(prev => prev.map(b => b.id === editingBill.id ? data.bill : b))
+        showToast('Bill updated')
+      } else {
+        showToast('Failed to update bill')
+      }
+    } catch {
+      showToast('Failed to update bill')
+    }
+    setUpdatingBill(false)
+    setEditingBill(null)
+    setShowAddBillModal(false)
+    setNewBillName(''); setNewBillAmount(''); setNewBillDueDay('')
+    setNewBillFrequency('monthly'); setNewBillCategory(''); setNewBillAutoTask(true)
+    setNewBillAutopay(false); setNewBillNotes(''); setNewBillAccount('')
+    setNewBillFirstDate(''); setNewBillSecondDate('')
+    setBillType('bill'); setBillInterestRate('')
+  }
+
+  const sendFinanceChat = async (e) => {
+    e.preventDefault()
+    const msg = financeChatInput.trim()
+    if (!msg || financeChatSending) return
+    const userMsg = { role: 'user', content: msg }
+    setFinanceChatMessages(prev => [...prev, userMsg])
+    setFinanceChatInput('')
+    setFinanceChatSending(true)
+    try {
+      const res = await loggedFetch('/api/finance-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, conversationHistory: financeChatMessages })
+      })
+      const data = await res.json()
+      setFinanceChatMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: res.ok && data.message ? data.message : 'Something went wrong. Try again.' }
+      ])
+    } catch {
+      setFinanceChatMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Try again.' }])
+    }
+    setFinanceChatSending(false)
   }
 
   const logSpend = async (e) => {
@@ -359,7 +454,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                   <div key={cat} className={styles.financeCatGroup}>
                     <p className={styles.financeCatLabel}>{cat}</p>
                     {catBills.map(bill => (
-                      <div key={bill.id} className={styles.billCard}>
+                      <div key={bill.id} className={styles.billCard} onClick={() => openEditBill(bill)} style={{ cursor: 'pointer' }}>
                         <div className={styles.billInfo}>
                           <span className={styles.billName}>{bill.name}</span>
                           <div className={styles.billMeta}>
@@ -377,7 +472,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                         </div>
                         <div className={styles.billRight}>
                           <span className={styles.billAmount}>{fmtMoney(bill.amount)}</span>
-                          <button onClick={() => deleteBill(bill.id)} className={styles.billDelete}>×</button>
+                          <button onClick={e => { e.stopPropagation(); deleteBill(bill.id) }} className={styles.billDelete}>×</button>
                         </div>
                       </div>
                     ))}
@@ -1106,8 +1201,42 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                 <div className={styles.flCoachTitle}>Get a personalized breakdown</div>
                 <div className={styles.flCoachBody}>Ask Cinis what your score means and how to improve it specifically for your situation.</div>
                 <button className={styles.addTaskBtn} style={{ marginTop: 12, width: '100%' }}
-                  onClick={() => switchTab('checkin')}>Ask Cinis about this →</button>
+                  onClick={() => setFinanceChatOpen(prev => !prev)}>
+                  {financeChatOpen ? 'Close chat' : 'Ask Cinis about this →'}
+                </button>
               </div>
+
+              {/* Inline finance chat */}
+              {financeChatOpen && (
+                <div className={styles.financeChatPanel}>
+                  <div className={styles.financeChatMessages}>
+                    {financeChatMessages.length === 0 && (
+                      <div className={styles.financeChatEmpty}>Ask anything about your finances...</div>
+                    )}
+                    {financeChatMessages.map((m, i) => (
+                      <div key={i} className={m.role === 'user' ? styles.financeChatUser : styles.financeChatAssistant}>
+                        {m.content}
+                      </div>
+                    ))}
+                    {financeChatSending && (
+                      <div className={styles.financeChatAssistant} style={{ opacity: 0.5 }}>...</div>
+                    )}
+                  </div>
+                  <form onSubmit={sendFinanceChat} className={styles.financeChatForm}>
+                    <input
+                      type="text"
+                      value={financeChatInput}
+                      onChange={e => setFinanceChatInput(e.target.value)}
+                      placeholder="Ask about your finances..."
+                      className={styles.financeChatInput}
+                      disabled={financeChatSending}
+                    />
+                    <button type="submit" className={styles.financeChatSend} disabled={financeChatSending || !financeChatInput.trim()}>
+                      →
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
           )
         })()}
@@ -1120,7 +1249,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
         <div className={styles.modalOverlay} onClick={e => e.target === e.currentTarget && setShowAddBillModal(false)}>
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>Add bill</h2>
+              <h2 className={styles.modalTitle}>{editingBill ? 'Edit bill' : 'Add bill'}</h2>
               <div className={styles.modalHeaderRight}>
                 <button type="button"
                   onClick={billListening ? stopBillListening : startBillListening}
@@ -1132,7 +1261,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                     <Microphone size={18} />
                   )}
                 </button>
-                <button onClick={() => { setShowAddBillModal(false); setBillVoiceTranscript('') }} className={styles.modalClose}>×</button>
+                <button onClick={() => { setShowAddBillModal(false); setEditingBill(null); setBillVoiceTranscript('') }} className={styles.modalClose}>×</button>
               </div>
             </div>
             {(billListening || billParsing || billVoiceTranscript) && (
@@ -1147,7 +1276,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                 {billVoiceTranscript && !billListening && !billParsing && <div className={styles.voiceTranscript}>"{billVoiceTranscript}"</div>}
               </div>
             )}
-            <form onSubmit={addBill} className={styles.modalForm}>
+            <form onSubmit={editingBill ? updateBill : addBill} className={styles.modalForm}>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Bill name</label>
                 <input type="text" placeholder="e.g. Netflix, Rent, Electric"
@@ -1251,8 +1380,8 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                   value={newBillAccount} onChange={e => setNewBillAccount(e.target.value)}
                   className={styles.fieldInput} />
               </div>
-              <button type="submit" disabled={addingBill || !newBillName.trim() || !newBillAmount} className={styles.modalSubmit}>
-                {addingBill ? 'Adding...' : 'Add bill'}
+              <button type="submit" disabled={(editingBill ? updatingBill : addingBill) || !newBillName.trim() || !newBillAmount} className={styles.modalSubmit}>
+                {editingBill ? (updatingBill ? 'Saving...' : 'Save changes') : (addingBill ? 'Adding...' : 'Add bill')}
               </button>
             </form>
           </div>
