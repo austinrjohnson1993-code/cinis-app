@@ -37,11 +37,15 @@ export default async function handler(req, res) {
   }
 
   // 2. Pre-generate evening check-in message for users who have evening check-ins enabled
-  const { data: profiles } = await supabaseAdmin
+  const { data: profiles, error: profilesErr } = await supabaseAdmin
     .from('profiles')
     .select('*')
     .contains('checkin_times', ['evening'])
 
+  if (profilesErr) {
+    console.error('[evening-checkin] Failed to fetch profiles:', profilesErr.message)
+    return res.status(500).json({ error: 'Failed to fetch profiles' })
+  }
   if (!profiles || profiles.length === 0) {
     return res.status(200).json({ success: true, rolled: rolloverResult.rolled, pregenerated: 0 })
   }

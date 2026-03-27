@@ -34,11 +34,15 @@ export default async function handler(req, res) {
 
   const supabaseAdmin = getAdminClient()
 
-  const { data: profiles } = await supabaseAdmin
+  const { data: profiles, error: profilesErr } = await supabaseAdmin
     .from('profiles')
     .select('*')
     .contains('checkin_times', ['morning'])
 
+  if (profilesErr) {
+    console.error('[morning-checkin] Failed to fetch profiles:', profilesErr.message)
+    return res.status(500).json({ error: 'Failed to fetch profiles' })
+  }
   if (!profiles || profiles.length === 0) {
     return res.status(200).json({ success: true, pregenerated: 0 })
   }
