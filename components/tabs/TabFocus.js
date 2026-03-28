@@ -1,145 +1,146 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { formatTimer, localDateStr } from './shared'
 import { supabase } from '../../lib/supabase'
-
-const TIPS = [
-  "If you feel the urge to check your phone, set it face-down. The impulse passes in 20 seconds.",
-  "Don't try to do the whole thing. Just do the next 2 minutes.",
-  "If you're stuck, change one thing \u2014 your position, your music, or your approach.",
-  "Close every tab you're not using. Visual clutter is mental clutter.",
-  "You don't need to feel motivated to start. Action creates motivation.",
-]
+import styles from '../../styles/TabFocus.module.css'
 
 export default function TabFocus({
   user, profile, tasks = [], setTasks, showToast, loggedFetch, switchTab,
-  topTask, focusLabel, topTaskCountdown, completeTask, archiveTask,
-  setShowAddModal, setDetailTask, openDetailEdit,
+  topTask, completeTask, archiveTask,
 }) {
-  // ── Focus state ────────────────────────────────────────────────────────────
-  const [focusPhase, setFocusPhase] = useState('setup') // setup | active
-  const [focusDuration, setFocusDuration] = useState(25)
-  const [focusCustom, setFocusCustom] = useState('')
-  const [focusTimeLeft, setFocusTimeLeft] = useState(0)
-  const [focusRunning, setFocusRunning] = useState(false)
-  const [focusAiResponse, setFocusAiResponse] = useState('')
-  const [focusAiLoading, setFocusAiLoading] = useState(false)
-  const focusIntervalRef = useRef(null)
-
-  // Session modals
-  const [showSessionEndModal, setShowSessionEndModal] = useState(false)
-  const [sessionEndType, setSessionEndType] = useState('complete')
-  const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
+  // ── State ────────────────────────────────────────────────────────────────
+  const [dur, setDur] = useState(25)
+  const [remaining, setRemaining] = useState(25 * 60)
+  const [running, setRunning] = useState(false)
+  const [paused, setPaused] = useState(false)
+  const [phase, setPhase] = useState('idle') // 'idle' | 'active'
+  const [showEndModal, setShowEndModal] = useState(false)
   const [showStuckModal, setShowStuckModal] = useState(false)
-  const [stuckConfirmRemove, setStuckConfirmRemove] = useState(false)
-  const [stuckTask, setStuckTask] = useState(null)
+  const [showXp, setShowXp] = useState(false)
+  const intervalRef = useRef(null)
 
-  // Focus shield + tip
-  const [focusShieldOn, setFocusShieldOn] = useState(false)
-  const [tip] = useState(() => TIPS[Math.floor(Math.random() * TIPS.length)])
-  const [sessionStartTime, setSessionStartTime] = useState(null)
+  // ── Cleanup ──────────────────────────────────────────────────────────────
+  useEffect(() => () => clearInterval(intervalRef.current), [])
 
-  // ── Cleanup ────────────────────────────────────────────────────────────────
-  useEffect(() => () => clearInterval(focusIntervalRef.current), [])
-
-  // ── Handlers ───────────────────────────────────────────────────────────────
-  const startFocus = () => {
-    const dur = focusCustom ? parseInt(focusCustom) : focusDuration
-    if (!dur || dur < 1) return
+  // ── Timer logic ──────────────────────────────────────────────────────────
+  const startSession = () => {
     const secs = dur * 60
-    setFocusTimeLeft(secs)
-    setFocusPhase('active')
-    setFocusRunning(true)
-    setSessionStartTime(new Date())
-    focusIntervalRef.current = setInterval(() => {
-      setFocusTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(focusIntervalRef.current)
-          setFocusRunning(false)
-          setFocusPhase('setup')
-          setSessionEndType('complete')
-          setShowSessionEndModal(true)
+    setRemaining(secs)
+    setPhase('active')
+    setRunning(true)
+    setPaused(false)
+    intervalRef.current = setInterval(() => {
+      setRemaining(r => {
+        if (r <= 1) {
+          clearInterval(intervalRef.current)
+          setRunning(false)
+          setShowEndModal(true)
           return 0
         }
-        return prev - 1
+        return r - 1
       })
     }, 1000)
   }
 
-  const toggleFocusPause = () => {
-    if (focusRunning) {
-      clearInterval(focusIntervalRef.current)
-      setFocusRunning(false)
-    } else {
-      focusIntervalRef.current = setInterval(() => {
-        setFocusTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(focusIntervalRef.current)
-            setFocusRunning(false)
-            setFocusPhase('setup')
-            setSessionEndType('complete')
-            setShowSessionEndModal(true)
+  const togglePause = () => {
+    if (paused) {
+      // Resume
+      intervalRef.current = setInterval(() => {
+        setRemaining(r => {
+          if (r <= 1) {
+            clearInterval(intervalRef.current)
+            setRunning(false)
+            setShowEndModal(true)
             return 0
           }
-          return prev - 1
+          return r - 1
         })
       }, 1000)
-      setFocusRunning(true)
+      setPaused(false)
+      setRunning(true)
+    } else {
+      // Pause
+      clearInterval(intervalRef.current)
+      setPaused(true)
+      setRunning(false)
     }
   }
 
-  const handleFocusResult = async (result) => {
-    const dur = focusCustom ? parseInt(focusCustom) : focusDuration
-    setShowSessionEndModal(false)
-    if (result === 'complete') {
-      if (topTask && completeTask) completeTask(topTask)
-      setFocusPhase('setup')
-      setFocusCustom('')
-      if (showToast) showToast('Task complete \u2713')
-    } else if (result === 'progress') {
-      if (topTask) {
-        await supabase.from('tasks').update({ notes: 'In progress' }).eq('id', topTask.id)
-        if (setTasks) setTasks(prev => prev.map(t => t.id === topTask.id ? { ...t, notes: 'In progress' } : t))
-      }
-      setFocusPhase('setup')
-      setFocusCustom('')
-    } else if (result === 'stuck') {
-      setFocusPhase('setup')
-      if (switchTab) switchTab('checkin')
-      try {
-        const res = await loggedFetch('/api/focus', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.id, outcome: 'stuck', taskTitle: topTask?.title, focusDuration: dur })
-        })
-        const data = await res.json()
-        setFocusAiResponse(data.message || "What felt hardest about starting that?")
-      } catch {
-        setFocusAiResponse("What felt hardest about starting that?")
-      }
+  const handleGotStuck = () => {
+    clearInterval(intervalRef.current)
+    setRunning(false)
+    setShowStuckModal(true)
+  }
+
+  const returnToIdle = () => {
+    setPhase('idle')
+    setShowEndModal(false)
+    setShowStuckModal(false)
+    setRemaining(dur * 60)
+    setPaused(false)
+  }
+
+  // ── End modal handlers ───────────────────────────────────────────────────
+  const handleNailed = async () => {
+    setShowXp(true)
+    if (topTask && completeTask) completeTask(topTask)
+    setTimeout(() => {
+      setShowXp(false)
+      returnToIdle()
+      // POST session
+      const fetchFn = loggedFetch || fetch
+      fetchFn('/api/focus/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.id, duration: dur, outcome: 'nailed', taskId: topTask?.id }),
+      }).catch(() => {})
+    }, 1300)
+  }
+
+  const handleProgress = () => returnToIdle()
+
+  const handleEndStuck = () => {
+    setShowEndModal(false)
+    setShowStuckModal(true)
+  }
+
+  // ── Stuck modal handlers ─────────────────────────────────────────────────
+  const handleReschedule = async () => {
+    if (topTask) {
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const dateStr = tomorrow.toISOString().split('T')[0]
+      await supabase.from('tasks').update({ scheduled_for: dateStr }).eq('id', topTask.id)
+      if (setTasks) setTasks(prev => prev.map(t => t.id === topTask.id ? { ...t, scheduled_for: dateStr } : t))
     }
+    returnToIdle()
   }
 
-  const confirmAbandon = () => {
-    setShowAbandonConfirm(false)
-    clearInterval(focusIntervalRef.current)
-    setFocusRunning(false)
-    setFocusPhase('setup')
-    setSessionEndType('abandoned')
-    setShowSessionEndModal(true)
+  const handleRemove = async () => {
+    if (topTask) {
+      await supabase.from('tasks').update({ archived: true }).eq('id', topTask.id)
+      if (setTasks) setTasks(prev => prev.map(t => t.id === topTask.id ? { ...t, archived: true } : t))
+    }
+    returnToIdle()
   }
 
-  // ── Computed stats ─────────────────────────────────────────────────────────
-  const todayDateStr = localDateStr(new Date())
+  const handleKeep = () => returnToIdle()
 
+  // ── Computed ─────────────────────────────────────────────────────────────
+  const totalSecs = dur * 60
+  const progressPct = totalSecs > 0 ? ((totalSecs - remaining) / totalSecs) * 100 : 0
+  const mins = Math.floor(remaining / 60)
+  const secs = remaining % 60
+  const mStr = String(mins).padStart(2, '0')
+  const sStr = String(secs).padStart(2, '0')
+  const remainLabel = `${mins}:${sStr} remaining`
+
+  const todayStr = localDateStr(new Date())
   const todayFocusMinutes = tasks.reduce((sum, t) => {
-    if (t.completed && t.completed_at && t.completed_at.slice(0, 10) === todayDateStr) {
+    if (t.completed && t.completed_at && t.completed_at.slice(0, 10) === todayStr) {
       return sum + (t.estimated_minutes || 0)
     }
     return sum
   }, 0)
-
-  const sessionsToday = tasks.filter(t =>
-    t.completed && t.completed_at && t.completed_at.slice(0, 10) === todayDateStr
-  ).length
 
   const focusStreak = (() => {
     const today = new Date()
@@ -147,236 +148,179 @@ export default function TabFocus({
     for (let i = 0; i < 365; i++) {
       const checkDate = new Date(today.getTime() - i * 86400000)
       const checkStr = localDateStr(checkDate)
-      const completed = tasks.filter(t =>
-        t.completed && t.completed_at && t.completed_at.slice(0, 10) === checkStr
-      ).length
-      if (completed > 0) streak++
+      const has = tasks.some(t => t.completed && t.completed_at && t.completed_at.slice(0, 10) === checkStr)
+      if (has) streak++
       else if (i > 0) break
     }
     return streak
   })()
 
-  // Active state derived
-  const totalSeconds = (focusCustom ? parseInt(focusCustom) : focusDuration) * 60
-  const elapsed = totalSeconds - focusTimeLeft
-  const progressPct = totalSeconds > 0 ? (elapsed / totalSeconds) * 100 : 0
+  const sessionsTotal = profile?.focus_sessions || tasks.filter(t => t.completed).length
 
-  const fmtTime = (d) => d ? d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''
-  const sessionEndTime = sessionStartTime ? new Date(sessionStartTime.getTime() + totalSeconds * 1000) : null
+  // Working on task
+  const workingTask = topTask || tasks.find(t => t.starred && !t.completed && !t.archived) || tasks.find(t => !t.completed && !t.archived)
 
-  // ── Inline style helpers ───────────────────────────────────────────────────
-  const ff = "'Figtree',sans-serif"
-  const sf = "'Sora',sans-serif"
-
-  // ── RENDER ─────────────────────────────────────────────────────────────────
   return (
-    <>
-      <div style={{ padding: '12px 14px', overflowY: 'auto', height: '100%', paddingBottom: 80 }}>
+    <div className={styles.wrap}>
+      {/* ── IDLE STATE ─────────────────────────────────────────────── */}
+      {phase === 'idle' && (
+        <>
+          <div className={styles.headerLabel}>Focus</div>
 
-        {focusPhase === 'setup' && (
-          <>
-            {/* Header */}
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#F5F0E3', fontFamily: ff, marginBottom: 10 }}>Focus</div>
+          <div className={styles.timerDisplay}>
+            <div className={styles.timerValue}>{dur}:00</div>
+            <div className={styles.timerSub}>Ready to start</div>
+          </div>
 
-            {/* Timer display */}
-            <div style={{ textAlign: 'center', padding: '30px 0 20px' }}>
-              <div style={{ fontFamily: sf, fontSize: 52, fontWeight: 300, color: '#F5F0E3', letterSpacing: '0.04em' }}>
-                {focusDuration}:00
-              </div>
-              <div style={{ fontSize: 14, color: '#F5F0E350', fontFamily: ff, marginTop: 4 }}>Ready to start</div>
-            </div>
+          <div className={styles.durRow}>
+            {[5, 15, 25, 45, 60].map(d => (
+              <button key={d} onClick={() => setDur(d)}
+                className={`${styles.durPill} ${dur === d ? styles.durPillActive : ''}`}>
+                {d}
+              </button>
+            ))}
+          </div>
 
-            {/* Duration presets */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginBottom: 20 }}>
-              {[5, 15, 25, 45, 60].map(d => (
-                <div key={d} onClick={() => { setFocusDuration(d); setFocusCustom('') }} style={{
-                  width: 44, height: 44, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: sf, fontSize: 14, fontWeight: 500, cursor: 'pointer',
-                  background: focusDuration === d && !focusCustom ? '#FF664425' : '#3E3228',
-                  color: focusDuration === d && !focusCustom ? '#FF6644' : '#F5F0E350',
-                  border: focusDuration === d && !focusCustom ? '1px solid #FF664450' : '1px solid #F5F0E312',
-                }}>{d}</div>
-              ))}
-            </div>
-
-            {/* Start button */}
-            <div onClick={startFocus} style={{
-              background: '#FF6644', borderRadius: 12, padding: '14px 0', textAlign: 'center',
-              fontFamily: ff, fontSize: 14, fontWeight: 600, color: '#F5F0E3', cursor: 'pointer', marginBottom: 14
-            }}>Start focus</div>
-
-            {/* Partner Up card */}
-            <div style={{
-              background: '#3E3228', borderRadius: 10, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'center',
-              border: '1px solid #A47BDB25', cursor: 'pointer'
-            }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#A47BDB1F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-                &#128101;
-              </div>
-              <div>
-                <div style={{ fontFamily: ff, fontSize: 14, fontWeight: 500, color: '#F5F0E3' }}>Partner up</div>
-                <div style={{ fontSize: 14, color: '#F5F0E350', fontFamily: ff, marginTop: 2 }}>Body double with a teammate</div>
-              </div>
-            </div>
-
-            {/* Stats row */}
-            <div style={{ display: 'flex', gap: 6, marginTop: 14 }}>
-              {[
-                { value: todayFocusMinutes > 0 ? `${todayFocusMinutes}m` : '0m', label: 'Today', color: '#FF6644' },
-                { value: focusStreak, label: 'Streak', color: '#4CAF50' },
-                { value: sessionsToday, label: 'Sessions', color: '#3B8BD4' },
-              ].map(s => (
-                <div key={s.label} style={{ flex: 1, background: '#3E3228', borderRadius: 8, padding: '10px 8px', textAlign: 'center' }}>
-                  <div style={{ fontFamily: sf, fontSize: 16, fontWeight: 600, color: s.color }}>{s.value}</div>
-                  <div style={{ fontSize: 14, color: '#F5F0E350', fontFamily: ff, marginTop: 2 }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {focusPhase === 'active' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 20 }}>
-            {/* Session label */}
-            <div style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#E8321A', fontFamily: ff, fontWeight: 500, marginBottom: 4 }}>FOCUS SESSION</div>
-
-            {/* Task name */}
-            {topTask && <div style={{ fontSize: 14, color: '#F5F0E3AA', fontFamily: ff, textAlign: 'center', marginBottom: 16 }}>{topTask.title}</div>}
-
-            {/* Timer digits */}
-            <div style={{ fontFamily: sf, fontSize: 48, fontWeight: 300, color: '#F5F0E3', letterSpacing: '0.04em' }}>
-              {formatTimer(focusTimeLeft)}
-            </div>
-
-            {/* Progress bar */}
-            <div style={{ width: '100%', maxWidth: 280, marginTop: 16 }}>
-              <div style={{ height: 5, background: '#F5F0E318', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, #E8321A, #FF6644)', borderRadius: 3, transition: 'width 1s' }} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                <span style={{ fontSize: 14, color: '#F5F0E350', fontFamily: ff }}>{fmtTime(sessionStartTime)}</span>
-                <span style={{ fontSize: 14, color: '#F5F0E350', fontFamily: ff }}>{fmtTime(sessionEndTime)}</span>
-              </div>
-            </div>
-
-            {/* Button row */}
-            <div style={{ display: 'flex', gap: 10, margin: '16px 0' }}>
-              <div onClick={toggleFocusPause} style={{
-                border: '1px solid #F5F0E340', background: 'transparent', borderRadius: 20,
-                padding: '7px 22px', fontSize: 14, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer'
-              }}>{focusRunning ? 'Pause' : 'Resume'}</div>
-              <div onClick={() => setShowAbandonConfirm(true)} style={{
-                border: '1px solid #E8321A58', background: '#E8321A25', borderRadius: 20,
-                padding: '7px 22px', fontSize: 14, color: '#E8321A', fontFamily: ff, cursor: 'pointer'
-              }}>Got stuck</div>
-            </div>
-
-            {/* Divider */}
-            <div style={{ width: '100%', maxWidth: 300, height: 0.5, background: '#F5F0E318', margin: '4px 0 12px' }} />
-
-            {/* Focus shield */}
-            <div style={{ background: '#3E3228', borderRadius: 10, padding: 12, maxWidth: 300, width: '100%', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <span style={{ fontSize: 16, color: '#E8321A' }}>&#128737;</span>
+          {/* Working on card */}
+          {workingTask && (
+            <div className={styles.workingCard}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: ff, fontSize: 14, fontWeight: 500, color: '#F5F0E3' }}>Focus shield</div>
-                <div style={{ fontSize: 14, color: '#F5F0E350', fontFamily: ff }}>Notifications + apps blocked</div>
+                <div className={styles.workingLabel}>WORKING ON</div>
+                <div className={styles.workingTask}>{workingTask.title}</div>
               </div>
-              <div style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div onClick={() => setFocusShieldOn(v => !v)} style={{
-                  width: 36, height: 20, borderRadius: 10, cursor: 'pointer', position: 'relative',
-                  background: focusShieldOn ? '#E8321A' : '#F5F0E333',
-                  transition: 'background .2s'
-                }}>
-                  <div style={{
-                    width: 16, height: 16, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2,
-                    left: focusShieldOn ? 18 : 2, transition: 'left .2s'
-                  }} />
-                </div>
-              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(240,234,214,0.22)" strokeWidth="2" strokeLinecap="round">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
             </div>
+          )}
 
-            {/* Stats row */}
-            <div style={{ display: 'flex', gap: 6, maxWidth: 300, width: '100%', marginBottom: 10 }}>
-              {[
-                { value: todayFocusMinutes > 0 ? `${todayFocusMinutes}m` : '0m', label: 'Today', color: '#FF6644' },
-                { value: focusStreak, label: 'Streak', color: '#4CAF50' },
-                { value: sessionsToday, label: 'Sessions', color: '#3B8BD4' },
-              ].map(s => (
-                <div key={s.label} style={{ flex: 1, background: '#3E3228', borderRadius: 8, padding: '10px 8px', textAlign: 'center' }}>
-                  <div style={{ fontFamily: sf, fontSize: 16, fontWeight: 600, color: s.color }}>{s.value}</div>
-                  <div style={{ fontSize: 14, color: '#F5F0E350', fontFamily: ff, marginTop: 2 }}>{s.label}</div>
-                </div>
-              ))}
+          <button className={styles.startBtn} onClick={startSession}>Start focus</button>
+
+          {/* Partner up card */}
+          <div className={styles.partnerCard}>
+            <div className={styles.partnerIcon}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A47BDB" strokeWidth="2" strokeLinecap="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                <path d="M16 3.13a4 4 0 010 7.75" />
+              </svg>
             </div>
+            <div style={{ flex: 1 }}>
+              <div className={styles.partnerTitle}>Partner up</div>
+              <div className={styles.partnerSub}>Body double with a teammate</div>
+            </div>
+            <span className={styles.partnerBadge}>2 online</span>
+          </div>
 
-            {/* Tip card */}
-            <div style={{ background: '#3E3228', borderRadius: 10, padding: 12, maxWidth: 300, width: '100%' }}>
-              <div style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#FF6644', fontFamily: ff, fontWeight: 500, marginBottom: 6 }}>STAY IN THE ZONE</div>
-              <div style={{ fontSize: 14, color: '#F5F0E3AA', fontFamily: ff, lineHeight: 1.6 }}>{tip}</div>
+          {/* Focus history */}
+          <div className={styles.historyLabel}>YOUR FOCUS HISTORY</div>
+          <div className={styles.statsRow}>
+            <div className={styles.statCard}>
+              <div className={styles.statValue} style={{ color: '#FF6644' }}>{todayFocusMinutes > 0 ? `${todayFocusMinutes}m` : '0m'}</div>
+              <div className={styles.statLabel}>today</div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statValue} style={{ color: '#4CAF50' }}>{focusStreak}d</div>
+              <div className={styles.statLabel}>streak</div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statValue} style={{ color: '#3B8BD4' }}>{sessionsTotal}</div>
+              <div className={styles.statLabel}>sessions</div>
             </div>
           </div>
-        )}
+        </>
+      )}
 
-      </div>
+      {/* ── ACTIVE STATE ───────────────────────────────────────────── */}
+      {phase === 'active' && (
+        <div className={styles.activeOverlay}>
+          <div className={styles.activeHeader}>
+            <span className={styles.headerLabel}>Focus</span>
+            <span className={styles.sessionBadge}>{dur} min session</span>
+          </div>
 
-      {/* Abandon confirm */}
-      {showAbandonConfirm && (
-        <div onClick={e => e.target === e.currentTarget && setShowAbandonConfirm(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: '#211A14', border: '1px solid #F5F0E318', borderRadius: 14, padding: 20, maxWidth: 320, width: '90%' }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#F5F0E3', fontFamily: ff, marginBottom: 8 }}>Abandon session?</div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-              <div onClick={confirmAbandon} style={{ flex: 1, padding: '10px 0', textAlign: 'center', background: '#E8321A', borderRadius: 8, fontSize: 14, fontWeight: 500, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer' }}>Yes, stop</div>
-              <div onClick={() => setShowAbandonConfirm(false)} style={{ flex: 1, padding: '10px 0', textAlign: 'center', background: '#3E3228', border: '1px solid #F5F0E318', borderRadius: 8, fontSize: 14, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer' }}>Keep going</div>
+          <div className={styles.activeTimer}>
+            <span className={styles.activeTimerDigits}>
+              <span>{mStr}</span>
+              <span className={`${styles.colonBlink} ${paused ? styles.colonPaused : ''}`}>:</span>
+              <span>{sStr}</span>
+            </span>
+            <div className={styles.statusSub}>{paused ? 'Paused' : 'In session'}</div>
+          </div>
+
+          {/* Progress bar */}
+          <div className={styles.progressWrap}>
+            <div className={styles.progressTrack}>
+              <div className={styles.progressFill} style={{ width: `${progressPct}%` }} />
             </div>
+            <div className={styles.progressLabel}>{remainLabel}</div>
+          </div>
+
+          {/* Working on */}
+          {workingTask && (
+            <div className={styles.activeWorkingCard}>
+              <div className={styles.workingLabel}>WORKING ON</div>
+              <div className={styles.workingTask}>{workingTask.title}</div>
+            </div>
+          )}
+
+          {/* Controls */}
+          <div className={styles.controlsRow}>
+            <button className={`${styles.controlBtn} ${paused ? styles.resumeBtn : styles.pauseBtn}`} onClick={togglePause}>
+              {paused ? 'Resume' : 'Pause'}
+            </button>
+            <button className={`${styles.controlBtn} ${styles.stuckBtn}`} onClick={handleGotStuck}>
+              Got stuck
+            </button>
           </div>
         </div>
       )}
 
-      {/* Session end modal */}
-      {showSessionEndModal && (
-        <div onClick={e => e.target === e.currentTarget && setShowSessionEndModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: '#211A14', border: '1px solid #F5F0E318', borderRadius: 14, padding: 20, maxWidth: 340, width: '90%' }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#F5F0E3', fontFamily: ff, marginBottom: 4 }}>
-              {sessionEndType === 'complete' ? 'Session complete' : 'Session ended'}
-            </div>
-            {topTask && <div style={{ fontSize: 14, color: '#F5F0E370', fontFamily: ff, marginBottom: 12 }}>{topTask.title}</div>}
-            <div style={{ fontSize: 14, color: '#F5F0E3', fontFamily: ff, marginBottom: 14 }}>How&apos;d it go?</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div onClick={() => handleFocusResult('complete')} style={{ padding: '10px 14px', background: '#4CAF50', borderRadius: 8, fontSize: 14, fontWeight: 500, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer', textAlign: 'center' }}>&#10003; Nailed it</div>
-              <div onClick={() => handleFocusResult('progress')} style={{ padding: '10px 14px', background: '#3E3228', border: '1px solid #F5F0E318', borderRadius: 8, fontSize: 14, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer', textAlign: 'center' }}>&#9654; Made progress</div>
-              <div onClick={() => { setShowSessionEndModal(false); setStuckTask(topTask); setStuckConfirmRemove(false); setShowStuckModal(true) }} style={{ padding: '10px 14px', background: '#3E3228', border: '1px solid #F5F0E318', borderRadius: 8, fontSize: 14, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer', textAlign: 'center' }}>&#129521; Got stuck</div>
-            </div>
+      {/* ── SESSION END MODAL ──────────────────────────────────────── */}
+      {showEndModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.sheet}>
+            <div className={styles.sheetHandle} />
+            <div className={styles.sheetTitle}>Session complete.</div>
+            <div className={styles.sheetSub}>{dur} minutes. How did it go?</div>
+
+            <button className={styles.btnNailed} onClick={handleNailed}>
+              Nailed it
+              {showXp && <span className={styles.xpPop}>+50 XP</span>}
+            </button>
+            <button className={styles.btnProgress} onClick={handleProgress}>Made progress</button>
+            <button className={styles.btnStuck} onClick={handleEndStuck}>Got stuck</button>
           </div>
         </div>
       )}
 
-      {/* Stuck resolution modal */}
+      {/* ── GOT STUCK MODAL ────────────────────────────────────────── */}
       {showStuckModal && (
-        <div onClick={e => e.target === e.currentTarget && (setShowStuckModal(false), setStuckConfirmRemove(false))} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: '#211A14', border: '1px solid #F5F0E318', borderRadius: 14, padding: 20, maxWidth: 340, width: '90%' }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#F5F0E3', fontFamily: ff, marginBottom: 4 }}>What do you want to do with this?</div>
-            {stuckTask && <div style={{ fontSize: 14, color: '#F5F0E370', fontFamily: ff, marginBottom: 8 }}>{stuckTask.title}</div>}
-            <div style={{ fontSize: 14, color: '#F5F0E390', fontFamily: ff, marginBottom: 16, lineHeight: 1.5 }}>No judgment \u2014 let&apos;s figure out the next step.</div>
-            {stuckConfirmRemove ? (
-              <div>
-                <div style={{ fontSize: 14, color: '#F5F0E390', fontFamily: ff, marginBottom: 14, lineHeight: 1.5 }}>
-                  Are you sure? This will remove <strong style={{ color: '#F5F0E3' }}>{stuckTask?.title}</strong> from your list.
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <div onClick={async () => { if (stuckTask && archiveTask) await archiveTask(stuckTask); setShowStuckModal(false); setStuckConfirmRemove(false) }} style={{ flex: 1, padding: '10px 0', textAlign: 'center', background: '#E8321A', borderRadius: 8, fontSize: 14, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer' }}>Yes, remove it</div>
-                  <div onClick={() => setStuckConfirmRemove(false)} style={{ flex: 1, padding: '10px 0', textAlign: 'center', background: '#3E3228', border: '1px solid #F5F0E318', borderRadius: 8, fontSize: 14, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer' }}>Cancel</div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div onClick={() => { if (stuckTask && setDetailTask) { setDetailTask(stuckTask); if (openDetailEdit) openDetailEdit() } setShowStuckModal(false) }} style={{ padding: '10px 14px', background: '#3E3228', border: '1px solid #F5F0E318', borderRadius: 8, fontSize: 14, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer', textAlign: 'center' }}>&#128197; Reschedule it</div>
-                <div onClick={() => setStuckConfirmRemove(true)} style={{ padding: '10px 14px', background: '#3E3228', border: '1px solid #F5F0E318', borderRadius: 8, fontSize: 14, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer', textAlign: 'center' }}>&#128465; Remove it</div>
-                <div onClick={() => { setShowStuckModal(false); setStuckConfirmRemove(false) }} style={{ padding: '10px 14px', background: '#3E3228', border: '1px solid #F5F0E318', borderRadius: 8, fontSize: 14, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer', textAlign: 'center' }}>&#10003; Keep it on my list</div>
-              </div>
-            )}
+        <div className={styles.stuckOverlay}>
+          <div className={styles.sheet}>
+            <div className={styles.sheetHandle} />
+            <div className={styles.sheetTitle} style={{ fontSize: 17 }}>What do you want to do?</div>
+            <div className={styles.sheetSub}>No judgment — let&rsquo;s figure out next.</div>
+
+            <div className={styles.stuckOptionHot} onClick={handleReschedule}>
+              <div className={styles.stuckOptionTitle} style={{ color: '#FF6644' }}>Reschedule it</div>
+              <div className={styles.stuckOptionSub}>Move to tomorrow</div>
+            </div>
+
+            <div className={styles.stuckOptionDefault} onClick={handleRemove}>
+              <div className={styles.stuckOptionTitle} style={{ color: 'rgba(240,234,214,0.65)' }}>Remove it</div>
+              <div className={styles.stuckOptionSub}>Off the list for now</div>
+            </div>
+
+            <div className={styles.stuckOptionDefault} onClick={handleKeep}>
+              <div className={styles.stuckOptionTitle} style={{ color: 'rgba(240,234,214,0.4)' }}>Keep it on the list</div>
+              <div className={styles.stuckOptionSub}>Stay the course</div>
+            </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }

@@ -1,0 +1,491 @@
+/* TabFocus — focus session timer */
+
+/* ── Idle state ────────────────────────────────────────── */
+.wrap {
+  padding: 12px 14px;
+  padding-bottom: 80px;
+  overflow-y: auto;
+  height: 100%;
+  position: relative;
+}
+
+.headerLabel {
+  font-family: 'Figtree', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: #F0EAD6;
+  margin-bottom: 10px;
+}
+
+.timerDisplay {
+  text-align: center;
+  padding: 32px 0 20px;
+}
+
+.timerValue {
+  font-family: 'Sora', sans-serif;
+  font-weight: 300;
+  font-size: 56px;
+  color: #F0EAD6;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.timerSub {
+  font-family: 'Figtree', sans-serif;
+  font-size: 10px;
+  color: rgba(240,234,214,0.28);
+  margin-top: 8px;
+}
+
+/* Duration picker */
+.durRow {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.durPill {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid rgba(240,234,214,0.10);
+  background: rgba(240,234,214,0.06);
+  color: rgba(240,234,214,0.28);
+  transition: all 0.15s;
+}
+
+.durPillActive {
+  background: rgba(255,102,68,0.15);
+  color: #FF6644;
+  border-color: rgba(255,102,68,0.30);
+}
+
+/* Working on card */
+.workingCard {
+  background: #3E3228;
+  border-radius: 10px;
+  padding: 11px 13px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border: 1px solid rgba(240,234,214,0.07);
+}
+
+.workingLabel {
+  font-size: 9px;
+  color: rgba(240,234,214,0.22);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.workingTask {
+  font-family: 'Figtree', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: #F0EAD6;
+}
+
+/* Start button */
+.startBtn {
+  padding: 15px 0;
+  background: #FF6644;
+  border-radius: 12px;
+  text-align: center;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  margin-bottom: 14px;
+  border: none;
+  width: 100%;
+  transition: opacity 0.15s;
+}
+
+.startBtn:hover {
+  opacity: 0.92;
+}
+
+/* Partner up card */
+.partnerCard {
+  background: #3E3228;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border: 1px solid rgba(164,123,219,0.15);
+  margin-bottom: 14px;
+}
+
+.partnerIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(164,123,219,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.partnerTitle {
+  font-family: 'Figtree', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  color: #F0EAD6;
+}
+
+.partnerSub {
+  font-family: 'Figtree', sans-serif;
+  font-size: 9px;
+  color: rgba(240,234,214,0.22);
+  margin-top: 2px;
+}
+
+.partnerBadge {
+  font-size: 9px;
+  color: #A47BDB;
+  background: rgba(164,123,219,0.10);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-family: 'Figtree', sans-serif;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Focus history */
+.historyLabel {
+  font-size: 9px;
+  color: rgba(240,234,214,0.22);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.statsRow {
+  display: flex;
+  gap: 6px;
+}
+
+.statCard {
+  flex: 1;
+  background: #3E3228;
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.statValue {
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 8px;
+  color: rgba(240,234,214,0.22);
+  font-family: 'Figtree', sans-serif;
+  margin-top: 3px;
+}
+
+/* ── Active state ──────────────────────────────────────── */
+.activeOverlay {
+  position: absolute;
+  inset: 0;
+  background: #211A14;
+  padding: 12px 14px 80px;
+  overflow-y: auto;
+  animation: fadeUp 0.4s ease;
+  z-index: 5;
+}
+
+.activeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.sessionBadge {
+  font-family: 'Figtree', sans-serif;
+  font-size: 9px;
+  color: rgba(240,234,214,0.22);
+  background: #3E3228;
+  padding: 3px 10px;
+  border-radius: 10px;
+}
+
+.activeTimer {
+  text-align: center;
+  padding: 28px 0 8px;
+}
+
+.activeTimerDigits {
+  font-family: 'Sora', sans-serif;
+  font-weight: 300;
+  font-size: 64px;
+  color: #F0EAD6;
+  letter-spacing: 0.02em;
+}
+
+.colonBlink {
+  animation: colonBlink 1s step-end infinite;
+}
+
+.colonPaused {
+  animation-play-state: paused;
+}
+
+.statusSub {
+  font-family: 'Figtree', sans-serif;
+  font-size: 10px;
+  color: rgba(240,234,214,0.22);
+  margin-top: 6px;
+}
+
+/* Progress bar */
+.progressWrap {
+  margin-bottom: 6px;
+}
+
+.progressTrack {
+  height: 4px;
+  background: rgba(240,234,214,0.07);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #FF6644;
+  border-radius: 2px;
+  transition: width 1s linear;
+}
+
+.progressLabel {
+  font-family: 'Figtree', sans-serif;
+  font-size: 10px;
+  color: rgba(240,234,214,0.22);
+  text-align: right;
+  margin-top: 5px;
+}
+
+/* Active working on card */
+.activeWorkingCard {
+  background: #3E3228;
+  border-radius: 10px;
+  padding: 11px 13px;
+  margin-bottom: 12px;
+  border: 0.5px solid rgba(240,234,214,0.07);
+}
+
+/* Session controls */
+.controlsRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.controlBtn {
+  flex: 1;
+  padding: 13px;
+  border-radius: 10px;
+  text-align: center;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid;
+  transition: background 0.15s;
+}
+
+.pauseBtn {
+  background: rgba(255,102,68,0.12);
+  border-color: rgba(255,102,68,0.25);
+  color: #FF6644;
+}
+
+.resumeBtn {
+  background: rgba(240,234,214,0.05);
+  border-color: rgba(240,234,214,0.08);
+  color: rgba(240,234,214,0.4);
+}
+
+.stuckBtn {
+  background: rgba(240,234,214,0.05);
+  border-color: rgba(240,234,214,0.08);
+  color: rgba(240,234,214,0.36);
+  font-weight: 400;
+}
+
+/* ── Modals ────────────────────────────────────────────── */
+.modalOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(33,26,20,0.88);
+  display: flex;
+  align-items: flex-end;
+  z-index: 20;
+}
+
+.stuckOverlay {
+  composes: modalOverlay;
+  z-index: 30;
+}
+
+.sheet {
+  background: #211A14;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 36px;
+  width: 100%;
+  border-top: 1px solid rgba(240,234,214,0.08);
+  animation: sheetUp 0.35s ease;
+}
+
+.sheetHandle {
+  width: 32px;
+  height: 3px;
+  background: rgba(240,234,214,0.18);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.sheetTitle {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  color: #F0EAD6;
+  text-align: center;
+}
+
+.sheetSub {
+  font-family: 'Figtree', sans-serif;
+  font-size: 13px;
+  color: rgba(240,234,214,0.22);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.sheetBtn {
+  padding: 14px;
+  border-radius: 10px;
+  text-align: center;
+  font-family: 'Figtree', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  border: none;
+  width: 100%;
+  position: relative;
+}
+
+.btnNailed {
+  composes: sheetBtn;
+  background: #4CAF50;
+  font-weight: 600;
+  color: #fff;
+}
+
+.btnProgress {
+  composes: sheetBtn;
+  background: #3E3228;
+  border: 1px solid rgba(240,234,214,0.08);
+  color: rgba(240,234,214,0.65);
+}
+
+.btnStuck {
+  composes: sheetBtn;
+  background: #3E3228;
+  border: 1px solid rgba(240,234,214,0.08);
+  color: rgba(240,234,214,0.4);
+}
+
+/* Stuck modal options */
+.stuckOption {
+  padding: 14px;
+  background: #3E3228;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.stuckOptionHot {
+  composes: stuckOption;
+  border: 1px solid rgba(255,102,68,0.20);
+}
+
+.stuckOptionDefault {
+  composes: stuckOption;
+  border: 1px solid rgba(240,234,214,0.08);
+}
+
+.stuckOptionTitle {
+  font-family: 'Figtree', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.stuckOptionSub {
+  font-family: 'Figtree', sans-serif;
+  font-size: 11px;
+  color: rgba(240,234,214,0.22);
+  margin-top: 2px;
+}
+
+/* XP float */
+.xpPop {
+  position: absolute;
+  top: -4px;
+  right: 16px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #FFB800;
+  animation: xpPop 1.2s ease forwards;
+  pointer-events: none;
+}
+
+/* ── Keyframes ─────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes colonBlink {
+  0%, 100% { opacity: 1; }
+  49%       { opacity: 1; }
+  50%       { opacity: 0.15; }
+  99%       { opacity: 0.15; }
+}
+
+@keyframes xpPop {
+  0%   { opacity: 0; transform: scale(0.5) translateY(0); }
+  50%  { opacity: 1; transform: scale(1.2) translateY(-10px); }
+  100% { opacity: 0; transform: scale(1) translateY(-28px); }
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}

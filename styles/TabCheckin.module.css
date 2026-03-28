@@ -1,0 +1,412 @@
+/* TabCheckin — AI coaching conversation */
+
+/* ── Outer ─────────────────────────────────────────────── */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Header ────────────────────────────────────────────── */
+.header {
+  padding: 12px 14px 0;
+  flex-shrink: 0;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.headerTitle {
+  font-family: 'Figtree', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: #F0EAD6;
+}
+
+.personaBadge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  background: rgba(255,102,68,0.10);
+  border: 1px solid rgba(255,102,68,0.14);
+  border-radius: 10px;
+}
+
+.personaLabel {
+  font-family: 'Figtree', sans-serif;
+  font-weight: 500;
+  font-size: 8px;
+  color: #FF6644;
+}
+
+/* Context pills */
+.contextPills {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.contextPills::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.pill {
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.pillHot {
+  composes: pill;
+  background: rgba(255,102,68,0.10);
+  color: #FF6644;
+}
+
+.pillEmber {
+  composes: pill;
+  background: rgba(232,50,26,0.10);
+  color: #E8321A;
+}
+
+.pillGreen {
+  composes: pill;
+  background: rgba(76,175,80,0.10);
+  color: #4CAF50;
+}
+
+.pillGhost {
+  composes: pill;
+  background: rgba(240,234,214,0.06);
+  color: rgba(240,234,214,0.22);
+}
+
+.divider {
+  height: 1px;
+  background: rgba(240,234,214,0.08);
+}
+
+/* ── Thread ────────────────────────────────────────────── */
+.thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px 8px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 12px;
+  color: rgba(240,234,214,0.22);
+  font-family: 'Figtree', sans-serif;
+  line-height: 1.6;
+}
+
+/* Session timestamp pill */
+.sessionPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: rgba(76,175,80,0.08);
+  border: 1px solid rgba(76,175,80,0.15);
+  border-radius: 20px;
+  margin: 0 auto 12px;
+}
+
+.sessionPillWrap {
+  display: flex;
+  justify-content: center;
+}
+
+.sessionDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4CAF50;
+}
+
+.sessionLabel {
+  font-family: 'Figtree', sans-serif;
+  font-weight: 500;
+  font-size: 8px;
+  color: #4CAF50;
+}
+
+/* ── AI message ────────────────────────────────────────── */
+.aiMsg {
+  margin-bottom: 14px;
+  animation: fadeUp 0.3s ease;
+}
+
+.aiRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255,102,68,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.aiContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.aiBubble {
+  background: #3E3228;
+  border-radius: 2px 12px 12px 12px;
+  padding: 11px 13px;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 400;
+  font-size: 12.5px;
+  color: #F0EAD6;
+  line-height: 1.65;
+}
+
+.taskSuggestion {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  background: rgba(255,102,68,0.06);
+  border: 1px solid rgba(255,102,68,0.15);
+  border-radius: 8px;
+  margin-top: 4px;
+}
+
+.taskText {
+  font-family: 'Figtree', sans-serif;
+  font-size: 11px;
+  color: #F0EAD6;
+  flex: 1;
+}
+
+.taskAddBtn {
+  padding: 4px 12px;
+  background: #FF6644;
+  border-radius: 6px;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 500;
+  font-size: 9px;
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
+}
+
+.taskAddBtn:hover {
+  background: #e85a3a;
+}
+
+.taskAdded {
+  composes: taskAddBtn;
+  background: #4CAF50;
+  cursor: default;
+  animation: addedPop 0.3s ease;
+}
+
+.taskAdded:hover {
+  background: #4CAF50;
+}
+
+.taskFaded {
+  opacity: 0.45;
+  transition: opacity 0.4s;
+}
+
+.msgTime {
+  font-family: 'Figtree', sans-serif;
+  font-weight: 400;
+  font-size: 9px;
+  color: rgba(240,234,214,0.14);
+  margin-top: 5px;
+  padding-left: 2px;
+}
+
+/* ── User message ──────────────────────────────────────── */
+.userMsg {
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeUp 0.3s ease;
+}
+
+.userInner {
+  max-width: 78%;
+}
+
+.userBubble {
+  background: rgba(255,102,68,0.12);
+  border-radius: 12px 2px 12px 12px;
+  padding: 11px 13px;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 400;
+  font-size: 12.5px;
+  color: #F0EAD6;
+  line-height: 1.65;
+}
+
+.userTime {
+  font-family: 'Figtree', sans-serif;
+  font-size: 9px;
+  color: rgba(240,234,214,0.14);
+  margin-top: 5px;
+  text-align: right;
+}
+
+/* ── Typing indicator ──────────────────────────────────── */
+.typingDots {
+  display: flex;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(240,234,214,0.28);
+  animation: blink 1.2s ease infinite;
+}
+
+.dot2 { animation-delay: 0.2s; }
+.dot3 { animation-delay: 0.4s; }
+
+/* ── Footer ────────────────────────────────────────────── */
+.footer {
+  padding: 8px 14px 16px;
+  border-top: 0.5px solid rgba(240,234,214,0.08);
+  flex-shrink: 0;
+}
+
+.chips {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 8px;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.chips::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.chip {
+  padding: 6px 12px;
+  background: #3E3228;
+  border: 1px solid rgba(240,234,214,0.12);
+  border-radius: 20px;
+  font-family: 'Figtree', sans-serif;
+  font-weight: 400;
+  font-size: 10px;
+  color: rgba(240,234,214,0.36);
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.chip:hover {
+  background: rgba(62,50,40,0.8);
+}
+
+.inputRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.inputWrap {
+  flex: 1;
+  background: #3E3228;
+  border-radius: 12px;
+  padding: 0 14px;
+  border: 1px solid rgba(240,234,214,0.12);
+}
+
+.input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #F0EAD6;
+  font-size: 13px;
+  font-family: 'Figtree', sans-serif;
+  padding: 11px 0;
+}
+
+.input::placeholder {
+  color: rgba(240,234,214,0.14);
+}
+
+.sendBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  border: none;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.sendActive {
+  background: #FF6644;
+}
+
+.sendInactive {
+  background: rgba(240,234,214,0.06);
+}
+
+.sendPress {
+  animation: btnPress 0.15s ease;
+}
+
+/* ── Keyframes ─────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.25; }
+  50%       { opacity: 1; }
+}
+
+@keyframes addedPop {
+  0%   { transform: scale(0.85); opacity: 0; }
+  70%  { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes btnPress {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(0.94); }
+}

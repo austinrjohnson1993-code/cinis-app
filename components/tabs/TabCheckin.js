@@ -1,14 +1,38 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { getCheckinType, loadChatHistory, saveChatHistory } from './shared'
 import CinisMark from '../../lib/CinisMark'
+import styles from '../../styles/TabCheckin.module.css'
+
+/* ── Persona display map ────────────────────────────────────────────────── */
+const PERSONA_MAP = {
+  strategist: 'Coach \u00B7 Strategist',
+  drill_sergeant: 'Coach \u00B7 Drill Sergeant',
+  drill: 'Coach \u00B7 Drill Sergeant',
+  hype_person: 'Coach \u00B7 Hype',
+  hype: 'Coach \u00B7 Hype',
+  empath: 'Coach \u00B7 Empath',
+  thinking_partner: 'Coach \u00B7 Thinking Partner',
+  coach: 'Coach \u00B7 Thinking Partner',
+}
+
+const CHIPS = ["What should I do next?", "Prioritize my list", "I'm stuck"]
+
+const isPast = (dateStr) => {
+  if (!dateStr) return false
+  const d = new Date(dateStr); const now = new Date()
+  now.setHours(0,0,0,0); d.setHours(0,0,0,0)
+  return d < now
+}
 
 export default function TabCheckin({ user, profile, tasks = [], showToast, loggedFetch }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
+  const [addedTasks, setAddedTasks] = useState({}) // taskIdx → 'added' | 'faded'
   const bottomRef = useRef(null)
+  const inputRef = useRef(null)
 
-  // Load history from localStorage
+  // Load history
   useEffect(() => {
     if (!user) return
     const chatKey = `cinis_checkin_${user.id}`
@@ -16,12 +40,13 @@ export default function TabCheckin({ user, profile, tasks = [], showToast, logge
     if (saved && saved.length > 0) setMessages(saved)
   }, [user])
 
-  // Auto-scroll on new messages
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const send = async (text) => {
+  // ── Send ──────────────────────────────────────────────────────────────────
+  const send = useCallback(async (text) => {
     if (!text.trim() || sending) return
     const userMsg = { role: 'user', content: text.trim(), time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) }
     const updated = [...messages, userMsg]
@@ -39,8 +64,8 @@ export default function TabCheckin({ user, profile, tasks = [], showToast, logge
           userId: user.id,
           checkInType: getCheckinType(),
           messages: updated,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-        })
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }),
       })
       const data = await res.json()
       if (data.error === 'rate_limit_reached') {
@@ -55,89 +80,164 @@ export default function TabCheckin({ user, profile, tasks = [], showToast, logge
       setMessages(p => [...p, { role: 'assistant', content: 'Something went wrong. Try again.', time: '' }])
     }
     setSending(false)
+  }, [messages, sending, user, loggedFetch])
+
+  const handleChipClick = (text) => {
+    setInput(text)
+    inputRef.current?.focus()
   }
 
-  const chips = ["What should I do next?", "Prioritize my list", "I'm stuck"]
+  const handleAddTask = async (taskTitle, msgIdx, taskIdx) => {
+    const key = `${msgIdx}-${taskIdx}`
+    if (addedTasks[key]) return
+    try {
+      const fetchFn = loggedFetch || fetch
+      await fetchFn('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, title: taskTitle }),
+      })
+      setAddedTasks(prev => ({ ...prev, [key]: 'added' }))
+      setTimeout(() => setAddedTasks(prev => ({ ...prev, [key]: 'faded' })), 800)
+    } catch {
+      showToast?.('Could not add task')
+    }
+  }
 
+  // ── Derived ──────────────────────────────────────────────────────────────
   const personaBlend = profile?.persona_blend || []
-  const personaLabel = personaBlend.length > 0 ? personaBlend.map(p => {
-    const names = { drill_sergeant: 'Drill Sergeant', coach: 'Coach', thinking_partner: 'Thinking Partner', hype_person: 'Hype Person', strategist: 'Strategist', empath: 'Empath' }
-    return names[p] || p
-  }).join(' \u00B7 ') : 'Coach'
+  const topPersona = personaBlend[0] || 'coach'
+  const personaLabel = PERSONA_MAP[topPersona] || 'Coach \u00B7 Thinking Partner'
+
+  const activeTasks = tasks.filter(t => !t.completed && !t.archived)
+  const overdueTasks = tasks.filter(t => !t.completed && !t.archived && isPast(t.scheduled_for))
+
+  const sessionType = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Morning check-in'
+    if (h < 17) return 'Afternoon check-in'
+    return 'Evening check-in'
+  })()
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Header */}
-      <div style={{ padding: '12px 14px 0', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#F5F0E3', fontFamily: "'Figtree',sans-serif" }}>Check-in</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '3px 8px', background: '#FF664410', borderRadius: 10, border: '1px solid #FF664418' }}>
-            <span style={{ fontSize: 14, color: '#FF6644', fontFamily: "'Figtree',sans-serif", fontWeight: 500 }}>&#10022; {personaLabel}</span>
+    <div className={styles.wrap}>
+      {/* ── Header ──────────────────────────────────────────────────── */}
+      <div className={styles.header}>
+        <div className={styles.headerRow}>
+          <span className={styles.headerTitle}>Check-in</span>
+          <div className={styles.personaBadge}>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="#FF6644"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" /></svg>
+            <span className={styles.personaLabel}>{personaLabel}</span>
           </div>
         </div>
-        <div style={{ height: 1, background: '#F5F0E318' }} />
+
+        <div className={styles.contextPills}>
+          <span className={styles.pillHot}>{activeTasks.length} tasks</span>
+          {overdueTasks.length > 0 && <span className={styles.pillEmber}>{overdueTasks.length} overdue</span>}
+          <span className={styles.pillGreen}>{profile?.current_streak || 0}d streak</span>
+          <span className={styles.pillGhost}>{profile?.ai_interactions_today || 0}/5 AI</span>
+        </div>
+
+        <div className={styles.divider} />
       </div>
 
-      {/* Messages */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '10px 14px 0' }}>
+      {/* ── Thread ──────────────────────────────────────────────────── */}
+      <div className={styles.thread}>
         {messages.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-            <div style={{ fontSize: 14, color: '#F5F0E350', fontFamily: "'Figtree',sans-serif", lineHeight: 1.6 }}>Your coach is ready.<br />What&apos;s on your mind?</div>
-          </div>
+          <>
+            <div className={styles.sessionPillWrap}>
+              <div className={styles.sessionPill}>
+                <div className={styles.sessionDot} />
+                <span className={styles.sessionLabel}>{sessionType} &middot; {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
+              </div>
+            </div>
+            <div className={styles.emptyState}>Your coach is ready.<br />What&rsquo;s on your mind?</div>
+          </>
         )}
+
         {messages.map((m, i) => m.role === 'assistant' ? (
-          <div key={i} style={{ marginBottom: 14 }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#FF664415', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+          <div key={i} className={styles.aiMsg}>
+            <div className={styles.aiRow}>
+              <div className={styles.avatar}>
                 <CinisMark size={14} />
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#3E3228', borderRadius: '2px 12px 12px 12px', padding: '11px 13px', fontSize: 14, color: '#F5F0E3', fontFamily: "'Figtree',sans-serif", lineHeight: 1.65 }}>{m.content}</div>
-                {m.tasks && m.tasks.map((t, ti) => (
-                  <div key={ti} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 11px', background: '#FF664406', border: '1px solid #FF664415', borderRadius: 8, marginTop: 4 }}>
-                    <span style={{ fontSize: 14, color: '#F5F0E3', fontFamily: "'Figtree',sans-serif", flex: 1 }}>{t}</span>
-                    <div style={{ padding: '10px 12px', background: '#FF6644', borderRadius: 6, fontSize: 14, color: '#F5F0E3', fontFamily: "'Figtree',sans-serif", cursor: 'pointer', fontWeight: 500 }}>Add</div>
-                  </div>
-                ))}
-                <div style={{ fontSize: 14, color: '#F5F0E338', fontFamily: "'Figtree',sans-serif", marginTop: 5, paddingLeft: 2 }}>{m.time}</div>
+              <div className={styles.aiContent}>
+                <div className={styles.aiBubble}>{m.content}</div>
+                {m.tasks && m.tasks.map((t, ti) => {
+                  const key = `${i}-${ti}`
+                  const state = addedTasks[key]
+                  return (
+                    <div key={ti} className={`${styles.taskSuggestion} ${state === 'faded' ? styles.taskFaded : ''}`}>
+                      <span className={styles.taskText}>{t}</span>
+                      <button
+                        className={state ? styles.taskAdded : styles.taskAddBtn}
+                        onClick={() => handleAddTask(t, i, ti)}
+                        disabled={!!state}
+                      >
+                        {state ? 'Added \u2713' : 'Add'}
+                      </button>
+                    </div>
+                  )
+                })}
+                <div className={styles.msgTime}>{m.time}</div>
               </div>
             </div>
           </div>
         ) : (
-          <div key={i} style={{ marginBottom: 14, display: 'flex', justifyContent: 'flex-end' }}>
-            <div style={{ maxWidth: '78%' }}>
-              <div style={{ background: '#FF664412', borderRadius: '12px 2px 12px 12px', padding: '11px 13px', fontSize: 14, color: '#F5F0E3', fontFamily: "'Figtree',sans-serif", lineHeight: 1.65 }}>{m.content}</div>
-              <div style={{ fontSize: 14, color: '#F5F0E338', fontFamily: "'Figtree',sans-serif", marginTop: 5, textAlign: 'right' }}>{m.time}</div>
+          <div key={i} className={styles.userMsg}>
+            <div className={styles.userInner}>
+              <div className={styles.userBubble}>{m.content}</div>
+              <div className={styles.userTime}>{m.time}</div>
             </div>
           </div>
         ))}
+
         {sending && (
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#FF664415', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+          <div className={styles.aiMsg}>
+            <div className={styles.aiRow}>
+              <div className={styles.avatar}>
                 <CinisMark size={14} />
               </div>
-              <div style={{ background: '#3E3228', borderRadius: '2px 12px 12px 12px', padding: '11px 13px', fontSize: 14, color: '#F5F0E350', fontFamily: "'Figtree',sans-serif" }}>&middot;&middot;&middot;</div>
+              <div className={styles.aiBubble}>
+                <div className={styles.typingDots}>
+                  <div className={styles.dot} />
+                  <div className={`${styles.dot} ${styles.dot2}`} />
+                  <div className={`${styles.dot} ${styles.dot3}`} />
+                </div>
+              </div>
             </div>
           </div>
         )}
         <div ref={bottomRef} />
       </div>
 
-      {/* Input area */}
-      <div style={{ padding: '8px 14px 14px', borderTop: '.5px solid #F5F0E318', flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: 4, marginBottom: 8, overflowX: 'auto' }}>
-          {chips.map((ch, i) => (
-            <div key={i} onClick={() => send(ch)} style={{ padding: '10px 12px', background: '#3E3228', border: '1px solid #F5F0E31E', borderRadius: 20, fontSize: 14, color: '#F5F0E390', fontFamily: "'Figtree',sans-serif", cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>{ch}</div>
+      {/* ── Footer ──────────────────────────────────────────────────── */}
+      <div className={styles.footer}>
+        <div className={styles.chips}>
+          {CHIPS.map((ch, i) => (
+            <button key={i} className={styles.chip} onClick={() => handleChipClick(ch)}>{ch}</button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ flex: 1, background: '#3E3228', borderRadius: 12, padding: '0 14px', border: '1px solid #F5F0E31E' }}>
-            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send(input)} placeholder="Message..." style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', color: '#F5F0E3', fontSize: 14, fontFamily: "'Figtree',sans-serif", padding: '11px 0' }} />
+        <div className={styles.inputRow}>
+          <div className={styles.inputWrap}>
+            <input
+              ref={inputRef}
+              className={styles.input}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && send(input)}
+              placeholder="Message..."
+            />
           </div>
-          <div onClick={() => send(input)} style={{ width: 44, height: 44, borderRadius: 12, background: input.trim() ? '#FF6644' : '#F5F0E306', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F5F0E3" strokeWidth="2" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-          </div>
+          <button
+            className={`${styles.sendBtn} ${input.trim() ? styles.sendActive : styles.sendInactive}`}
+            onClick={() => send(input)}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F0EAD6" strokeWidth="2" strokeLinecap="round">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>
