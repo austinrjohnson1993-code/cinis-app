@@ -8,7 +8,7 @@ import { showToast as libShowToast, ToastContainer } from '../lib/toast.js'
 import { applyAccentColor } from '../lib/accentColor'
 import CinisMark from '../lib/CinisMark'
 import { THEMES, applyTheme, TabErrorBoundary } from '../components/tabs/shared'
-import VoiceFAB from '../components/VoiceFAB'
+// VoiceFAB removed — voice input moving to per-form integration
 import TutorialOverlay from '../components/TutorialOverlay'
 import WelcomeTransition from '../components/WelcomeTransition'
 
@@ -57,9 +57,7 @@ export default function Dashboard() {
   const [showTutorial, setShowTutorial] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
 
-  // Voice FAB
-  const [voiceFabState, setVoiceFabState] = useState('idle')
-  const voiceFabRecognitionRef = useRef(null)
+  // Voice FAB removed
   const debugRef = useRef({ lastCall: null, lastError: null })
 
   const loggedFetch = useCallback(async (url, opts = {}) => {
@@ -173,48 +171,6 @@ export default function Dashboard() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // ── Voice FAB ────────────────────────────────────────────────────────────
-  const startVoiceFab = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRecognition) { libShowToast('Voice input not supported in this browser.', { type: 'error' }); return }
-    const recognition = new SpeechRecognition()
-    recognition.continuous = false
-    recognition.interimResults = false
-    recognition.lang = 'en-US'
-    recognition.onstart = () => setVoiceFabState('recording')
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript
-      setVoiceFabState('processing')
-      handleVoiceInput(transcript)
-    }
-    recognition.onerror = () => { setVoiceFabState('idle'); libShowToast('Could not hear you. Try again.', { type: 'error' }) }
-    recognition.onend = () => setVoiceFabState(prev => prev === 'recording' ? 'idle' : prev)
-    voiceFabRecognitionRef.current = recognition
-    recognition.start()
-  }
-  const stopVoiceFab = () => voiceFabRecognitionRef.current?.stop()
-  const handleVoiceFabClick = () => {
-    if (voiceFabState === 'idle') startVoiceFab()
-    else if (voiceFabState === 'recording') stopVoiceFab()
-  }
-  const handleVoiceInput = async (transcript) => {
-    try {
-      const res = await loggedFetch('/api/voice/parse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: transcript }) })
-      const data = await res.json()
-      if (!res.ok || data.error) throw new Error(data.error || 'Failed')
-      setVoiceFabState('idle')
-      if (user) fetchTasks(user.id)
-      libShowToast(`Created: ${data.message}`, { type: 'undo', duration: 5000, undoCallback: () => handleUndoVoiceTask(data.record.id, data.type) })
-    } catch { setVoiceFabState('idle'); libShowToast('Could not create task. Try again.', { type: 'error' }) }
-  }
-  const handleUndoVoiceTask = async (id, type) => {
-    try {
-      if (type === 'bill') await loggedFetch(`/api/bills/${id}`, { method: 'DELETE' })
-      else await loggedFetch(`/api/tasks/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ archived: true }) })
-      if (user) fetchTasks(user.id)
-      libShowToast('Undone.', { type: 'success', duration: 2000 })
-    } catch { libShowToast('Could not undo. Try again.', { type: 'error' }) }
-  }
 
   const handleSignOut = async () => { await supabase.auth.signOut(); router.push('/') }
   const handleRunRollover = async () => {
@@ -284,12 +240,6 @@ export default function Dashboard() {
           {activeTab === 'settings' && <TabErrorBoundary tabName="Settings"><TabSettings {...tabProps} /></TabErrorBoundary>}
         </main>
 
-        {/* VOICE FAB */}
-        <VoiceFAB
-          state={voiceFabState}
-          onClick={handleVoiceFabClick}
-          hide={activeTab === 'focus'}
-        />
 
         {/* TOAST */}
         <ToastContainer />
@@ -308,12 +258,6 @@ export default function Dashboard() {
             )
           })}
 
-          {/* Center: voice FAB (mobile) */}
-          <VoiceFAB
-            state={voiceFabState}
-            onClick={handleVoiceFabClick}
-            hide={false}
-          />
 
           {/* Right: focus */}
           <button onClick={() => switchTab('focus')}

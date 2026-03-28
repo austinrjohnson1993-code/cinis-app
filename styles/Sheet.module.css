@@ -1,0 +1,233 @@
+/* Sheet.module.css — shared bottom sheet styles for all input forms */
+
+/* ── Overlay + container ────────────────────── */
+.overlay {
+  position: absolute; inset: 0; z-index: 20;
+  background: rgba(33,26,20,0.88);
+  display: flex; align-items: flex-end;
+}
+.sheet {
+  background: #211A14;
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid rgba(240,234,214,0.08);
+  padding: 0 16px 28px; width: 100%;
+  max-height: 92%; overflow-y: auto;
+  animation: sheetUp 0.3s ease;
+}
+.handle {
+  width: 32px; height: 3px; border-radius: 2px;
+  background: rgba(240,234,214,0.18);
+  margin: 10px auto 0;
+}
+
+/* ── Header ──────────────────────────────────── */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px; padding-top: 10px;
+}
+.title {
+  font-family: 'Figtree', sans-serif; font-weight: 600;
+  font-size: 14px; color: #F0EAD6;
+}
+.cancel {
+  font-family: 'Figtree', sans-serif; font-size: 11px;
+  color: rgba(240,234,214,0.30); padding: 4px 8px;
+  cursor: pointer; background: none; border: none;
+}
+
+/* ── Section label ───────────────────────────── */
+.secLabel {
+  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 9px;
+  color: rgba(240,234,214,0.28); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 7px;
+}
+
+/* ── Input field ─────────────────────────────── */
+.input {
+  background: rgba(240,234,214,0.06);
+  border: 1px solid rgba(240,234,214,0.10);
+  border-radius: 9px; padding: 11px 13px;
+  color: #F0EAD6; font-size: 13px;
+  font-family: 'Figtree', sans-serif; font-weight: 400;
+  width: 100%; margin-bottom: 10px; outline: none;
+  box-sizing: border-box;
+}
+.input:focus { border-color: rgba(255,102,68,0.35); }
+.input::placeholder { color: rgba(240,234,214,0.22); }
+
+/* ── Textarea ────────────────────────────────── */
+.textarea {
+  composes: input;
+  resize: none; min-height: 60px;
+}
+
+/* ── Two-column row ──────────────────────────── */
+.twoCol { display: flex; gap: 8px; }
+.twoCol > * { flex: 1; }
+
+/* ── Pill group ──────────────────────────────── */
+.pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+.pillsScroll { display: flex; gap: 5px; margin-bottom: 12px; overflow-x: auto; }
+.pillsScroll::-webkit-scrollbar { display: none; }
+
+.pill {
+  padding: 6px 12px; border-radius: 20px; cursor: pointer;
+  font-family: 'Figtree', sans-serif; font-size: 11px; font-weight: 400;
+  background: rgba(240,234,214,0.05); color: rgba(240,234,214,0.40);
+  border: 1px solid rgba(240,234,214,0.08); transition: all 0.15s;
+  white-space: nowrap; flex-shrink: 0;
+}
+/* Active pill colors set via inline style since they vary per form */
+
+/* ── Day-of-week picker ──────────────────────── */
+.dayPicker { display: flex; gap: 4px; margin-bottom: 12px; animation: fadeIn 0.2s ease; }
+.dayBtn {
+  width: 34px; height: 34px; border-radius: 50%; border: none;
+  font-family: 'Figtree', sans-serif; font-size: 11px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  background: rgba(240,234,214,0.05); color: rgba(240,234,214,0.40);
+  border: 1px solid rgba(240,234,214,0.08); transition: all 0.15s;
+}
+
+/* ── Toggle row ──────────────────────────────── */
+.toggleCard {
+  background: rgba(240,234,214,0.05);
+  border: 1px solid rgba(240,234,214,0.08);
+  border-radius: 9px; padding: 11px 13px; margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.toggleCardDisabled { composes: toggleCard; opacity: 0.35; pointer-events: none; }
+.toggleInfo { flex: 1; min-width: 0; }
+.toggleLabel {
+  font-family: 'Figtree', sans-serif; font-size: 12px; color: #F0EAD6;
+}
+.toggleSub {
+  font-family: 'Figtree', sans-serif; font-size: 9px;
+  color: rgba(240,234,214,0.30); margin-top: 2px;
+}
+.toggle {
+  width: 38px; height: 22px; border-radius: 11px; cursor: pointer;
+  position: relative; border: none; padding: 0; flex-shrink: 0;
+  background: rgba(240,234,214,0.10); transition: background 0.2s;
+}
+.toggleOn { composes: toggle; background: #FF6644; }
+.toggleThumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(240,234,214,0.40); transition: transform 0.2s, background 0.2s;
+}
+.toggleThumbOn { composes: toggleThumb; transform: translateX(16px); background: #fff; }
+
+/* ── Submit button ───────────────────────────── */
+.submitBtn {
+  width: 100%; padding: 13px; border-radius: 10px;
+  text-align: center; cursor: pointer; border: none;
+  font-family: 'Figtree', sans-serif; font-weight: 700;
+  font-size: 13px; color: #fff; margin-top: 4px;
+  transition: opacity 0.15s;
+}
+.submitBtn:disabled { opacity: 0.4; cursor: default; }
+
+/* ── Sub note ────────────────────────────────── */
+.subNote {
+  font-family: 'Figtree', sans-serif; font-size: 9px;
+  color: rgba(240,234,214,0.22); margin-top: -6px; margin-bottom: 10px;
+}
+
+/* ── More options link ───────────────────────── */
+.moreLink {
+  font-family: 'Figtree', sans-serif; font-size: 10px;
+  color: rgba(240,234,214,0.28); text-align: center;
+  cursor: pointer; padding: 6px 0; margin-bottom: 10px;
+  background: none; border: none; width: 100%;
+}
+
+/* ── Info card ────────────────────────────────── */
+.infoCard {
+  border-radius: 8px; padding: 9px 12px; margin-bottom: 12px;
+  font-family: 'Figtree', sans-serif; font-size: 10px;
+  color: rgba(240,234,214,0.45); line-height: 1.6;
+}
+
+/* ── Live calc card ──────────────────────────── */
+.calcCard {
+  border-radius: 8px; padding: 9px 12px; margin-bottom: 12px;
+  font-family: 'Figtree', sans-serif; font-size: 11px;
+  font-weight: 600; line-height: 1.5;
+}
+
+/* ── Type cards (bill/loan/cc) ───────────────── */
+.typeCards { display: flex; gap: 6px; margin-bottom: 16px; }
+.typeCard {
+  flex: 1; border-radius: 10px; padding: 12px 6px;
+  text-align: center; cursor: pointer;
+  background: rgba(240,234,214,0.05);
+  border: 1px solid rgba(240,234,214,0.08);
+  transition: all 0.15s;
+}
+.typeEmoji { font-size: 18px; margin-bottom: 4px; }
+.typeTitle {
+  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 11px;
+  color: rgba(240,234,214,0.40);
+}
+.typeSub {
+  font-family: 'Figtree', sans-serif; font-size: 8px;
+  color: rgba(240,234,214,0.22); margin-top: 2px;
+}
+
+/* ── Voice mode ──────────────────────────────── */
+.voiceWrap {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 24px 0 8px;
+}
+.micBtn {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: #FF6644; border: none; cursor: pointer;
+  box-shadow: 0 0 0 14px rgba(255,102,68,0.08);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px; transition: transform 0.15s;
+}
+.micBtn:active { transform: scale(0.95); }
+.micBtnRecording { composes: micBtn; animation: micPulse 1.2s ease infinite; }
+.voiceLabel {
+  font-family: 'Figtree', sans-serif; font-weight: 600;
+  font-size: 13px; color: #F0EAD6; margin-bottom: 6px;
+}
+.voiceExample {
+  font-family: 'Figtree', sans-serif; font-size: 11px;
+  color: rgba(240,234,214,0.35); max-width: 240px; text-align: center;
+  line-height: 1.55;
+}
+.voiceFootnote {
+  font-family: 'Figtree', sans-serif; font-size: 10px;
+  color: rgba(240,234,214,0.22); margin-top: 14px; text-align: center;
+}
+
+/* ── Description line ────────────────────────── */
+.desc {
+  font-family: 'Figtree', sans-serif; font-size: 11px;
+  color: rgba(240,234,214,0.35); margin-bottom: 10px; line-height: 1.55;
+}
+
+/* ── Animations ──────────────────────────────── */
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes micPulse {
+  0%, 100% { box-shadow: 0 0 0 14px rgba(255,102,68,0.08); }
+  50% { box-shadow: 0 0 0 20px rgba(255,102,68,0.15); }
+}
+
+/* ── Fade-in section ─────────────────────────── */
+.fadeSection { animation: fadeIn 0.2s ease; }
+
+/* ── Native date input dark ──────────────────── */
+.dateInput {
+  composes: input;
+  color-scheme: dark;
+}
