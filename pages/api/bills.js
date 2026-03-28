@@ -9,7 +9,8 @@ const VALID_BILL_TYPES = ['bill', 'loan', 'credit_card']
 const BILL_FIELDS = [
   'name', 'amount', 'due_day', 'first_date', 'second_date', 'frequency', 'category',
   'autopay', 'is_variable', 'account', 'notes', 'url', 'remind_days',
-  'auto_task', 'interest_rate', 'bill_type'
+  'auto_task', 'interest_rate', 'bill_type', 'balance', 'credit_limit', 'minimum_payment',
+  'last_four', 'loan_type', 'frequency_start_date'
 ]
 
 async function handler(req, res, userId) {
@@ -56,6 +57,11 @@ async function handler(req, res, userId) {
       ...(raw.autoTask !== undefined     && { auto_task: raw.autoTask }),
       ...(raw.remindDays !== undefined   && { remind_days: raw.remindDays }),
       ...(raw.isVariable !== undefined   && { is_variable: raw.isVariable }),
+      ...(raw.creditLimit !== undefined  && { credit_limit: raw.creditLimit }),
+      ...(raw.minimumPayment !== undefined && { minimum_payment: raw.minimumPayment }),
+      ...(raw.lastFour !== undefined     && { last_four: raw.lastFour }),
+      ...(raw.loanType !== undefined     && { loan_type: raw.loanType }),
+      ...(raw.frequencyStartDate !== undefined && { frequency_start_date: raw.frequencyStartDate }),
     }
 
     if (!body.name) return res.status(400).json({ error: 'name required' })
@@ -93,6 +99,12 @@ async function handler(req, res, userId) {
         notes: body.notes ? sanitizeNotes(body.notes) : null,
         bill_type: body.bill_type || 'bill',
         interest_rate: body.interest_rate || null,
+        balance: body.balance || null,
+        credit_limit: body.credit_limit || null,
+        minimum_payment: body.minimum_payment || null,
+        last_four: body.last_four || null,
+        loan_type: body.loan_type || null,
+        frequency_start_date: body.frequency_start_date || null,
       })
       .select()
       .single()

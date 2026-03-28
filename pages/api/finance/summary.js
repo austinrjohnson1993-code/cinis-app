@@ -19,7 +19,7 @@ async function handler(req, res, userId) {
   ] = await Promise.all([
     supabaseAdmin.from('bills').select('*').eq('user_id', userId).order('name', { ascending: true }),
     supabaseAdmin.from('profiles').select('monthly_income, income_frequency, full_name').eq('id', userId).single(),
-    supabaseAdmin.from('spend_log').select('*').eq('user_id', userId).gte('created_at', sevenDaysAgo.toISOString()).order('created_at', { ascending: false }),
+    supabaseAdmin.from('spend_log').select('*').eq('user_id', userId).gte('logged_at', sevenDaysAgo.toISOString()).order('logged_at', { ascending: false }),
   ])
 
   if (billsErr) console.error('[finance/summary] bills error:', JSON.stringify(billsErr))

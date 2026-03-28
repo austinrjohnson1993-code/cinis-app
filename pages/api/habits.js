@@ -38,10 +38,32 @@ async function handler(req, res, userId) {
     })
   }
 
-  // POST { name, habit_type?, description?, frequency? } — create habit
+  // POST { name, habit_type?, description?, frequency?, target_metric?, frequency_days?, reminder_time?, habit_stack?, difficulty?, track_relapses?, note? } — create habit
   if (req.method === 'POST') {
-    const { name, habit_type, description, frequency } = req.body
+    const {
+      name,
+      habit_type,
+      description,
+      frequency,
+      target_metric,
+      frequency_days,
+      reminder_time,
+      habit_stack,
+      difficulty,
+      track_relapses,
+      note,
+    } = req.body
+
     if (!name || !name.trim()) return res.status(400).json({ error: 'name required' })
+
+    // Sanitize text fields
+    const sanitize = (str) => {
+      if (!str) return null
+      return String(str).trim()
+    }
+
+    // Use note if provided, otherwise fall back to description
+    const finalDescription = sanitize(note || description)
 
     const { data: habit, error } = await supabaseAdmin
       .from('habits')
@@ -49,8 +71,14 @@ async function handler(req, res, userId) {
         user_id: userId,
         name: name.trim(),
         habit_type: habit_type || 'build',
-        description: description || null,
+        description: finalDescription,
         frequency: frequency || 'daily',
+        target_metric: sanitize(target_metric),
+        frequency_days: Array.isArray(frequency_days) ? frequency_days : null,
+        reminder_time: sanitize(reminder_time),
+        habit_stack: sanitize(habit_stack),
+        difficulty: difficulty || 'medium',
+        track_relapses: track_relapses === true,
         archived: false,
       })
       .select()

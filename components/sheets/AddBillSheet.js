@@ -70,9 +70,9 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
 
     let payload = {
       name,
-      bill_type: type,
+      billType: type,
       autopay,
-      create_task: createTask && !autopay
+      autoTask: createTask && !autopay
     };
 
     if (type === 'bill') {
@@ -83,7 +83,7 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
       payload = {
         ...payload,
         amount: parseFloat(amount),
-        due_day: parseInt(dueDay),
+        dueDay: parseInt(dueDay),
         frequency,
         category
       };
@@ -92,15 +92,15 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
         return;
       }
       if (frequency === 'biweekly') {
-        payload.first_due_date = firstDueDate;
+        payload.first_date = parseInt(firstDueDate);
       }
       if (frequency === 'yearly' && !billMonth && !billDay) {
         showToast('Please select month and day for yearly bills', 'error');
         return;
       }
       if (frequency === 'yearly') {
-        payload.bill_month = billMonth;
-        payload.bill_day = billDay;
+        payload.first_date = parseInt(billMonth);
+        payload.second_date = parseInt(billDay);
       }
       if (frequency === 'custom') {
         if (!customRepeatDays || !customStartDate) {
@@ -118,11 +118,10 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
       }
       payload = {
         ...payload,
-        balance: parseFloat(balance),
-        monthly_payment: parseFloat(monthlyPayment),
-        interest_rate: parseFloat(interestRate),
-        due_day: parseInt(dueDay),
-        loan_type: loanType
+        amount: parseFloat(balance),
+        dueDay: parseInt(dueDay),
+        interestRate: parseFloat(interestRate),
+        loanType: loanType
       };
     } else if (type === 'cc') {
       if (!currentBalance || !creditLimit || !apr || !minPayment || !statementDueDay || !lastFour) {
@@ -131,12 +130,12 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
       }
       payload = {
         ...payload,
-        current_balance: parseFloat(currentBalance),
-        credit_limit: parseFloat(creditLimit),
-        apr: parseFloat(apr),
-        min_payment: parseFloat(minPayment),
-        statement_due_day: parseInt(statementDueDay),
-        last_four: lastFour
+        amount: parseFloat(currentBalance),
+        dueDay: parseInt(statementDueDay),
+        creditLimit: parseFloat(creditLimit),
+        interestRate: parseFloat(apr),
+        minimumPayment: parseFloat(minPayment),
+        lastFour: lastFour
       };
     }
 

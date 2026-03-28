@@ -18,9 +18,9 @@ async function handler(req, res, userId) {
       .from('spend_log')
       .select('*')
       .eq('user_id', userId)
-      .gte('created_at', todayStart.toISOString())
-      .lte('created_at', todayEnd.toISOString())
-      .order('created_at', { ascending: false })
+      .gte('logged_at', todayStart.toISOString())
+      .lte('logged_at', todayEnd.toISOString())
+      .order('logged_at', { ascending: false })
 
     if (error) {
       console.error('[finance/spend:GET] error:', JSON.stringify(error))
@@ -53,7 +53,7 @@ async function handler(req, res, userId) {
         category: category ? sanitizeTitle(category) : null,
         description: description ? sanitizeNotes(description) : null,
         impulse: impulse === true || impulse === 'true',
-        created_at: new Date().toISOString(),
+        logged_at: new Date().toISOString(),
       })
       .select()
       .single()

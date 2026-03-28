@@ -186,10 +186,9 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
   const handleExport = async (type) => {
     setExportSending(type)
     try {
-      await loggedFetch('/api/export', {
-        method: 'POST',
+      await loggedFetch(`/api/export?type=${type}`, {
+        method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, type }),
       })
       showToast(`Export sent to ${user?.email}`)
     } catch { showToast('Export failed') }
@@ -215,7 +214,7 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
   // ── Delete account handler ──────────────────────────────────────────────
   const handleDeleteAccount = async () => {
     try {
-      await loggedFetch('/api/account', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user.id }) })
+      await loggedFetch('/api/delete-account', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user.id }) })
       await supabase.auth.signOut()
       router.push('/')
     } catch { showToast('Delete failed') }

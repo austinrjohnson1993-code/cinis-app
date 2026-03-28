@@ -58,12 +58,35 @@ function AddTaskSheet({ open, onClose, defaultDate, onSave, loggedFetch }) {
 
   const handleVoiceTranscript = async (transcript) => {
     try {
-      const response = await loggedFetch('/api/parse-task', {
+      // First, parse the transcript to get structured data
+      const parseResponse = await loggedFetch('/api/parse-task', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript }),
       });
-      if (response.ok) {
+
+      if (!parseResponse.ok) {
+        showToast('Failed to parse voice input', 'error');
+        return;
+      }
+
+      const parsed = await parseResponse.json();
+
+      // Then, create the task using the parsed data
+      const createResponse = await loggedFetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: parsed.title,
+          schedule_date: parsed.due_date || 'Today',
+          due_time: parsed.due_time || null,
+          task_type: 'Task',
+          repeat_option: parsed.recurrence === 'none' ? 'Never' : (parsed.recurrence === 'daily' ? 'Daily' : (parsed.recurrence === 'weekly' ? 'Weekly' : 'Never')),
+          notes: parsed.notes || null,
+        }),
+      });
+
+      if (createResponse.ok) {
         showToast('Task created from voice', 'success');
         onSave();
         onClose();
@@ -100,6 +123,15 @@ function AddTaskSheet({ open, onClose, defaultDate, onSave, loggedFetch }) {
       return;
     }
 
+    // Parse duration to extract just the number (e.g., "30 min" -> 30)
+    let estimatedMinutes = null;
+    if (duration) {
+      const match = duration.match(/(\d+)/);
+      if (match) {
+        estimatedMinutes = parseInt(match[1], 10);
+      }
+    }
+
     const payload = {
       title: title.trim(),
       schedule_date: scheduleDate === 'Pick date' ? customDate : scheduleDate,
@@ -107,7 +139,7 @@ function AddTaskSheet({ open, onClose, defaultDate, onSave, loggedFetch }) {
       repeat_option: repeatOption,
       custom_repeat_days: repeatOption === 'Custom' ? Array.from(customRepeatDays) : [],
       due_time: dueTime || null,
-      duration: duration || null,
+      estimated_minutes: estimatedMinutes,
       reminder,
       notes: notes.trim() || null,
     };
