@@ -3,8 +3,9 @@ import {
   localDateStr, todayStr, tomorrowStr,
   getTasksForDate, getTaskOccurrencesForMonth, fmtMoney,
 } from './shared'
+import cs from '../../styles/TabCalendar.module.css'
 
-export default function TabCalendar({ user, profile, tasks = [], setTasks, showToast, switchTab, bills = [], loading, tasksError, setTasksError, setLoading, fetchTasks, setDetailTask, setNewDueDate, setShowAddModal }) {
+export default function TabCalendar({ user, profile, tasks = [], setTasks, showToast, switchTab, bills = [], loading, tasksError, setTasksError, setLoading, fetchTasks, setDetailTask, setNewDueDate, setShowAddModal, focusSessions = [] }) {
   const [calMonth, setCalMonth] = useState(() => { const now = new Date(); return new Date(now.getFullYear(), now.getMonth(), 1) })
   const [calDay, setCalDay] = useState(null)
   const [calDayPanelOpen, setCalDayPanelOpen] = useState(false)
@@ -180,87 +181,105 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
 
       </div>
 
-      {/* Day Panel bottom sheet */}
-      {calDayPanelOpen && calDay && (
-        <>
-          <div onClick={() => setCalDayPanelOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 9 }} />
-          <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10,
-            background: '#3E3228', borderTop: '1px solid #F5F0E318',
-            borderRadius: '16px 16px 0 0', padding: '12px 14px 20px',
-            maxHeight: '60%', overflowY: 'auto',
-          }}>
-            {/* Handle */}
-            <div style={{ width: 32, height: 3, borderRadius: 2, background: '#F5F0E325', margin: '0 auto 8px' }} />
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ fontFamily: ff, fontSize: 14, fontWeight: 600, color: '#F5F0E3' }}>
-                {panelDayLabel} &middot; {panelIsToday ? 'Today' : panelDayName}
+      {/* Day Detail Sheet */}
+      {calDayPanelOpen && calDay && (() => {
+        const now = new Date(); now.setHours(0,0,0,0)
+        const panelDateStr = localDateStr(calDay)
+        const sessionsForDay = (focusSessions || []).filter(s => {
+          if (!s.completed_at) return false
+          return s.completed_at.slice(0,10) === panelDateStr
+        })
+        const isOverdue = (t) => !t.completed && t.scheduled_for && new Date(t.scheduled_for) < now && panelDateStr !== todayDStr
+        const daysSince = (t) => { const sf = new Date(t.scheduled_for); sf.setHours(0,0,0,0); return Math.floor((now - sf) / 86400000) }
+
+        return (
+          <div className={cs.sheetOverlay} onClick={() => setCalDayPanelOpen(false)}>
+            <div className={cs.sheet} onClick={e => e.stopPropagation()}>
+              <div className={cs.sheetHandle} />
+              <div className={cs.sheetHeader}>
+                <div className={cs.sheetDateWrap}>
+                  <div className={cs.sheetDate}>{calDay.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
+                  {panelIsToday && <div className={cs.sheetDateSub}>Today</div>}
+                </div>
+                <button className={cs.sheetClose} onClick={() => setCalDayPanelOpen(false)}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(240,234,214,0.22)" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                </button>
               </div>
-              <div onClick={() => setCalDayPanelOpen(false)} style={{ cursor: 'pointer', fontSize: 14, color: '#F5F0E350', padding: 4 }}>&#10005;</div>
-            </div>
 
-            {/* Timed tasks */}
-            {panelScheduled.length > 0 && panelScheduled.map(t => (
-              <div key={t.id} onClick={() => { if (setDetailTask) setDetailTask(t); setCalDayPanelOpen(false) }} style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
-                background: '#211A14', borderRadius: 8, marginBottom: 4, cursor: 'pointer'
-              }}>
-                <span style={{ fontSize: 14, color: '#F5F0E350', fontFamily: sf, width: 52, flexShrink: 0 }}>
-                  {new Date(t.due_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                </span>
-                <span style={{ fontSize: 14, color: '#F5F0E3', fontFamily: ff }}>{t.title}</span>
-              </div>
-            ))}
-
-            {/* Unscheduled */}
-            {panelUnscheduled.length > 0 && (
-              <>
-                <div style={{ fontSize: 14, color: '#F5F0E340', fontFamily: ff, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '8px 0 4px' }}>Unscheduled</div>
-                {panelUnscheduled.map(t => (
-                  <div key={t.id} onClick={() => { if (setDetailTask) setDetailTask(t); setCalDayPanelOpen(false) }} style={{
-                    padding: '8px 10px', background: '#211A14', borderRadius: 8, marginBottom: 4,
-                    fontSize: 14, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer'
-                  }}>{t.title}</div>
-                ))}
-              </>
-            )}
-
-            {/* Bills */}
-            {panelBills.length > 0 && (
-              <>
-                <div style={{ fontSize: 14, color: '#F5F0E340', fontFamily: ff, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '8px 0 4px' }}>Bills Due</div>
-                {panelBills.map(b => (
-                  <div key={b.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
-                    background: '#211A14', borderRadius: 8, marginBottom: 4
-                  }}>
-                    <span style={{ fontSize: 14, color: '#E8321A', flexShrink: 0 }}>&#129534;</span>
-                    <span style={{ fontSize: 14, color: '#F5F0E3', fontFamily: ff, flex: 1 }}>{b.name}</span>
-                    <span style={{ fontSize: 14, color: '#F5F0E370', fontFamily: sf }}>{fmtMoney(b.amount)}</span>
+              {/* Tasks */}
+              <div className={cs.secLabel}>TASKS</div>
+              {panelDayTasks.length === 0 && <div className={cs.emptyText}>No tasks scheduled</div>}
+              {panelDayTasks.sort((a,b) => (a.due_time||'').localeCompare(b.due_time||'')).map(t => {
+                const done = t.completed
+                const over = isOverdue(t)
+                return (
+                  <div key={t.id} className={done ? cs.taskRowDone : over ? cs.taskRowOverdue : cs.taskRow} onClick={() => { if (setDetailTask) setDetailTask(t); setCalDayPanelOpen(false) }}>
+                    {done ? (
+                      <div className={cs.taskCircleDone}>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                      </div>
+                    ) : (
+                      <div className={over ? cs.taskCircleOverdue : cs.taskCircle} />
+                    )}
+                    <div className={cs.taskInfo}>
+                      <div className={done ? cs.taskTitleDone : cs.taskTitle}>{t.title}</div>
+                      {over && <div className={cs.taskSubOverdue}>Overdue &middot; {daysSince(t)} days</div>}
+                      {!over && !done && t.due_time && <div className={cs.taskSub}>{new Date(t.due_time).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>}
+                      {done && t.due_time && <div className={cs.taskSub}>{new Date(t.due_time).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})} &middot; done</div>}
+                    </div>
                   </div>
-                ))}
-              </>
-            )}
+                )
+              })}
 
-            {/* Empty */}
-            {panelDayTasks.length === 0 && panelBills.length === 0 && (
-              <div style={{ textAlign: 'center', padding: 16, fontSize: 14, color: '#F5F0E350', fontFamily: ff }}>Nothing scheduled</div>
-            )}
+              {/* Add task */}
+              <div className={cs.addTaskBtn} onClick={() => {
+                if (calDay && setNewDueDate) setNewDueDate(`${calDay.getFullYear()}-${String(calDay.getMonth()+1).padStart(2,'0')}-${String(calDay.getDate()).padStart(2,'0')}`)
+                setCalDayPanelOpen(false)
+                if (setShowAddModal) setShowAddModal(true)
+              }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FF6644" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                <span className={cs.addTaskText}>Add task for this day</span>
+              </div>
 
-            {/* Add task button */}
-            <div onClick={() => {
-              if (calDay && setNewDueDate) setNewDueDate(`${calDay.getFullYear()}-${String(calDay.getMonth() + 1).padStart(2, '0')}-${String(calDay.getDate()).padStart(2, '0')}`)
-              setCalDayPanelOpen(false)
-              if (setShowAddModal) setShowAddModal(true)
-            }} style={{
-              marginTop: 8, padding: '10px 0', textAlign: 'center',
-              background: '#FF664412', border: '1px solid #FF664425', borderRadius: 8,
-              fontSize: 14, color: '#FF6644', fontFamily: ff, fontWeight: 500, cursor: 'pointer'
-            }}>+ Add task for this day</div>
+              {/* Bills */}
+              {panelBills.length > 0 && (
+                <>
+                  <div className={cs.secLabel}>BILLS DUE</div>
+                  {panelBills.map(b => (
+                    <div key={b.id} className={b.autopay ? cs.billRowAuto : cs.billRow}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E8321A" strokeWidth="2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
+                      <span className={cs.billName}>{b.name}</span>
+                      <span className={cs.billAmount}>{fmtMoney(b.amount)} &middot; {b.autopay ? 'auto' : 'manual'}</span>
+                      {b.autopay ? (
+                        <span className={cs.billAutoBadge}>AUTO</span>
+                      ) : (
+                        <button className={cs.billPayBtn} onClick={() => switchTab?.('finance')}>Pay</button>
+                      )}
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {/* Focus sessions */}
+              {sessionsForDay.length > 0 && (
+                <>
+                  <div className={cs.secLabel} style={{marginTop: panelBills.length > 0 ? 10 : 0}}>FOCUS SESSIONS</div>
+                  {sessionsForDay.map((s, i) => (
+                    <div key={s.id || i} className={cs.focusRow}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3B8BD4" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+                      <div style={{flex:1}}>
+                        <div className={cs.focusName}>{s.task_name || 'Focus session'}</div>
+                        <div className={cs.focusSub}>{s.duration_min || Math.round((s.duration || 0)/60)} min &middot; completed {new Date(s.completed_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>
+                      </div>
+                      <span className={cs.focusXp}>+{s.xp_earned || s.xp || 0} XP</span>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
           </div>
-        </>
-      )}
+        )
+      })()}
     </div>
   )
 }

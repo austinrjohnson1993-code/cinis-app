@@ -40,6 +40,7 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
   const router = useRouter()
 
   // ── State ─────────────────────────────────────────────────────────────────
+  const [subpage, setSubpage] = useState(null) // null | 'billing' | 'privacy' | 'export' | 'about'
   const [checkinMorning, setCheckinMorning] = useState(true)
   const [checkinMidday, setCheckinMidday] = useState(false)
   const [checkinEvening, setCheckinEvening] = useState(true)
@@ -50,6 +51,18 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
 
   const [choreCadence, setChoreCadence] = useState('standard')
   const [memoryClearing, setMemoryClearing] = useState(false) // false | 'confirm' | 'cleared'
+
+  // ── Privacy sub-page state ──────────────────────────────────────────────
+  const [privAiStorage, setPrivAiStorage] = useState(true)
+  const [privAnalytics, setPrivAnalytics] = useState(true)
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+
+  // ── Export sub-page state ───────────────────────────────────────────────
+  const [exportSending, setExportSending] = useState(null) // null | 'full' | 'journal' | 'tasks'
+
+  // ── Feedback sub-page state ─────────────────────────────────────────────
+  const [feedbackText, setFeedbackText] = useState('')
+  const [feedbackSending, setFeedbackSending] = useState(false)
 
   // ── Sync from profile ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -71,6 +84,11 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
       setNotifStreak(nprefs.streak !== false)
     }
     if (profile.chore_cadence) setChoreCadence(profile.chore_cadence)
+    const pp = profile.privacy_prefs
+    if (pp) {
+      setPrivAiStorage(pp.ai_storage !== false)
+      setPrivAnalytics(pp.analytics !== false)
+    }
   }, [profile])
 
   // ── Patch helper ──────────────────────────────────────────────────────────
@@ -151,6 +169,58 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
     showToast('Memory cleared')
   }
 
+  // ── Privacy toggles ──────────────────────────────────────────────────────
+  const handlePrivacyToggle = async (key) => {
+    const map = { ai_storage: [privAiStorage, setPrivAiStorage], analytics: [privAnalytics, setPrivAnalytics] }
+    const [val, setter] = map[key]
+    const newVal = !val
+    setter(newVal)
+    const newPrefs = {
+      ai_storage: key === 'ai_storage' ? newVal : privAiStorage,
+      analytics: key === 'analytics' ? newVal : privAnalytics,
+    }
+    await patchProfile({ privacy_prefs: newPrefs })
+  }
+
+  // ── Export handler ──────────────────────────────────────────────────────
+  const handleExport = async (type) => {
+    setExportSending(type)
+    try {
+      await loggedFetch('/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, type }),
+      })
+      showToast(`Export sent to ${user?.email}`)
+    } catch { showToast('Export failed') }
+    setTimeout(() => setExportSending(null), 2000)
+  }
+
+  // ── Feedback handler ────────────────────────────────────────────────────
+  const handleFeedback = async () => {
+    if (!feedbackText.trim()) return
+    setFeedbackSending(true)
+    try {
+      await loggedFetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, message: feedbackText.trim() }),
+      })
+      showToast('Thanks \u2014 got it.')
+      setFeedbackText('')
+    } catch { showToast('Failed to send') }
+    setFeedbackSending(false)
+  }
+
+  // ── Delete account handler ──────────────────────────────────────────────
+  const handleDeleteAccount = async () => {
+    try {
+      await loggedFetch('/api/account', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user.id }) })
+      await supabase.auth.signOut()
+      router.push('/')
+    } catch { showToast('Delete failed') }
+  }
+
   // ── Derived ───────────────────────────────────────────────────────────────
   const firstName = profile?.full_name?.split(' ')[0] || ''
   const initial = firstName?.charAt(0)?.toUpperCase() || '?'
@@ -160,7 +230,212 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
     ? new Date(profile.coach_memory_updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : null
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Sub-page back header ──────────────────────────────────────────────────
+  const SubHeader = ({ title }) => (
+    <div className={styles.subHeader} onClick={() => setSubpage(null)}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,234,214,0.22)" strokeWidth="2.5" strokeLinecap="round">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      <span className={styles.subHeaderTitle}>{title}</span>
+    </div>
+  )
+
+  /* ── SUB-PAGE: Billing ──────────────────────────────────────────────────── */
+  if (subpage === 'billing') return (
+    <div className={styles.wrap}>
+      <div className={styles.subWrap}>
+        <SubHeader title="Subscription & billing" />
+
+        {/* Current plan */}
+        <div className={styles.cardPad}>
+          <div className={styles.billingPlanRow}>
+            <div>
+              <div className={styles.billingPlanName}>{isPro ? 'Cinis Pro' : 'Cinis Free'}</div>
+              <div className={styles.billingPlanDesc}>{isPro ? 'Full access to all features' : 'Basic productivity tools'}</div>
+            </div>
+            <span className={isPro ? styles.planPro : styles.planFree}>{isPro ? 'ACTIVE' : 'FREE'}</span>
+          </div>
+
+          {!isPro && (
+            <>
+              <div className={styles.divider} />
+              <div className={styles.missLabel}>What you&apos;re missing</div>
+              {['Coach memory across sessions', 'SMS check-in reminders', '15 AI interactions per day'].map(item => (
+                <div key={item} className={styles.missRow}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(240,234,214,0.22)" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                  <span className={styles.missText}>{item}</span>
+                </div>
+              ))}
+              <button className={styles.upgradeCta} onClick={() => router.push('/pricing')}>
+                <div className={styles.upgradeCtaTitle}>Upgrade to Pro &mdash; $14/mo</div>
+                <div className={styles.upgradeCtaSub}>or $99/year &middot; cancel anytime</div>
+              </button>
+            </>
+          )}
+
+          {isPro && (
+            <>
+              <div className={styles.divider} />
+              <div className={styles.billingDetailRow}><span className={styles.billingDetailLabel}>Next renewal</span><span className={styles.billingDetailVal}>Managed by Stripe</span></div>
+              <button className={styles.cancelBtn} onClick={() => console.log('[settings] cancel sub')}>Cancel subscription</button>
+            </>
+          )}
+        </div>
+
+        {/* Payment & history */}
+        <div className={styles.secLabel}>PAYMENT & HISTORY</div>
+        <div className={styles.card}>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleLeft}>
+              <div className={styles.toggleLabel}>Payment method</div>
+              <div className={styles.toggleSub}>{isPro ? 'Visa ending in ••••' : 'No payment method on file'}</div>
+            </div>
+          </div>
+          <div className={styles.toggleRowLast}>
+            <div className={styles.toggleLeft}>
+              <div className={styles.toggleLabel}>Billing history</div>
+              <div className={styles.toggleSub}>{isPro ? 'View invoices' : 'No charges yet'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  /* ── SUB-PAGE: Privacy ──────────────────────────────────────────────────── */
+  if (subpage === 'privacy') return (
+    <div className={styles.wrap}>
+      <div className={styles.subWrap}>
+        <SubHeader title="Data & privacy" />
+
+        <div className={styles.card}>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleLeft}>
+              <div className={styles.toggleLabel}>AI conversation storage</div>
+              <div className={styles.toggleSub}>Used for coach memory and insights</div>
+            </div>
+            <button className={privAiStorage ? styles.toggleOn : styles.toggle} onClick={() => handlePrivacyToggle('ai_storage')}>
+              <span className={privAiStorage ? styles.toggleThumbOn : styles.toggleThumb} />
+            </button>
+          </div>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleLeft}>
+              <div className={styles.toggleLabel}>Usage analytics</div>
+              <div className={styles.toggleSub}>Helps improve the product (anonymous)</div>
+            </div>
+            <button className={privAnalytics ? styles.toggleOn : styles.toggle} onClick={() => handlePrivacyToggle('analytics')}>
+              <span className={privAnalytics ? styles.toggleThumbOn : styles.toggleThumb} />
+            </button>
+          </div>
+          <div className={styles.accountRowLast} onClick={() => window.open('https://getcinis.app/privacy', '_blank')}>
+            <span className={styles.accountRowLabel}>Privacy policy</span>
+            <Chevron />
+          </div>
+        </div>
+
+        {/* Danger zone */}
+        <div className={styles.dangerCard}>
+          <div className={styles.dangerTitle}>Danger zone</div>
+          <div className={styles.dangerText}>Deleting your account removes all data permanently. This cannot be undone.</div>
+          {!deleteConfirm ? (
+            <button className={styles.dangerBtn} onClick={() => setDeleteConfirm(true)}>Delete my account</button>
+          ) : (
+            <div>
+              <div className={styles.memoryConfirmText}>Are you absolutely sure? All data will be permanently deleted.</div>
+              <div className={styles.memoryConfirmRow}>
+                <button className={styles.memoryConfirmYes} onClick={handleDeleteAccount}>Yes, delete</button>
+                <button className={styles.memoryConfirmCancel} onClick={() => setDeleteConfirm(false)}>Cancel</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+
+  /* ── SUB-PAGE: Export ────────────────────────────────────────────────────── */
+  if (subpage === 'export') return (
+    <div className={styles.wrap}>
+      <div className={styles.subWrap}>
+        <SubHeader title="Export my data" />
+
+        <div className={styles.exportDesc}>Download a copy of your data. Exports are sent to your email within a few minutes.</div>
+
+        {[
+          { type: 'full', title: 'Full data export', sub: 'JSON \u00B7 all records \u00B7 sent to email', color: '#4CAF50', icon: 'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3' },
+          { type: 'journal', title: 'Journal entries only', sub: 'Markdown \u00B7 all entries', color: '#3B8BD4', icon: 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8' },
+          { type: 'tasks', title: 'Task history', sub: 'CSV \u00B7 completed + active', color: '#FFB800', icon: 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8' },
+        ].map(opt => (
+          <div key={opt.type} className={styles.exportRow} onClick={() => handleExport(opt.type)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={opt.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={opt.icon} /></svg>
+            <div className={styles.exportRowText}>
+              <div className={styles.exportRowTitle}>{opt.title}</div>
+              <div className={styles.exportRowSub}>{opt.sub}</div>
+            </div>
+            {exportSending === opt.type ? (
+              <span className={styles.exportSent}>Sent</span>
+            ) : (
+              <Chevron />
+            )}
+          </div>
+        ))}
+
+        <div className={styles.exportFooter}>Export is sent to {user?.email} within a few minutes.</div>
+      </div>
+    </div>
+  )
+
+  /* ── SUB-PAGE: About ────────────────────────────────────────────────────── */
+  if (subpage === 'about') return (
+    <div className={styles.wrap}>
+      <div className={styles.subWrap}>
+        <SubHeader title="About & feedback" />
+
+        {/* Brand card */}
+        <div className={styles.aboutBrand}>
+          <div className={styles.aboutMarkWrap}><CinisMark size={40} /></div>
+          <div className={styles.aboutName}>CINIS</div>
+          <div className={styles.aboutTagline}>Where start meets finished.</div>
+          <div className={styles.aboutVersion}>v0.9.1 &middot; Built in Georgetown, TX</div>
+        </div>
+
+        {/* Links */}
+        <div className={styles.card}>
+          {[
+            { label: 'Send feedback', action: () => {} },
+            { label: 'Rate Cinis', action: () => {} },
+            { label: 'Terms of service', action: () => window.open('https://getcinis.app/terms', '_blank') },
+            { label: 'Privacy policy', action: () => window.open('https://getcinis.app/privacy', '_blank'), last: true },
+          ].map(({ label, action, last }) => (
+            <div key={label} className={last ? styles.accountRowLast : styles.accountRow} onClick={action}>
+              <span className={styles.accountRowLabel}>{label}</span>
+              <Chevron />
+            </div>
+          ))}
+        </div>
+
+        {/* Feedback */}
+        <div className={styles.cardPad}>
+          <div className={styles.feedbackTitle}>Got a thought?</div>
+          <textarea
+            className={styles.feedbackInput}
+            placeholder="Tell us what you think..."
+            value={feedbackText}
+            onChange={e => setFeedbackText(e.target.value)}
+          />
+          <button
+            className={styles.feedbackBtn}
+            disabled={feedbackSending || !feedbackText.trim()}
+            onClick={handleFeedback}
+          >
+            {feedbackSending ? 'Sending...' : 'Send feedback'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  // ── Render (main settings) ──────────────────────────────────────────────
   return (
     <div className={styles.wrap}>
       {/* 1 — Header */}
@@ -320,15 +595,15 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
       <div className={styles.secLabel}>ACCOUNT</div>
       <div className={styles.card}>
         {[
-          { label: 'Subscription & billing' },
-          { label: 'Data & privacy' },
-          { label: 'Export my data' },
-          { label: 'About & feedback', last: true },
-        ].map(({ label, last }) => (
+          { label: 'Subscription & billing', page: 'billing' },
+          { label: 'Data & privacy', page: 'privacy' },
+          { label: 'Export my data', page: 'export' },
+          { label: 'About & feedback', page: 'about', last: true },
+        ].map(({ label, page, last }) => (
           <div
             key={label}
             className={last ? styles.accountRowLast : styles.accountRow}
-            onClick={() => console.log(`[settings] ${label}`)}
+            onClick={() => setSubpage(page)}
           >
             <span className={styles.accountRowLabel}>{label}</span>
             <Chevron />

@@ -1087,154 +1087,148 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
 
         {/* ── INSIGHTS ── */}
         {financeSub === 'insights' && (() => {
-          const totalBills = bills.length
-          const autoPayBills = bills.filter(b => b.autopay).length
-          const autopayCoverage = totalBills > 0 ? (autoPayBills / totalBills) * 25 : 0
-          const billTracking = totalBills > 0 ? 25 : 0
-          const budgetSet = (profile?.monthly_income || monthlyIncome) > 0 ? 25 : 0
-          const spendLogged = spendLog.length > 0 ? 25 : 0
-          const score = Math.round(autopayCoverage + billTracking + budgetSet + spendLogged)
-          const HP = '#FF6644'
-          const EMBER = '#E8321A'
-          const scoreColor = score <= 40 ? EMBER : score <= 70 ? '#FFB800' : HP
-          const circumference = 2 * Math.PI * 54
-          const strokeDash = (score / 100) * circumference
+          const now = new Date()
+          const curMonth = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()
 
-          const CATEGORIES = [
-            { label: 'Bill tracking', pts: billTracking, max: 25, tip: billTracking < 25 ? 'Add your recurring bills to get started' : 'All bills tracked' },
-            { label: 'Budget set', pts: budgetSet, max: 25, tip: budgetSet < 25 ? 'Set your income in the Budget tab' : 'Income is set' },
-            { label: 'Autopay coverage', pts: Math.round(autopayCoverage), max: 25, tip: autopayCoverage < 25 ? `${autoPayBills}/${totalBills} bills on autopay — enable more` : 'All bills automated' },
-            { label: 'Spend logged', pts: spendLogged, max: 25, tip: spendLogged < 25 ? 'Log a purchase in Budget today' : 'Spending tracked today' },
-          ]
+          // Month summary stats
+          const totalBillAmount = bills.reduce((s, b) => s + (parseFloat(b.amount) || 0), 0)
+          const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay())
+          const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6)
+          const dueThisWeek = bills.filter(b => b.due_day >= weekStart.getDate() && b.due_day <= weekEnd.getDate()).reduce((s, b) => s + (parseFloat(b.amount) || 0), 0)
+          const paidBills = bills.filter(b => b.paid || b.autopay)
+          const paidAmount = paidBills.reduce((s, b) => s + (parseFloat(b.amount) || 0), 0)
+          const paidPct = totalBillAmount > 0 ? Math.round((paidAmount / totalBillAmount) * 100) : 0
 
-          const tips = []
-          if (autopayCoverage < 12.5 && totalBills > 0) {
-            const manualBill = bills.find(b => !b.autopay)
-            tips.push({ type: 'Alert', icon: '⚡', title: `Turn on autopay for ${manualBill?.name || 'your bills'}`, body: 'Stop missing due dates and late fees. Takes 5 minutes to set up.' })
-          }
-          if (budgetSet === 0) tips.push({ type: 'Pattern', icon: '💰', title: 'Set your income', body: 'Set your income to unlock your daily spending number.' })
-          if (spendLogged === 0) tips.push({ type: 'Pattern', icon: '📊', title: 'Log one purchase today', body: 'Start tracking your money with one entry in Budget.' })
-          if (score > 75) tips.push({ type: 'Win', icon: '🏆', title: "You're tracking well", body: 'Consider adding a savings goal. Even $25/week compounds fast.' })
-          if (billTracking === 0) tips.push({ type: 'Alert', icon: '🧾', title: 'Track your bills', body: 'Add recurring bills to see where your money goes.' })
-          if (tips.length === 0) tips.push({ type: 'Win', icon: '🌟', title: 'Solid foundation', body: 'Income set, bills tracked, autopay on, spending logged.' })
+          // Category breakdown
+          const CAT_COLORS = { Housing: '#FF6644', Subscriptions: '#3B8BD4', Utilities: '#A47BDB', Insurance: '#4CAF50', Debt: '#E8321A', Other: 'rgba(240,234,214,0.22)' }
+          const catMap = {}
+          bills.forEach(b => {
+            const cat = b.category || 'Other'
+            catMap[cat] = (catMap[cat] || 0) + (parseFloat(b.amount) || 0)
+          })
+          const catList = Object.entries(catMap).sort((a, b) => b[1] - a[1]).map(([name, total]) => ({
+            name, total, pct: totalBillAmount > 0 ? Math.round((total / totalBillAmount) * 100) : 0,
+            color: CAT_COLORS[name] || CAT_COLORS.Other,
+          }))
 
-          const fastest80 = CATEGORIES.filter(c => c.pts < c.max).slice(0, 2)
+          // Flags
+          const overdueBills = bills.filter(b => !b.paid && !b.autopay && b.due_day < now.getDate())
+          const subBills = bills.filter(b => (b.category || '').toLowerCase() === 'subscriptions')
+          const subTotal = subBills.reduce((s, b) => s + (parseFloat(b.amount) || 0), 0)
+          const autopayBills = bills.filter(b => b.autopay)
+
+          // AI insight (cached monthly)
+          const insightKey = `cinis_finance_insight_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`
+          const [coachInsight, setCoachInsight] = useState(() => {
+            try { return typeof localStorage !== 'undefined' && localStorage.getItem(insightKey) || '' } catch { return '' }
+          })
+          useEffect(() => {
+            if (coachInsight || bills.length === 0) return
+            loggedFetch('/api/finance/insight', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ bills: bills.map(b => ({ name: b.name, amount: b.amount, category: b.category, autopay: b.autopay, due_day: b.due_day })), total_income: profile?.monthly_income || monthlyIncome }),
+            }).then(r => r.ok ? r.json() : null).then(data => {
+              if (data?.insight) {
+                setCoachInsight(data.insight)
+                try { localStorage.setItem(insightKey, data.insight) } catch {}
+              }
+            }).catch(() => {})
+          }, [bills.length])
+
+          if (bills.length === 0) return (
+            <div style={{ padding: '40px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: 24, marginBottom: 8 }}>💰</div>
+              <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.40)', lineHeight: 1.6 }}>No bills added yet.</div>
+              <div onClick={() => setFinanceSub('bills')} style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: '#FF6644', marginTop: 8, cursor: 'pointer' }}>Go to Bills →</div>
+            </div>
+          )
 
           return (
             <div style={{ padding: '12px 14px 80px' }}>
-              {/* Score ring */}
-              <div className={styles.fiScoreCard}>
-                <div className={styles.fiScoreRing}>
-                  <svg width="124" height="124" viewBox="0 0 124 124">
-                    <circle cx="62" cy="62" r="54" fill="none" stroke="rgba(245,240,227,0.07)" strokeWidth="10" />
-                    <circle cx="62" cy="62" r="54" fill="none"
-                      stroke={scoreColor} strokeWidth="10"
-                      strokeDasharray={`${strokeDash} ${circumference}`}
-                      strokeDashoffset={circumference * 0.25}
-                      strokeLinecap="round"
-                      style={{ transition: 'stroke-dasharray 0.6s ease' }}
-                    />
-                    <text x="62" y="57" textAnchor="middle" dominantBaseline="central"
-                      fill={scoreColor} fontSize="26" fontWeight="700" fontFamily="Sora, sans-serif">{score}</text>
-                    <text x="62" y="77" textAnchor="middle" dominantBaseline="central"
-                      fill="rgba(245,240,227,0.4)" fontSize="11" fontFamily="Figtree, sans-serif">out of 100</text>
-                  </svg>
-                </div>
-                <div className={styles.fiScoreInfo}>
-                  <div className={styles.fiScoreLabel}>Financial health</div>
-                  <div className={styles.fiScoreGrade} style={{ color: scoreColor }}>
-                    {score <= 40 ? 'Getting started' : score <= 70 ? 'Building up' : score <= 90 ? 'On track' : 'Strong'}
+              {/* Month summary */}
+              <div className={styles.fiBreakdownCard} style={{ marginBottom: 10 }}>
+                <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(240,234,214,0.22)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{curMonth}</div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: '#F0EAD6' }}>{fmtMoney(totalBillAmount)}</div>
+                    <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)', marginTop: 3 }}>Bills this month</div>
                   </div>
-                  <div className={styles.fiScoreDesc}>Score updates as you add bills, log spending, and set your income.</div>
+                  <div style={{ width: 1, height: 40, background: 'rgba(240,234,214,0.08)' }} />
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: '#4CAF50' }}>{fmtMoney(dueThisWeek)}</div>
+                    <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)', marginTop: 3 }}>Due this week</div>
+                  </div>
+                  <div style={{ width: 1, height: 40, background: 'rgba(240,234,214,0.08)' }} />
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: '#FFB800' }}>{fmtMoney(paidAmount)}</div>
+                    <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)', marginTop: 3 }}>Paid so far</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                  <span style={{ fontFamily: "'Figtree',sans-serif", fontSize: 9, color: 'rgba(240,234,214,0.22)' }}>Paid</span>
+                  <span style={{ fontFamily: "'Figtree',sans-serif", fontSize: 9, color: 'rgba(240,234,214,0.22)' }}>{fmtMoney(paidAmount)} / {fmtMoney(totalBillAmount)}</span>
+                </div>
+                <div style={{ height: 6, background: 'rgba(240,234,214,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${paidPct}%`, background: 'linear-gradient(90deg, #4CAF50, #3B8BD4)', borderRadius: 3, transition: 'width 0.4s ease' }} />
                 </div>
               </div>
 
-              {/* How score works */}
-              <div className={styles.fiExplainerCard}>
-                <div className={styles.fiExplainerTitle}>How your score works</div>
-                <div className={styles.fiExplainerBody}>Your score is built from 4 categories, 25 points each. The more you track, the more useful it becomes.</div>
-              </div>
-
-              {/* Score breakdown */}
-              <div className={styles.fiBreakdownCard}>
-                {CATEGORIES.map(cat => (
-                  <div key={cat.label} className={styles.fiCatRow}>
-                    <div className={styles.fiCatTop}>
-                      <span className={styles.fiCatLabel}>{cat.label}</span>
-                      <span className={styles.fiCatPts} style={{ color: cat.pts === cat.max ? '#4CAF50' : 'rgba(245,240,227,0.5)' }}>{cat.pts}/{cat.max}</span>
+              {/* Coach insight */}
+              {coachInsight && (
+                <div style={{ background: '#3E3228', borderRadius: 10, padding: 13, border: '1px solid rgba(255,102,68,0.10)', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,102,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="8" height="8" viewBox="0 0 16 16" fill="#FF6644"><path d="M8 0l2 5h5l-4 3 2 5-5-3-5 3 2-5L1 5h5z" /></svg>
                     </div>
-                    <div className={styles.fiCatBar}>
-                      <div className={styles.fiCatBarFill} style={{ width: `${(cat.pts / cat.max) * 100}%`, background: cat.pts === cat.max ? '#4CAF50' : HP }} />
-                    </div>
-                    <div className={styles.fiCatTip}>{cat.tip}</div>
+                    <span style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#FF6644' }}>COACH INSIGHT</span>
                   </div>
-                ))}
-              </div>
-
-              {/* Fastest path to 80 */}
-              {score < 80 && fastest80.length > 0 && (
-                <div className={styles.fiActionCard}>
-                  <div className={styles.fiActionTitle}>Fastest path to 80</div>
-                  {fastest80.map(cat => (
-                    <div key={cat.label} className={styles.fiActionItem}>
-                      <span className={styles.fiActionBullet}>→</span>
-                      <span>{cat.tip}</span>
-                    </div>
-                  ))}
+                  <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.60)', lineHeight: 1.65, marginBottom: 8 }}>{coachInsight}</div>
+                  <div onClick={() => setFinanceSub('plans')} style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 10, color: '#FF6644', cursor: 'pointer' }}>Open Plans →</div>
                 </div>
               )}
 
-              {/* AI observation cards */}
-              {tips.slice(0, 3).map((tip, i) => (
-                <div key={i} className={`${styles.fiObsCard} ${tip.type === 'Alert' ? styles.fiObsAlert : tip.type === 'Win' ? styles.fiObsWin : styles.fiObsPattern}`}>
-                  <div className={styles.fiObsType}>{tip.type}</div>
-                  <div className={styles.fiObsIcon}>{tip.icon}</div>
-                  <div>
-                    <div className={styles.fiObsTitle}>{tip.title}</div>
-                    <div className={styles.fiObsBody}>{tip.body}</div>
+              {/* Category breakdown */}
+              {catList.length > 0 && (
+                <>
+                  <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(240,234,214,0.22)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>BREAKDOWN</div>
+                  <div style={{ background: '#3E3228', borderRadius: 10, padding: 12, marginBottom: 10 }}>
+                    {catList.map(cat => (
+                      <div key={cat.name} style={{ marginBottom: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                          <span style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: '#F0EAD6' }}>{cat.name}</span>
+                          <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: 11, color: '#F0EAD6' }}>{fmtMoney(cat.total)}</span>
+                        </div>
+                        <div style={{ height: 5, background: 'rgba(240,234,214,0.07)', borderRadius: 2, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${cat.pct}%`, background: cat.color, borderRadius: 2 }} />
+                        </div>
+                        <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)', marginTop: 2 }}>{cat.pct}% of bills</div>
+                      </div>
+                    ))}
                   </div>
+                </>
+              )}
+
+              {/* Flags */}
+              <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(240,234,214,0.22)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>FLAGS</div>
+
+              {overdueBills.map(b => (
+                <div key={b.id} style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', marginBottom: 5, borderLeft: '3px solid #E8321A' }}>
+                  <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#E8321A', marginBottom: 3 }}>Overdue</div>
+                  <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.55)', lineHeight: 1.55 }}>{b.name} ({fmtMoney(parseFloat(b.amount) || 0)}) hasn&apos;t been paid &mdash; it was due on the {b.due_day}th.</div>
                 </div>
               ))}
 
-              {/* Coach CTA */}
-              <div className={styles.flCoachCta}>
-                <div className={styles.flCoachTitle}>Get a personalized breakdown</div>
-                <div className={styles.flCoachBody}>Ask Cinis what your score means and how to improve it specifically for your situation.</div>
-                <button className={styles.addTaskBtn} style={{ marginTop: 12, width: '100%' }}
-                  onClick={() => setFinanceChatOpen(prev => !prev)}>
-                  {financeChatOpen ? 'Close chat' : 'Ask Cinis about this →'}
-                </button>
-              </div>
+              {(subBills.length > 8 || subTotal > 0) && (
+                <div style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', marginBottom: 5, borderLeft: '3px solid #FFB800' }}>
+                  <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#FFB800', marginBottom: 3 }}>Watch</div>
+                  <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.55)', lineHeight: 1.55 }}>You have {subBills.length} active subscriptions. {fmtMoney(subTotal)}/month.</div>
+                </div>
+              )}
 
-              {/* Inline finance chat */}
-              {financeChatOpen && (
-                <div className={styles.financeChatPanel}>
-                  <div className={styles.financeChatMessages}>
-                    {financeChatMessages.length === 0 && (
-                      <div className={styles.financeChatEmpty}>Ask anything about your finances...</div>
-                    )}
-                    {financeChatMessages.map((m, i) => (
-                      <div key={i} className={m.role === 'user' ? styles.financeChatUser : styles.financeChatAssistant}>
-                        {m.content}
-                      </div>
-                    ))}
-                    {financeChatSending && (
-                      <div className={styles.financeChatAssistant} style={{ opacity: 0.5 }}>...</div>
-                    )}
-                  </div>
-                  <form onSubmit={sendFinanceChat} className={styles.financeChatForm}>
-                    <input
-                      type="text"
-                      value={financeChatInput}
-                      onChange={e => setFinanceChatInput(e.target.value)}
-                      placeholder="Ask about your finances..."
-                      className={styles.financeChatInput}
-                      disabled={financeChatSending}
-                    />
-                    <button type="submit" className={styles.financeChatSend} disabled={financeChatSending || !financeChatInput.trim()}>
-                      →
-                    </button>
-                  </form>
+              {autopayBills.length > 0 && (
+                <div style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', marginBottom: 5, borderLeft: '3px solid #4CAF50' }}>
+                  <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#4CAF50', marginBottom: 3 }}>On track</div>
+                  <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.55)', lineHeight: 1.55 }}>{autopayBills.length} bill{autopayBills.length !== 1 ? 's' : ''} on autopay this month.</div>
                 </div>
               )}
             </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import styles from '../../styles/Dashboard.module.css'
+
 import { COLORS, FONTS } from '../../lib/constants'
 
 export default function TabNutrition({ user, profile, showToast, loggedFetch }) {

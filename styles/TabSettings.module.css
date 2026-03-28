@@ -197,6 +197,128 @@
 .accountRowLabel { font-family: 'Figtree', sans-serif; font-size: 12px; color: #F0EAD6; }
 .chevron { flex-shrink: 0; }
 
+/* ── Sub-page wrapper ────────────────────────── */
+.subWrap { animation: slideIn 0.3s ease; }
+.subHeader {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px; cursor: pointer;
+}
+.subHeaderTitle { font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 13px; color: #F0EAD6; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Billing sub-page ────────────────────────── */
+.billingPlanRow {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 4px;
+}
+.billingPlanName { font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 13px; color: #F0EAD6; }
+.billingPlanDesc { font-family: 'Figtree', sans-serif; font-size: 10px; color: rgba(240,234,214,0.22); margin-top: 2px; }
+.divider { height: 1px; background: rgba(240,234,214,0.07); margin: 12px 0; }
+.missLabel {
+  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 9px;
+  color: rgba(240,234,214,0.22); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 8px;
+}
+.missRow { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.missText { font-family: 'Figtree', sans-serif; font-size: 11px; color: rgba(240,234,214,0.22); }
+.upgradeCta {
+  background: linear-gradient(135deg, #FF6644, #E8321A);
+  border-radius: 10px; padding: 13px; text-align: center;
+  cursor: pointer; border: none; width: 100%; margin-top: 12px;
+}
+.upgradeCtaTitle { font-family: 'Figtree', sans-serif; font-weight: 700; font-size: 13px; color: #fff; }
+.upgradeCtaSub { font-family: 'Figtree', sans-serif; font-size: 10px; color: rgba(255,255,255,0.70); margin-top: 2px; }
+.billingDetailRow {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+}
+.billingDetailLabel { font-family: 'Figtree', sans-serif; font-size: 11px; color: rgba(240,234,214,0.45); }
+.billingDetailVal { font-family: 'Figtree', sans-serif; font-size: 11px; color: #F0EAD6; }
+.cancelBtn {
+  padding: 9px 14px; border-radius: 8px; border: none; cursor: pointer; width: 100%;
+  background: rgba(232,50,26,0.08); border: 1px solid rgba(232,50,26,0.18);
+  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 11px; color: #E8321A;
+  text-align: center;
+}
+
+/* ── Privacy sub-page ────────────────────────── */
+.dangerCard {
+  background: #3E3228; border-radius: 10px; padding: 13px;
+  margin-bottom: 10px; border: 1px solid rgba(232,50,26,0.10);
+}
+.dangerTitle {
+  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 11px;
+  color: #E8321A; margin-bottom: 6px;
+}
+.dangerText {
+  font-family: 'Figtree', sans-serif; font-size: 11px;
+  color: rgba(240,234,214,0.45); line-height: 1.55; margin-bottom: 10px;
+}
+.dangerBtn {
+  background: rgba(232,50,26,0.08); border: 1px solid rgba(232,50,26,0.18);
+  border-radius: 8px; padding: 9px 14px; text-align: center; cursor: pointer;
+  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 11px; color: #E8321A;
+  width: 100%;
+}
+
+/* ── Export sub-page ─────────────────────────── */
+.exportDesc {
+  font-family: 'Figtree', sans-serif; font-size: 11px;
+  color: rgba(240,234,214,0.40); line-height: 1.65; margin-bottom: 14px;
+}
+.exportRow {
+  background: #3E3228; border-radius: 9px; padding: 11px 13px;
+  margin-bottom: 6px; display: flex; align-items: center; gap: 10px; cursor: pointer;
+}
+.exportRowText { flex: 1; min-width: 0; }
+.exportRowTitle { font-family: 'Figtree', sans-serif; font-weight: 500; font-size: 12px; color: #F0EAD6; }
+.exportRowSub { font-family: 'Figtree', sans-serif; font-size: 9px; color: rgba(240,234,214,0.22); margin-top: 2px; }
+.exportSent {
+  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 10px; color: #4CAF50;
+  flex-shrink: 0;
+}
+.exportFooter {
+  font-family: 'Figtree', sans-serif; font-size: 9px;
+  color: rgba(240,234,214,0.22); text-align: center; line-height: 1.6;
+  margin-top: 10px;
+}
+
+/* ── About sub-page ──────────────────────────── */
+.aboutBrand {
+  background: #3E3228; border-radius: 12px; padding: 16px;
+  text-align: center; margin-bottom: 10px;
+}
+.aboutMarkWrap { margin-bottom: 10px; }
+.aboutName {
+  font-family: 'Sora', sans-serif; font-weight: 800; font-size: 16px;
+  color: #F0EAD6; letter-spacing: 0.1em; margin-bottom: 4px;
+}
+.aboutTagline { font-family: 'Figtree', sans-serif; font-size: 10px; color: rgba(240,234,214,0.22); }
+.aboutVersion { font-family: 'Figtree', sans-serif; font-size: 9px; color: rgba(240,234,214,0.16); margin-top: 4px; }
+.feedbackTitle {
+  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 11px;
+  color: #F0EAD6; margin-bottom: 6px;
+}
+.feedbackInput {
+  width: 100%; min-height: 80px; resize: vertical;
+  background: rgba(240,234,214,0.04); border: 1px solid rgba(240,234,214,0.08);
+  border-radius: 8px; padding: 10px 11px;
+  font-family: 'Figtree', sans-serif; font-size: 12px;
+  color: #F0EAD6; line-height: 1.55; margin-bottom: 8px;
+  outline: none;
+}
+.feedbackInput:focus { border-color: rgba(255,102,68,0.30); }
+.feedbackInput::placeholder { color: rgba(240,234,214,0.22); }
+.feedbackBtn {
+  width: 100%; padding: 11px; border-radius: 9px; border: none;
+  background: #FF6644; text-align: center; cursor: pointer;
+  font-family: 'Figtree', sans-serif; font-weight: 700; font-size: 12px; color: #fff;
+}
+.feedbackBtn:disabled { opacity: 0.4; cursor: default; }
+
 /* ── Log out + version ───────────────────────── */
 .logoutBtn {
   padding: 12px 14px; background: #3E3228; border-radius: 10px;
