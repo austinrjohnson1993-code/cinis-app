@@ -281,7 +281,7 @@ export default function Dashboard() {
           {activeTab === 'nutrition' && <TabErrorBoundary tabName="Nutrition"><TabNutrition {...tabProps} /></TabErrorBoundary>}
           {activeTab === 'progress' && <TabErrorBoundary tabName="Progress"><TabProgress {...tabProps} /></TabErrorBoundary>}
           {activeTab === 'guide' && <TabErrorBoundary tabName="Guide"><TabGuide {...tabProps} /></TabErrorBoundary>}
-          {activeTab === 'settings' && <TabErrorBoundary tabName="Settings"><TabSettings {...tabProps} activeTheme={activeTheme} setActiveTheme={setActiveTheme} /></TabErrorBoundary>}
+          {activeTab === 'settings' && <TabErrorBoundary tabName="Settings"><TabSettings {...tabProps} /></TabErrorBoundary>}
         </main>
 
         {/* VOICE FAB */}
