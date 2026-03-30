@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../../lib/supabase'
 import CinisMark from '../../lib/CinisMark'
@@ -11,6 +11,7 @@ const PERSONA_DISPLAY = {
   drill_sergeant: 'Drill Sergeant',
   hype_person: 'Hype Person',
   thinking_partner: 'Thinking Partner',
+  coach: 'Coach',
 }
 const PERSONA_KEYS = Object.keys(PERSONA_DISPLAY)
 
@@ -21,16 +22,39 @@ const CADENCE_OPTIONS = [
   { id: 'thorough', emoji: '\u2728', title: 'Thorough', sub: 'Full deep clean' },
 ]
 
+/* ── Color palette ─────────────────────────────────────────────────────────── */
+const C = {
+  coal: '#211A14',
+  char: '#3E3228',
+  ash: '#F0EAD6',
+  hot: '#FF6644',
+  ember: '#E8321A',
+  green: '#4CAF50',
+  gold: '#FFB800',
+  dim: 'rgba(240,234,214,0.36)',
+  ghost: 'rgba(240,234,214,0.22)',
+  micro: 'rgba(240,234,214,0.14)',
+  border: 'rgba(240,234,214,0.08)',
+}
+
+/* ── Coach memory icon colors by category ────────────────────────────────── */
+const MEMORY_ICON_COLORS = {
+  pattern: C.hot,
+  avoidance: C.ember,
+  strength: C.green,
+  default: C.hot,
+}
+
 /* ── Spark SVG ─────────────────────────────────────────────────────────────── */
-const SparkSvg = () => (
-  <svg width="9" height="9" viewBox="0 0 16 16" fill="#FF6644" style={{ flexShrink: 0, marginTop: 2 }}>
+const SparkSvg = ({ color = C.hot }) => (
+  <svg width="9" height="9" viewBox="0 0 16 16" fill={color} style={{ flexShrink: 0, marginTop: 2 }}>
     <path d="M8 0l2 5h5l-4 3 2 5-5-3-5 3 2-5L1 5h5z" />
   </svg>
 )
 
 /* ── Chevron SVG ───────────────────────────────────────────────────────────── */
 const Chevron = () => (
-  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(240,234,214,0.22)" strokeWidth="2.5" strokeLinecap="round" className={styles.chevron}>
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={C.ghost} strokeWidth="2.5" strokeLinecap="round" className={styles.chevron}>
     <path d="M9 6l6 6-6 6" />
   </svg>
 )
@@ -38,40 +62,74 @@ const Chevron = () => (
 /* ── Component ─────────────────────────────────────────────────────────────── */
 export default function TabSettings({ user, profile, setProfile, showToast, loggedFetch }) {
   const router = useRouter()
+  const patchTimeoutRef = useRef(null)
 
   // ── State ─────────────────────────────────────────────────────────────────
-  const [subpage, setSubpage] = useState(null) // null | 'billing' | 'privacy' | 'export' | 'about'
+  const [subpage, setSubpage] = useState(null) // null | 'checkin' | 'notifications' | 'account' | 'about'
   const [checkinMorning, setCheckinMorning] = useState(true)
   const [checkinMidday, setCheckinMidday] = useState(false)
   const [checkinEvening, setCheckinEvening] = useState(true)
+  const [checkinMorningTime, setCheckinMorningTime] = useState('08:00')
+  const [checkinMiddayTime, setCheckinMiddayTime] = useState('12:30')
+  const [checkinEveningTime, setCheckinEveningTime] = useState('20:00')
 
+  const [notifPush, setNotifPush] = useState(true)
   const [notifCheckin, setNotifCheckin] = useState(true)
   const [notifBills, setNotifBills] = useState(true)
   const [notifStreak, setNotifStreak] = useState(true)
 
   const [choreCadence, setChoreCadence] = useState('standard')
-  const [memoryClearing, setMemoryClearing] = useState(false) // false | 'confirm' | 'cleared'
+  const [coachMemories, setCoachMemories] = useState([])
+  const [memoriesLoading, setMemoriesLoading] = useState(false)
+  const [addingMemory, setAddingMemory] = useState(false)
+  const [newMemoryText, setNewMemoryText] = useState('')
+  const [memoryToDelete, setMemoryToDelete] = useState(null)
+  const [deletingMemory, setDeletingMemory] = useState(false)
 
-  // ── Privacy sub-page state ──────────────────────────────────────────────
+  // ── Account & privacy sub-page state ────────────────────────────────────
+  const [displayName, setDisplayName] = useState('')
+  const [displayNameEditing, setDisplayNameEditing] = useState(false)
   const [privAiStorage, setPrivAiStorage] = useState(true)
   const [privAnalytics, setPrivAnalytics] = useState(true)
-  const [deleteConfirm, setDeleteConfirm] = useState(false)
-
-  // ── Export sub-page state ───────────────────────────────────────────────
-  const [exportSending, setExportSending] = useState(null) // null | 'full' | 'journal' | 'tasks'
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deleteAccountSending, setDeleteAccountSending] = useState(false)
 
   // ── Feedback sub-page state ─────────────────────────────────────────────
   const [feedbackText, setFeedbackText] = useState('')
   const [feedbackSending, setFeedbackSending] = useState(false)
 
+  // ── Fetch coach memories on mount ───────────────────────────────────────
+  useEffect(() => {
+    const fetchMemories = async () => {
+      if (!user) return
+      setMemoriesLoading(true)
+      try {
+        const res = await loggedFetch('/api/coach-memories', { method: 'GET' })
+        if (res.ok) {
+          const data = await res.json()
+          setCoachMemories(Array.isArray(data) ? data : data.memories || [])
+        }
+      } catch {
+        console.error('Failed to fetch coach memories')
+      } finally {
+        setMemoriesLoading(false)
+      }
+    }
+    fetchMemories()
+  }, [user, loggedFetch])
+
   // ── Sync from profile ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!profile) return
+    setDisplayName(profile.full_name || '')
     const sched = profile.checkin_schedule
     if (sched) {
       setCheckinMorning(sched.morning !== false)
       setCheckinMidday(sched.midday === true)
       setCheckinEvening(sched.evening !== false)
+      if (sched.morning_time) setCheckinMorningTime(sched.morning_time)
+      if (sched.midday_time) setCheckinMiddayTime(sched.midday_time)
+      if (sched.evening_time) setCheckinEveningTime(sched.evening_time)
     } else if (Array.isArray(profile.checkin_times)) {
       setCheckinMorning(profile.checkin_times.includes('morning'))
       setCheckinMidday(profile.checkin_times.includes('midday'))
@@ -79,6 +137,7 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
     }
     const nprefs = profile.notification_prefs
     if (nprefs) {
+      setNotifPush(nprefs.push !== false)
       setNotifCheckin(nprefs.checkin !== false)
       setNotifBills(nprefs.bills !== false)
       setNotifStreak(nprefs.streak !== false)
@@ -91,7 +150,7 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
     }
   }, [profile])
 
-  // ── Patch helper ──────────────────────────────────────────────────────────
+  // ── Patch helper with debounce ────────────────────────────────────────────
   const patchProfile = async (updates) => {
     if (!user) return false
     try {
@@ -105,24 +164,93 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
     } catch { return false }
   }
 
+  // ── Debounced patch (800ms) ────────────────────────────────────────────────
+  const debouncedPatch = (updates) => {
+    if (patchTimeoutRef.current) clearTimeout(patchTimeoutRef.current)
+    patchTimeoutRef.current = setTimeout(() => {
+      patchProfile(updates)
+    }, 800)
+  }
+
   // ── Coaching blend ────────────────────────────────────────────────────────
   const blend = profile?.persona_blend || []
-  const handleBlendTap = async (key) => {
+  const handleBlendTap = (key) => {
     const current = profile?.persona_blend || []
     let next
     if (current.includes(key)) {
       next = current.filter(k => k !== key)
     } else {
-      if (current.length >= 3) return
-      next = [...current, key]
+      if (current.length >= 3) {
+        // Auto-deselect oldest when 4th tapped
+        next = [...current.slice(1), key]
+      } else {
+        next = [...current, key]
+      }
     }
     setProfile(prev => ({ ...prev, persona_blend: next }))
-    const ok = await patchProfile({ persona_blend: next })
-    if (!ok) setProfile(prev => ({ ...prev, persona_blend: current }))
+    debouncedPatch({ persona_blend: next })
+  }
+
+  // ── Format relative time ───────────────────────────────────────────────────
+  const formatRelativeTime = (isoString) => {
+    const now = new Date()
+    const date = new Date(isoString)
+    const diffMs = now - date
+    const diffSecs = Math.floor(diffMs / 1000)
+    const diffMins = Math.floor(diffSecs / 60)
+    const diffHours = Math.floor(diffMins / 60)
+    const diffDays = Math.floor(diffHours / 24)
+
+    if (diffSecs < 60) return 'just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+
+  // ── Coach memory: add ──────────────────────────────────────────────────────
+  const handleAddMemory = async () => {
+    if (!newMemoryText.trim() || !user) return
+    setAddingMemory(true)
+    try {
+      const res = await loggedFetch('/api/coach-memories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: newMemoryText.trim(), source: 'user_note' }),
+      })
+      if (res.ok) {
+        const newMem = await res.json()
+        setCoachMemories(prev => [newMem, ...prev])
+        setNewMemoryText('')
+        showToast('Memory saved')
+      }
+    } catch {
+      showToast('Failed to save memory')
+    } finally {
+      setAddingMemory(false)
+    }
+  }
+
+  // ── Coach memory: delete ───────────────────────────────────────────────────
+  const handleDeleteMemory = async (id) => {
+    if (!user) return
+    setDeletingMemory(true)
+    try {
+      const res = await loggedFetch(`/api/coach-memories/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setCoachMemories(prev => prev.filter(m => m.id !== id))
+        setMemoryToDelete(null)
+        showToast('Memory deleted')
+      }
+    } catch {
+      showToast('Failed to delete memory')
+    } finally {
+      setDeletingMemory(false)
+    }
   }
 
   // ── Check-in schedule toggle ──────────────────────────────────────────────
-  const handleCheckinToggle = async (slot) => {
+  const handleCheckinToggle = (slot) => {
     const map = { morning: [checkinMorning, setCheckinMorning], midday: [checkinMidday, setCheckinMidday], evening: [checkinEvening, setCheckinEvening] }
     const [val, setter] = map[slot]
     const newVal = !val
@@ -131,15 +259,32 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
       morning: slot === 'morning' ? newVal : checkinMorning,
       midday: slot === 'midday' ? newVal : checkinMidday,
       evening: slot === 'evening' ? newVal : checkinEvening,
+      morning_time: checkinMorningTime,
+      midday_time: checkinMiddayTime,
+      evening_time: checkinEveningTime,
     }
-    // Also update checkin_times array for backward compat
-    const checkin_times = Object.entries(newSched).filter(([, v]) => v).map(([k]) => k)
-    await patchProfile({ checkin_schedule: newSched, checkin_times })
+    const checkin_times = Object.entries(newSched).filter(([k, v]) => !k.endsWith('_time') && v).map(([k]) => k)
+    debouncedPatch({ checkin_schedule: newSched, checkin_times })
+  }
+
+  // ── Check-in time change ───────────────────────────────────────────────────
+  const handleCheckinTimeChange = (slot, time) => {
+    const map = { morning: setCheckinMorningTime, midday: setCheckinMiddayTime, evening: setCheckinEveningTime }
+    map[slot](time)
+    const newSched = {
+      morning: checkinMorning,
+      midday: checkinMidday,
+      evening: checkinEvening,
+      morning_time: slot === 'morning' ? time : checkinMorningTime,
+      midday_time: slot === 'midday' ? time : checkinMiddayTime,
+      evening_time: slot === 'evening' ? time : checkinEveningTime,
+    }
+    debouncedPatch({ checkin_schedule: newSched })
   }
 
   // ── Notification toggles ──────────────────────────────────────────────────
   const handleNotifToggle = async (key) => {
-    const map = { checkin: [notifCheckin, setNotifCheckin], bills: [notifBills, setNotifBills], streak: [notifStreak, setNotifStreak] }
+    const map = { push: [notifPush, setNotifPush], checkin: [notifCheckin, setNotifCheckin], bills: [notifBills, setNotifBills], streak: [notifStreak, setNotifStreak] }
     const [val, setter] = map[key]
     const newVal = !val
     setter(newVal)
@@ -147,30 +292,42 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
       await Notification.requestPermission()
     }
     const newPrefs = {
+      push: key === 'push' ? newVal : notifPush,
       checkin: key === 'checkin' ? newVal : notifCheckin,
       bills: key === 'bills' ? newVal : notifBills,
       streak: key === 'streak' ? newVal : notifStreak,
     }
-    await patchProfile({ notification_prefs: newPrefs })
+    debouncedPatch({ notification_prefs: newPrefs })
   }
 
   // ── Chore cadence ─────────────────────────────────────────────────────────
-  const handleCadence = async (id) => {
+  const handleCadence = (id) => {
     setChoreCadence(id)
     setProfile(prev => ({ ...prev, chore_cadence: id }))
-    await patchProfile({ chore_cadence: id })
+    debouncedPatch({ chore_cadence: id })
   }
 
-  // ── Clear memory ──────────────────────────────────────────────────────────
-  const handleClearMemory = async () => {
-    setMemoryClearing('cleared')
-    setProfile(prev => ({ ...prev, coach_memory: [], coach_memory_updated_at: null }))
-    await loggedFetch('/api/profile/memory', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user.id }) }).catch(() => {})
-    showToast('Memory cleared')
+  // ── Save display name ──────────────────────────────────────────────────────
+  const handleSaveDisplayName = async () => {
+    if (!displayName.trim() || !user) return
+    try {
+      const res = await loggedFetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, updates: { full_name: displayName.trim() } }),
+      })
+      if (res.ok) {
+        setProfile(prev => ({ ...prev, full_name: displayName.trim() }))
+        setDisplayNameEditing(false)
+        showToast('Name updated')
+      }
+    } catch {
+      showToast('Failed to update name')
+    }
   }
 
-  // ── Privacy toggles ──────────────────────────────────────────────────────
-  const handlePrivacyToggle = async (key) => {
+  // ── Privacy toggles ──────────────────────────────────────────────────
+  const handlePrivacyToggle = (key) => {
     const map = { ai_storage: [privAiStorage, setPrivAiStorage], analytics: [privAnalytics, setPrivAnalytics] }
     const [val, setter] = map[key]
     const newVal = !val
@@ -179,20 +336,25 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
       ai_storage: key === 'ai_storage' ? newVal : privAiStorage,
       analytics: key === 'analytics' ? newVal : privAnalytics,
     }
-    await patchProfile({ privacy_prefs: newPrefs })
+    debouncedPatch({ privacy_prefs: newPrefs })
   }
 
-  // ── Export handler ──────────────────────────────────────────────────────
-  const handleExport = async (type) => {
-    setExportSending(type)
+  // ── Delete account ────────────────────────────────────────────────────────
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE' || !user) return
+    setDeleteAccountSending(true)
     try {
-      await loggedFetch(`/api/export?type=${type}`, {
-        method: 'GET',
+      await loggedFetch('/api/delete-account', {
+        method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
       })
-      showToast(`Export sent to ${user?.email}`)
-    } catch { showToast('Export failed') }
-    setTimeout(() => setExportSending(null), 2000)
+      await supabase.auth.signOut()
+      router.push('/')
+    } catch {
+      showToast('Delete failed')
+      setDeleteAccountSending(false)
+    }
   }
 
   // ── Feedback handler ────────────────────────────────────────────────────
@@ -205,108 +367,165 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, message: feedbackText.trim() }),
       })
-      showToast('Thanks \u2014 got it.')
+      showToast('Thanks — got it.')
       setFeedbackText('')
     } catch { showToast('Failed to send') }
     setFeedbackSending(false)
   }
 
-  // ── Delete account handler ──────────────────────────────────────────────
-  const handleDeleteAccount = async () => {
-    try {
-      await loggedFetch('/api/delete-account', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user.id }) })
-      await supabase.auth.signOut()
-      router.push('/')
-    } catch { showToast('Delete failed') }
-  }
-
   // ── Derived ───────────────────────────────────────────────────────────────
   const firstName = profile?.full_name?.split(' ')[0] || ''
   const initial = firstName?.charAt(0)?.toUpperCase() || '?'
-  const isPro = profile?.plan === 'pro'
-  const memory = profile?.coach_memory || []
-  const memoryDate = profile?.coach_memory_updated_at
-    ? new Date(profile.coach_memory_updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    : null
+  const isPro = profile?.subscription_status === 'pro'
 
   // ── Sub-page back header ──────────────────────────────────────────────────
   const SubHeader = ({ title }) => (
     <div className={styles.subHeader} onClick={() => setSubpage(null)}>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,234,214,0.22)" strokeWidth="2.5" strokeLinecap="round">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.ghost} strokeWidth="2.5" strokeLinecap="round">
         <path d="M15 18l-6-6 6-6" />
       </svg>
       <span className={styles.subHeaderTitle}>{title}</span>
     </div>
   )
 
-  /* ── SUB-PAGE: Billing ──────────────────────────────────────────────────── */
-  if (subpage === 'billing') return (
+  /* ── SUB-PAGE: Check-in schedule ────────────────────────────────────────── */
+  if (subpage === 'checkin') return (
     <div className={styles.wrap}>
       <div className={styles.subWrap}>
-        <SubHeader title="Subscription & billing" />
+        <SubHeader title="Check-in schedule" />
 
-        {/* Current plan */}
-        <div className={styles.cardPad}>
-          <div className={styles.billingPlanRow}>
-            <div>
-              <div className={styles.billingPlanName}>{isPro ? 'Cinis Pro' : 'Cinis Free'}</div>
-              <div className={styles.billingPlanDesc}>{isPro ? 'Full access to all features' : 'Basic productivity tools'}</div>
-            </div>
-            <span className={isPro ? styles.planPro : styles.planFree}>{isPro ? 'ACTIVE' : 'FREE'}</span>
-          </div>
-
-          {!isPro && (
-            <>
-              <div className={styles.divider} />
-              <div className={styles.missLabel}>What you&apos;re missing</div>
-              {['Coach memory across sessions', 'SMS check-in reminders', '15 AI interactions per day'].map(item => (
-                <div key={item} className={styles.missRow}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(240,234,214,0.22)" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
-                  <span className={styles.missText}>{item}</span>
-                </div>
-              ))}
-              <button className={styles.upgradeCta} onClick={() => router.push('/pricing')}>
-                <div className={styles.upgradeCtaTitle}>Upgrade to Pro &mdash; $14/mo</div>
-                <div className={styles.upgradeCtaSub}>or $99/year &middot; cancel anytime</div>
-              </button>
-            </>
-          )}
-
-          {isPro && (
-            <>
-              <div className={styles.divider} />
-              <div className={styles.billingDetailRow}><span className={styles.billingDetailLabel}>Next renewal</span><span className={styles.billingDetailVal}>Managed by Stripe</span></div>
-              <button className={styles.cancelBtn} onClick={() => console.log('[settings] cancel sub')}>Cancel subscription</button>
-            </>
-          )}
-        </div>
-
-        {/* Payment & history */}
-        <div className={styles.secLabel}>PAYMENT & HISTORY</div>
         <div className={styles.card}>
-          <div className={styles.toggleRow}>
-            <div className={styles.toggleLeft}>
-              <div className={styles.toggleLabel}>Payment method</div>
-              <div className={styles.toggleSub}>{isPro ? 'Visa ending in ••••' : 'No payment method on file'}</div>
+          {[
+            { key: 'morning', label: 'Morning', val: checkinMorning, time: checkinMorningTime },
+            { key: 'midday', label: 'Midday', val: checkinMidday, time: checkinMiddayTime },
+            { key: 'evening', label: 'Evening', val: checkinEvening, time: checkinEveningTime, last: true },
+          ].map(({ key, label, val, time, last }) => (
+            <div key={key} className={last ? styles.toggleRowLast : styles.toggleRow}>
+              <div className={styles.toggleLeft}>
+                <div className={styles.toggleLabel}>{label}</div>
+                <input
+                  type="time"
+                  value={time}
+                  onChange={(e) => handleCheckinTimeChange(key, e.target.value)}
+                  className={styles.timeInput}
+                  disabled={!val}
+                />
+              </div>
+              <button className={val ? styles.toggleOn : styles.toggle} onClick={() => handleCheckinToggle(key)}>
+                <span className={val ? styles.toggleThumbOn : styles.toggleThumb} />
+              </button>
             </div>
-          </div>
-          <div className={styles.toggleRowLast}>
-            <div className={styles.toggleLeft}>
-              <div className={styles.toggleLabel}>Billing history</div>
-              <div className={styles.toggleSub}>{isPro ? 'View invoices' : 'No charges yet'}</div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
   )
 
-  /* ── SUB-PAGE: Privacy ──────────────────────────────────────────────────── */
-  if (subpage === 'privacy') return (
+  /* ── SUB-PAGE: Notifications ────────────────────────────────────────────── */
+  if (subpage === 'notifications') return (
     <div className={styles.wrap}>
       <div className={styles.subWrap}>
-        <SubHeader title="Data & privacy" />
+        <SubHeader title="Notifications" />
 
+        <div className={styles.card}>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleLeft}>
+              <div className={styles.toggleLabel}>Push notifications</div>
+              <div className={styles.toggleSub}>Browser & mobile alerts</div>
+            </div>
+            <button className={notifPush ? styles.toggleOn : styles.toggle} onClick={() => handleNotifToggle('push')}>
+              <span className={notifPush ? styles.toggleThumbOn : styles.toggleThumb} />
+            </button>
+          </div>
+          {notifPush && (
+            <>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleLeft}>
+                  <div className={styles.toggleLabel}>Check-in reminders</div>
+                  <div className={styles.toggleSub}>Per schedule</div>
+                </div>
+                <button className={notifCheckin ? styles.toggleOn : styles.toggle} onClick={() => handleNotifToggle('checkin')}>
+                  <span className={notifCheckin ? styles.toggleThumbOn : styles.toggleThumb} />
+                </button>
+              </div>
+              <div className={styles.toggleRow}>
+                <div className={styles.toggleLeft}>
+                  <div className={styles.toggleLabel}>Bill due alerts</div>
+                  <div className={styles.toggleSub}>2 days before due date</div>
+                </div>
+                <button className={notifBills ? styles.toggleOn : styles.toggle} onClick={() => handleNotifToggle('bills')}>
+                  <span className={notifBills ? styles.toggleThumbOn : styles.toggleThumb} />
+                </button>
+              </div>
+              <div className={styles.toggleRowLast}>
+                <div className={styles.toggleLeft}>
+                  <div className={styles.toggleLabel}>Streak at risk</div>
+                  <div className={styles.toggleSub}>If no activity by 9pm</div>
+                </div>
+                <button className={notifStreak ? styles.toggleOn : styles.toggle} onClick={() => handleNotifToggle('streak')}>
+                  <span className={notifStreak ? styles.toggleThumbOn : styles.toggleThumb} />
+                </button>
+              </div>
+            </>
+          )}
+          {!notifPush && (
+            <div className={styles.toggleRowLast} />
+          )}
+        </div>
+      </div>
+    </div>
+  )
+
+  /* ── SUB-PAGE: Account & privacy ────────────────────────────────────────── */
+  if (subpage === 'account') return (
+    <div className={styles.wrap}>
+      <div className={styles.subWrap}>
+        <SubHeader title="Account & privacy" />
+
+        {/* Display name */}
+        <div className={styles.card}>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleLeft}>
+              <div className={styles.toggleLabel}>Display name</div>
+              {displayNameEditing ? (
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className={styles.nameEditInput}
+                  autoFocus
+                />
+              ) : (
+                <div className={styles.toggleSub}>{displayName || 'Not set'}</div>
+              )}
+            </div>
+            {displayNameEditing ? (
+              <button className={styles.saveNameBtn} onClick={handleSaveDisplayName}>Save</button>
+            ) : (
+              <button className={styles.editNameBtn} onClick={() => setDisplayNameEditing(true)}>Edit</button>
+            )}
+          </div>
+          <div className={styles.toggleRowLast}>
+            <div className={styles.toggleLeft}>
+              <div className={styles.toggleLabel}>Email address</div>
+              <div className={styles.toggleSub}>{user?.email}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Password */}
+        <div className={styles.card}>
+          <div className={styles.toggleRowLast}>
+            <div className={styles.toggleLeft}>
+              <div className={styles.toggleLabel}>Password</div>
+              <div className={styles.toggleSub}>Manage your login security</div>
+            </div>
+            <button className={styles.changePasswordBtn} onClick={() => window.open('https://getcinis.app/change-password', '_blank')}>Change</button>
+          </div>
+        </div>
+
+        {/* Privacy toggles */}
+        <div className={styles.secLabel}>DATA & PRIVACY</div>
         <div className={styles.card}>
           <div className={styles.toggleRow}>
             <div className={styles.toggleLeft}>
@@ -317,7 +536,7 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
               <span className={privAiStorage ? styles.toggleThumbOn : styles.toggleThumb} />
             </button>
           </div>
-          <div className={styles.toggleRow}>
+          <div className={styles.toggleRowLast}>
             <div className={styles.toggleLeft}>
               <div className={styles.toggleLabel}>Usage analytics</div>
               <div className={styles.toggleSub}>Helps improve the product (anonymous)</div>
@@ -326,8 +545,16 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
               <span className={privAnalytics ? styles.toggleThumbOn : styles.toggleThumb} />
             </button>
           </div>
-          <div className={styles.accountRowLast} onClick={() => window.open('https://getcinis.app/privacy', '_blank')}>
-            <span className={styles.accountRowLabel}>Privacy policy</span>
+        </div>
+
+        {/* Export data */}
+        <div className={styles.secLabel}>EXPORT DATA</div>
+        <div className={styles.card}>
+          <div className={styles.toggleRowLast} onClick={() => showToast('Export feature coming soon')}>
+            <div className={styles.toggleLeft}>
+              <div className={styles.toggleLabel}>Download my data</div>
+              <div className={styles.toggleSub}>JSON export sent to email</div>
+            </div>
             <Chevron />
           </div>
         </div>
@@ -336,55 +563,27 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
         <div className={styles.dangerCard}>
           <div className={styles.dangerTitle}>Danger zone</div>
           <div className={styles.dangerText}>Deleting your account removes all data permanently. This cannot be undone.</div>
-          {!deleteConfirm ? (
-            <button className={styles.dangerBtn} onClick={() => setDeleteConfirm(true)}>Delete my account</button>
-          ) : (
-            <div>
-              <div className={styles.memoryConfirmText}>Are you absolutely sure? All data will be permanently deleted.</div>
-              <div className={styles.memoryConfirmRow}>
-                <button className={styles.memoryConfirmYes} onClick={handleDeleteAccount}>Yes, delete</button>
-                <button className={styles.memoryConfirmCancel} onClick={() => setDeleteConfirm(false)}>Cancel</button>
-              </div>
-            </div>
-          )}
+          <div className={styles.dangerSubText}>Type DELETE to confirm:</div>
+          <input
+            type="text"
+            placeholder="DELETE"
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            className={styles.deleteConfirmInput}
+          />
+          <button
+            className={deleteConfirmText === 'DELETE' ? styles.dangerBtnActive : styles.dangerBtn}
+            disabled={deleteConfirmText !== 'DELETE' || deleteAccountSending}
+            onClick={handleDeleteAccount}
+          >
+            {deleteAccountSending ? 'Deleting...' : 'Delete my account'}
+          </button>
         </div>
       </div>
     </div>
   )
 
-  /* ── SUB-PAGE: Export ────────────────────────────────────────────────────── */
-  if (subpage === 'export') return (
-    <div className={styles.wrap}>
-      <div className={styles.subWrap}>
-        <SubHeader title="Export my data" />
-
-        <div className={styles.exportDesc}>Download a copy of your data. Exports are sent to your email within a few minutes.</div>
-
-        {[
-          { type: 'full', title: 'Full data export', sub: 'JSON \u00B7 all records \u00B7 sent to email', color: '#4CAF50', icon: 'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3' },
-          { type: 'journal', title: 'Journal entries only', sub: 'Markdown \u00B7 all entries', color: '#3B8BD4', icon: 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8' },
-          { type: 'tasks', title: 'Task history', sub: 'CSV \u00B7 completed + active', color: '#FFB800', icon: 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8' },
-        ].map(opt => (
-          <div key={opt.type} className={styles.exportRow} onClick={() => handleExport(opt.type)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={opt.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={opt.icon} /></svg>
-            <div className={styles.exportRowText}>
-              <div className={styles.exportRowTitle}>{opt.title}</div>
-              <div className={styles.exportRowSub}>{opt.sub}</div>
-            </div>
-            {exportSending === opt.type ? (
-              <span className={styles.exportSent}>Sent</span>
-            ) : (
-              <Chevron />
-            )}
-          </div>
-        ))}
-
-        <div className={styles.exportFooter}>Export is sent to {user?.email} within a few minutes.</div>
-      </div>
-    </div>
-  )
-
-  /* ── SUB-PAGE: About ────────────────────────────────────────────────────── */
+  /* ── SUB-PAGE: About & feedback ─────────────────────────────────────────── */
   if (subpage === 'about') return (
     <div className={styles.wrap}>
       <div className={styles.subWrap}>
@@ -395,14 +594,12 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
           <div className={styles.aboutMarkWrap}><CinisMark size={40} /></div>
           <div className={styles.aboutName}>CINIS</div>
           <div className={styles.aboutTagline}>Where start meets finished.</div>
-          <div className={styles.aboutVersion}>v0.9.1 &middot; Built in Georgetown, TX</div>
+          <div className={styles.aboutVersion}>v0.9.1 Built in Georgetown, TX</div>
         </div>
 
         {/* Links */}
         <div className={styles.card}>
           {[
-            { label: 'Send feedback', action: () => {} },
-            { label: 'Rate Cinis', action: () => {} },
             { label: 'Terms of service', action: () => window.open('https://getcinis.app/terms', '_blank') },
             { label: 'Privacy policy', action: () => window.open('https://getcinis.app/privacy', '_blank'), last: true },
           ].map(({ label, action, last }) => (
@@ -455,7 +652,7 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
         <div className={styles.upgradeBanner} onClick={() => router.push('/pricing')}>
           <div className={styles.upgradeLeft}>
             <div className={styles.upgradeTitle}>Upgrade to Pro</div>
-            <div className={styles.upgradeSub}>Memory &middot; SMS &middot; 15 AI/day &middot; $14/mo</div>
+            <div className={styles.upgradeSub}>Memory · SMS · 15 AI/day · $14/mo</div>
           </div>
           <div className={styles.upgradeArrow}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M9 6l6 6-6 6" /></svg>
@@ -483,7 +680,7 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
             Active:{' '}
             {blend.map((k, i) => (
               <span key={k}>
-                {i > 0 && ' \u00B7 '}
+                {i > 0 && ' · '}
                 <span className={styles.blendName}>{PERSONA_DISPLAY[k] || k}</span>
               </span>
             ))}
@@ -491,47 +688,7 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
         )}
       </div>
 
-      {/* 5 — Check-in schedule */}
-      <div className={styles.secLabel}>CHECK-IN SCHEDULE</div>
-      <div className={styles.card}>
-        {[
-          { key: 'morning', label: 'Morning', time: '8:00 AM', val: checkinMorning },
-          { key: 'midday', label: 'Midday', time: '12:30 PM', val: checkinMidday },
-          { key: 'evening', label: 'Evening', time: '8:00 PM', val: checkinEvening, last: true },
-        ].map(({ key, label, time, val, last }) => (
-          <div key={key} className={last ? styles.toggleRowLast : styles.toggleRow}>
-            <div className={styles.toggleLeft}>
-              <div className={styles.toggleLabel}>{label}</div>
-              <div className={styles.toggleSub}>{time}</div>
-            </div>
-            <button className={val ? styles.toggleOn : styles.toggle} onClick={() => handleCheckinToggle(key)}>
-              <span className={val ? styles.toggleThumbOn : styles.toggleThumb} />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* 6 — Notifications */}
-      <div className={styles.secLabel}>NOTIFICATIONS</div>
-      <div className={styles.card}>
-        {[
-          { key: 'checkin', label: 'Check-in reminders', sub: 'Push per schedule', val: notifCheckin },
-          { key: 'bills', label: 'Bill due alerts', sub: '2 days before due date', val: notifBills },
-          { key: 'streak', label: 'Streak at risk', sub: 'If no activity by 9pm', val: notifStreak, last: true },
-        ].map(({ key, label, sub, val, last }) => (
-          <div key={key} className={last ? styles.toggleRowLast : styles.toggleRow}>
-            <div className={styles.toggleLeft}>
-              <div className={styles.toggleLabel}>{label}</div>
-              <div className={styles.toggleSub}>{sub}</div>
-            </div>
-            <button className={val ? styles.toggleOn : styles.toggle} onClick={() => handleNotifToggle(key)}>
-              <span className={val ? styles.toggleThumbOn : styles.toggleThumb} />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* 7 — Chore cadence */}
+      {/* 5 — Chore cadence */}
       <div className={styles.secLabel}>CHORE CADENCE</div>
       <div className={styles.cardPad}>
         <div className={styles.cadenceDesc}>How often chores show up in your Routines. Adjusts the full preset.</div>
@@ -549,8 +706,8 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
         </div>
       </div>
 
-      {/* 8 — Coach's memory */}
-      <div className={styles.secLabel}>COACH&apos;S MEMORY</div>
+      {/* 6 — Coach's memory */}
+      <div className={styles.secLabel}>COACH'S MEMORY</div>
       <div className={styles.cardPad}>
         <div className={styles.memoryHeader}>
           <div className={styles.memoryIcon}>
@@ -560,43 +717,77 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
         </div>
 
         <div className={styles.memoryStack}>
-          {memory.length > 0 ? memory.map((item, i) => (
-            <div key={i} className={styles.memoryItem}>
-              <SparkSvg />
-              <div className={styles.memoryItemText}>{item}</div>
-            </div>
-          )) : (
+          {memoriesLoading ? (
+            <div className={styles.memoryEmpty}>Loading...</div>
+          ) : coachMemories.length > 0 ? (
+            coachMemories.map((mem) => {
+              const category = mem.category || 'default'
+              const iconColor = MEMORY_ICON_COLORS[category] || MEMORY_ICON_COLORS.default
+              return (
+                <div key={mem.id} className={styles.memoryCard}>
+                  <div className={styles.memoryCardContent}>
+                    <SparkSvg color={iconColor} />
+                    <div className={styles.memoryCardText}>{mem.text}</div>
+                  </div>
+                  <div className={styles.memoryCardMeta}>
+                    Learned from {mem.source || 'check-in'} · {formatRelativeTime(mem.created_at)}
+                  </div>
+                  <button
+                    className={styles.memoryDeleteBtn}
+                    onClick={() => handleDeleteMemory(mem.id)}
+                    disabled={deletingMemory}
+                  >
+                    ×
+                  </button>
+                </div>
+              )
+            })
+          ) : (
             <div className={styles.memoryEmpty}>
               Your coach is still learning your patterns. Check in a few more times to build memory.
             </div>
           )}
         </div>
 
-        <div className={styles.memoryFooter}>
-          <span className={styles.memoryDate}>{memoryDate ? `Last updated ${memoryDate}` : ''}</span>
-          {memoryClearing === 'confirm' ? (
-            <div>
-              <div className={styles.memoryConfirmText}>This will clear everything your coach has learned. Are you sure?</div>
-              <div className={styles.memoryConfirmRow}>
-                <button className={styles.memoryConfirmYes} onClick={handleClearMemory}>Yes, clear</button>
-                <button className={styles.memoryConfirmCancel} onClick={() => setMemoryClearing(false)}>Cancel</button>
+        {/* Add memory context row */}
+        <div className={styles.memoryAddRow}>
+          <div className={styles.memoryAddPrompt}>+ Tell your coach something...</div>
+          {addingMemory && (
+            <div className={styles.memoryAddForm}>
+              <textarea
+                className={styles.memoryAddInput}
+                placeholder="What should your coach remember about you?"
+                value={newMemoryText}
+                onChange={(e) => setNewMemoryText(e.target.value)}
+                autoFocus
+              />
+              <div className={styles.memoryAddButtons}>
+                <button
+                  className={styles.memoryAddSaveBtn}
+                  onClick={handleAddMemory}
+                  disabled={!newMemoryText.trim()}
+                >
+                  Save
+                </button>
+                <button
+                  className={styles.memoryAddCancelBtn}
+                  onClick={() => { setNewMemoryText(''); setAddingMemory(false); }}
+                >
+                  Cancel
+                </button>
               </div>
             </div>
-          ) : memoryClearing === 'cleared' ? (
-            <span className={styles.memoryClearedBtn}>Cleared</span>
-          ) : (
-            <button className={styles.memoryClearBtn} onClick={() => setMemoryClearing('confirm')}>Clear memory</button>
           )}
         </div>
       </div>
 
-      {/* 9 — Account */}
-      <div className={styles.secLabel}>ACCOUNT</div>
+      {/* 7 — Settings nav */}
+      <div className={styles.secLabel}>SETTINGS</div>
       <div className={styles.card}>
         {[
-          { label: 'Subscription & billing', page: 'billing' },
-          { label: 'Data & privacy', page: 'privacy' },
-          { label: 'Export my data', page: 'export' },
+          { label: 'Check-in schedule', page: 'checkin' },
+          { label: 'Notifications', page: 'notifications' },
+          { label: 'Account & privacy', page: 'account' },
           { label: 'About & feedback', page: 'about', last: true },
         ].map(({ label, page, last }) => (
           <div
@@ -610,11 +801,11 @@ export default function TabSettings({ user, profile, setProfile, showToast, logg
         ))}
       </div>
 
-      {/* 10 — Log out + version */}
+      {/* 8 — Log out + version */}
       <button className={styles.logoutBtn} onClick={async () => { await supabase.auth.signOut(); router.push('/login') }}>
         Log out
       </button>
-      <div className={styles.version}>Cinis v0.9.1 &middot; Built in Georgetown, TX</div>
+      <div className={styles.version}>Cinis v0.9.1 · Built in Georgetown, TX</div>
     </div>
   )
 }

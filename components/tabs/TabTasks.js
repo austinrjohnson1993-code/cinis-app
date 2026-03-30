@@ -181,18 +181,48 @@ export default function TabTasks({ user, profile, tasks = [], setTasks, showToas
   return (
     <div className={styles.wrap}>
 
-      {/* ── Date + Add row ───────────────────────────────────────────── */}
-      <div className={styles.dateRow}>
-        <span className={styles.dateLabel}>
-          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-        </span>
-        <button className={styles.addPill} onClick={() => setShowAddForm(v => !v)}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FF6644" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          Add
-        </button>
-      </div>
+      {/* ── EMPTY STATE ──────────────────────────────────────────────── */}
+      {tasks.length === 0 && !loading && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '100vh' }}>
+          {/* Icon circle */}
+          <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,102,68,0.08)', border: '1px solid rgba(255,102,68,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF6644" strokeWidth="1.5" strokeLinecap="round">
+              <path d="M9 11l3 3L22 4" />
+              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+            </svg>
+          </div>
+          {/* Heading */}
+          <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: '#F0EAD6', marginBottom: 6 }}>
+            Nothing on the list.
+          </div>
+          {/* Body */}
+          <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.35)', lineHeight: 1.65, maxWidth: 220, marginBottom: 20 }}>
+            Add your first task — type it, paste a list, or just say it.
+          </div>
+          {/* CTA buttons */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setShowAddForm(true)} style={{ background: '#FF6644', padding: '10px 18px', borderRadius: 9, fontSize: 12, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer' }}>
+              Add a task
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── MAIN CONTENT (hidden if tasks empty) ────────────────────── */}
+      {(tasks.length > 0 || loading) && (
+        <>
+          {/* ── Date + Add row ───────────────────────────────────────────── */}
+          <div className={styles.dateRow}>
+            <span className={styles.dateLabel}>
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+            </span>
+            <button className={styles.addPill} onClick={() => setShowAddForm(v => !v)}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FF6644" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add
+            </button>
+          </div>
 
       {/* ── Greeting card ────────────────────────────────────────────── */}
       {greet && (
@@ -442,6 +472,8 @@ export default function TabTasks({ user, profile, tasks = [], setTasks, showToas
           />
         </div>
       </div>
+        </>
+      )}
 
     </div>
   )

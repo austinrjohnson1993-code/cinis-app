@@ -64,7 +64,7 @@ const INSIGHT_META = {
 }
 
 /* ── Component ────────────────────────────────────────────────────────────────── */
-export default function TabProgress({ user, profile, tasks = [], showToast, loggedFetch }) {
+export default function TabProgress({ user, profile, tasks = [], showToast, loggedFetch, switchTab }) {
   const [band, setBand] = useState('week')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -317,6 +317,53 @@ export default function TabProgress({ user, profile, tasks = [], showToast, logg
       <ErrorState message="Couldn't load your data." onRetry={() => { setError(false); setLoading(true) }} />
     </div>
   )
+
+  // ── Empty state check: less than 3 days of data OR total events < 5
+  const totalEvents = tasks.filter(t => t.completed).length + journalEntries.length
+  const daysWithData = new Set()
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  tasks.forEach(t => {
+    if (t.completed && t.completed_at) {
+      const d = new Date(t.completed_at); d.setHours(0, 0, 0, 0)
+      daysWithData.add(d.getTime())
+    }
+  })
+  journalEntries.forEach(j => {
+    if (j.created_at) {
+      const d = new Date(j.created_at); d.setHours(0, 0, 0, 0)
+      daysWithData.add(d.getTime())
+    }
+  })
+  const hasInsuffientData = daysWithData.size < 3 || totalEvents < 5
+
+  if (hasInsuffientData) {
+    return (
+      <div className={styles.outer} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '100vh' }}>
+        {/* Icon circle */}
+        <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,184,0,0.08)', border: '1px solid rgba(255,184,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFB800" strokeWidth="1.5" strokeLinecap="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+        </div>
+        {/* Heading */}
+        <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: '#F0EAD6', marginBottom: 6 }}>
+          Building your picture.
+        </div>
+        {/* Body */}
+        <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.35)', lineHeight: 1.65, maxWidth: 240, marginBottom: 6 }}>
+          Check back after a few days. Progress needs data to show you something worth seeing.
+        </div>
+        {/* Sub-line */}
+        <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.22)', marginBottom: 20 }}>
+          Complete tasks, check in, run focus sessions.
+        </div>
+        {/* CTA button (ghost) */}
+        <button onClick={() => switchTab?.('tasks')} style={{ background: 'rgba(240,234,214,0.06)', border: '1px solid rgba(240,234,214,0.10)', borderRadius: 9, padding: '10px 20px', fontSize: 12, color: 'rgba(240,234,214,0.45)', cursor: 'pointer' }}>
+          Go to tasks
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.outer}>
