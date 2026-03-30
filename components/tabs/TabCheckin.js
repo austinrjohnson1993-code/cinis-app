@@ -144,15 +144,24 @@ export default function TabCheckin({ user, profile, tasks = [], showToast, logge
       {/* ── Thread ──────────────────────────────────────────────────── */}
       <div className={styles.thread}>
         {messages.length === 0 && (
-          <>
-            <div className={styles.sessionPillWrap}>
-              <div className={styles.sessionPill}>
-                <div className={styles.sessionDot} />
-                <span className={styles.sessionLabel}>{sessionType} &middot; {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
-              </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '100%' }}>
+            {/* Icon circle */}
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,102,68,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+              <CinisMark size={22} />
             </div>
-            <div className={styles.emptyState}>Your coach is ready.<br />What&rsquo;s on your mind?</div>
-          </>
+            {/* Heading */}
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: '#F0EAD6', marginBottom: 6 }}>
+              Your coach is ready.
+            </div>
+            {/* Body */}
+            <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.35)', lineHeight: 1.65, maxWidth: 230, marginBottom: 20 }}>
+              No check-ins yet. Start a conversation — your coach knows your tasks and patterns.
+            </div>
+            {/* CTA button */}
+            <button onClick={() => { setInput(''); inputRef.current?.focus() }} style={{ background: '#FF6644', padding: '10px 20px', borderRadius: 9, fontSize: 12, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer' }}>
+              Start check-in
+            </button>
+          </div>
         )}
 
         {messages.map((m, i) => m.role === 'assistant' ? (

@@ -79,6 +79,10 @@ async function handler(req, res, userId) {
       fat_g,
       meal_type,
       logged_at,
+      template_id,
+      description,
+      items,
+      confidence,
     } = req.body
 
     if (!meal_name) return res.status(400).json({ error: 'meal_name required' })
@@ -98,13 +102,16 @@ async function handler(req, res, userId) {
       .insert({
         user_id:          userId,
         meal_name:        cleanName,
-        food_description: food_description ? sanitizeNotes(food_description) : null,
+        food_description: food_description || description ? sanitizeNotes(food_description || description) : null,
         calories:         parsedCalories,
         protein_g:        parseFloat(protein_g) || 0,
         carbs_g:          parseFloat(carbs_g)   || 0,
         fat_g:            parseFloat(fat_g)     || 0,
         meal_type:        meal_type || null,
         logged_at:        logged_at || new Date().toISOString(),
+        template_id:      template_id || null,
+        items:            items || null,
+        confidence:       confidence || null,
       })
       .select()
       .single()
@@ -112,6 +119,30 @@ async function handler(req, res, userId) {
     if (error) {
       console.error('[nutrition/log:POST] error:', JSON.stringify(error))
       return res.status(500).json({ error: 'Failed to log meal' })
+    }
+
+    // If template_id provided, increment the log_count
+    if (template_id) {
+      const { data: template, error: fetchErr } = await supabaseAdmin
+        .from('meal_templates')
+        .select('log_count')
+        .eq('id', template_id)
+        .eq('user_id', userId)
+        .single()
+
+      if (!fetchErr && template) {
+        const newCount = (template.log_count || 0) + 1
+        const { error: updateErr } = await supabaseAdmin
+          .from('meal_templates')
+          .update({ log_count: newCount })
+          .eq('id', template_id)
+          .eq('user_id', userId)
+
+        if (updateErr) {
+          console.error('[nutrition/log:POST] template update error:', JSON.stringify(updateErr))
+          // Don't fail the meal log if template update fails
+        }
+      }
     }
 
     return res.status(200).json({ entry })

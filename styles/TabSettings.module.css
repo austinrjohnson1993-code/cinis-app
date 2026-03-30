@@ -1,4 +1,4 @@
-/* TabSettings v2 — full settings page */
+/* TabSettings v3 — rebuilt with new coach memories and subpages */
 
 .wrap { padding: 14px 14px 80px; overflow-y: auto; height: 100%; }
 
@@ -82,7 +82,7 @@
   padding: 12px 14px; border-bottom: 1px solid rgba(240,234,214,0.06);
 }
 .toggleRowLast { composes: toggleRow; border-bottom: none; }
-.toggleLeft {}
+.toggleLeft { flex: 1; }
 .toggleLabel { font-family: 'Figtree', sans-serif; font-size: 12px; color: #F0EAD6; }
 .toggleSub { font-family: 'Figtree', sans-serif; font-size: 9px; color: rgba(240,234,214,0.22); margin-top: 2px; }
 
@@ -99,6 +99,16 @@
   background: rgba(240,234,214,0.40); transition: transform 0.2s, background 0.2s;
 }
 .toggleThumbOn { composes: toggleThumb; transform: translateX(16px); background: #fff; }
+
+/* ── Time input ──────────────────────────────── */
+.timeInput {
+  margin-top: 4px; padding: 6px 8px; border-radius: 6px;
+  background: rgba(240,234,214,0.05); border: 1px solid rgba(240,234,214,0.08);
+  color: #F0EAD6; font-family: 'Figtree', sans-serif; font-size: 11px;
+  width: 100px;
+}
+.timeInput:disabled { opacity: 0.4; cursor: not-allowed; }
+.timeInput:focus { outline: none; border-color: rgba(255,102,68,0.30); }
 
 /* ── Chore cadence ──────────────────────────── */
 .cadenceDesc {
@@ -126,7 +136,7 @@
 }
 .cadenceSubActive { composes: cadenceSub; color: rgba(255,102,68,0.60); }
 
-/* ── Coach's memory ──────────────────────────── */
+/* ── Coach's memory (NEW) ────────────────────── */
 .memoryHeader {
   display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
 }
@@ -138,53 +148,77 @@
   font-family: 'Figtree', sans-serif; font-size: 11px;
   color: rgba(240,234,214,0.45); line-height: 1.5; flex: 1;
 }
-.memoryStack { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-.memoryItem {
-  display: flex; align-items: flex-start; gap: 8px;
-  padding: 9px 10px; background: rgba(240,234,214,0.04);
-  border-radius: 8px; border-left: 2px solid rgba(255,102,68,0.30);
+.memoryStack { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.memoryCard {
+  position: relative;
+  background: #3E3228; border-radius: 10px; padding: 10px 12px;
+  border: 1px solid rgba(240,234,214,0.08);
+  animation: fadeIn 0.3s ease;
 }
-.memoryItemText {
+.memoryCardContent {
+  display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px;
+}
+.memoryCardText {
   font-family: 'Figtree', sans-serif; font-size: 11px;
-  color: rgba(240,234,214,0.55); line-height: 1.5;
+  color: #F0EAD6; line-height: 1.55;
 }
+.memoryCardMeta {
+  font-family: 'Figtree', sans-serif; font-size: 9px; color: rgba(240,234,214,0.22);
+  padding-left: 17px; margin-bottom: 6px;
+}
+.memoryDeleteBtn {
+  position: absolute; top: 8px; right: 10px;
+  background: transparent; border: none; cursor: pointer;
+  font-size: 18px; color: rgba(232,50,26,0.60);
+  padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+  transition: color 0.2s;
+}
+.memoryDeleteBtn:hover { color: #E8321A; }
+.memoryDeleteBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .memoryEmpty {
   font-family: 'Figtree', sans-serif; font-size: 11px;
   color: rgba(240,234,214,0.22); line-height: 1.5;
-  padding: 9px 10px; background: rgba(240,234,214,0.04);
-  border-radius: 8px;
+  padding: 12px; text-align: center;
 }
-.memoryFooter {
-  display: flex; align-items: center; justify-content: space-between;
-  padding-top: 10px; border-top: 1px solid rgba(240,234,214,0.07);
+
+/* Memory add context row */
+.memoryAddRow {
+  border: 1px dashed rgba(240,234,214,0.14); border-radius: 8px;
+  padding: 12px; cursor: pointer; background: rgba(240,234,214,0.02);
+  transition: all 0.2s;
 }
-.memoryDate {
-  font-family: 'Figtree', sans-serif; font-size: 10px; color: rgba(240,234,214,0.25);
+.memoryAddRow:hover { border-color: rgba(240,234,214,0.22); background: rgba(240,234,214,0.04); }
+.memoryAddPrompt {
+  font-family: 'Figtree', sans-serif; font-size: 11px;
+  color: rgba(240,234,214,0.36);
 }
-.memoryClearBtn {
-  padding: 7px 14px; border-radius: 7px; cursor: pointer; border: none;
-  background: rgba(232,50,26,0.08); border: 1px solid rgba(232,50,26,0.18);
-  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 10px; color: #E8321A;
+.memoryAddForm {
+  margin-top: 10px; animation: fadeIn 0.2s ease;
 }
-.memoryClearedBtn {
-  composes: memoryClearBtn;
-  background: transparent; border-color: transparent;
-  color: rgba(240,234,214,0.22); cursor: default;
+.memoryAddInput {
+  width: 100%; min-height: 60px; resize: vertical;
+  background: rgba(240,234,214,0.04); border: 1px solid rgba(240,234,214,0.08);
+  border-radius: 6px; padding: 8px 10px;
+  font-family: 'Figtree', sans-serif; font-size: 11px;
+  color: #F0EAD6; line-height: 1.5; margin-bottom: 8px;
+  outline: none;
 }
-.memoryConfirmText {
-  font-family: 'Figtree', sans-serif; font-size: 10px;
-  color: rgba(240,234,214,0.45); line-height: 1.5; margin-bottom: 8px;
+.memoryAddInput:focus { border-color: rgba(255,102,68,0.30); }
+.memoryAddInput::placeholder { color: rgba(240,234,214,0.22); }
+.memoryAddButtons {
+  display: flex; gap: 6px;
 }
-.memoryConfirmRow { display: flex; gap: 6px; }
-.memoryConfirmYes {
-  padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;
-  background: rgba(232,50,26,0.12); color: #E8321A;
+.memoryAddSaveBtn {
+  flex: 1; padding: 7px 12px; border-radius: 6px; border: none; cursor: pointer;
+  background: #FF6644; color: #fff;
   font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 10px;
 }
-.memoryConfirmCancel {
-  padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;
-  background: transparent; color: rgba(240,234,214,0.22);
-  font-family: 'Figtree', sans-serif; font-size: 10px;
+.memoryAddSaveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.memoryAddCancelBtn {
+  padding: 7px 12px; border-radius: 6px; border: 1px solid rgba(240,234,214,0.08);
+  background: transparent; color: rgba(240,234,214,0.36);
+  font-family: 'Figtree', sans-serif; font-size: 10px; cursor: pointer;
 }
 
 /* ── Account rows ────────────────────────────── */
@@ -202,49 +236,45 @@
 .subHeader {
   display: flex; align-items: center; gap: 10px;
   margin-bottom: 16px; cursor: pointer;
+  padding: 0 0 8px 0; border-bottom: 1px solid rgba(240,234,214,0.06);
 }
-.subHeaderTitle { font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 13px; color: #F0EAD6; }
+.subHeaderTitle { font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 13px; color: #F0EAD6; flex: 1; }
 
 @keyframes slideIn {
   from { opacity: 0; transform: translateX(20px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* ── Billing sub-page ────────────────────────── */
-.billingPlanRow {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  margin-bottom: 4px;
-}
-.billingPlanName { font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 13px; color: #F0EAD6; }
-.billingPlanDesc { font-family: 'Figtree', sans-serif; font-size: 10px; color: rgba(240,234,214,0.22); margin-top: 2px; }
-.divider { height: 1px; background: rgba(240,234,214,0.07); margin: 12px 0; }
-.missLabel {
-  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 9px;
-  color: rgba(240,234,214,0.22); text-transform: uppercase;
-  letter-spacing: 0.08em; margin-bottom: 8px;
-}
-.missRow { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.missText { font-family: 'Figtree', sans-serif; font-size: 11px; color: rgba(240,234,214,0.22); }
-.upgradeCta {
-  background: linear-gradient(135deg, #FF6644, #E8321A);
-  border-radius: 10px; padding: 13px; text-align: center;
-  cursor: pointer; border: none; width: 100%; margin-top: 12px;
-}
-.upgradeCtaTitle { font-family: 'Figtree', sans-serif; font-weight: 700; font-size: 13px; color: #fff; }
-.upgradeCtaSub { font-family: 'Figtree', sans-serif; font-size: 10px; color: rgba(255,255,255,0.70); margin-top: 2px; }
-.billingDetailRow {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
-}
-.billingDetailLabel { font-family: 'Figtree', sans-serif; font-size: 11px; color: rgba(240,234,214,0.45); }
-.billingDetailVal { font-family: 'Figtree', sans-serif; font-size: 11px; color: #F0EAD6; }
-.cancelBtn {
-  padding: 9px 14px; border-radius: 8px; border: none; cursor: pointer; width: 100%;
-  background: rgba(232,50,26,0.08); border: 1px solid rgba(232,50,26,0.18);
-  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 11px; color: #E8321A;
-  text-align: center;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Privacy sub-page ────────────────────────── */
+/* ── Edit name input ─────────────────────────── */
+.nameEditInput {
+  margin-top: 4px; width: 100%; padding: 6px 8px; border-radius: 6px;
+  background: rgba(240,234,214,0.05); border: 1px solid rgba(240,234,214,0.08);
+  color: #F0EAD6; font-family: 'Figtree', sans-serif; font-size: 11px;
+  outline: none;
+}
+.nameEditInput:focus { border-color: rgba(255,102,68,0.30); }
+
+.editNameBtn, .changePasswordBtn {
+  padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,102,68,0.20);
+  background: rgba(255,102,68,0.08); color: #FF6644;
+  font-family: 'Figtree', sans-serif; font-size: 10px; font-weight: 600;
+  cursor: pointer; flex-shrink: 0;
+}
+.changePasswordBtn { composes: editNameBtn; }
+
+.saveNameBtn {
+  padding: 6px 12px; border-radius: 6px; border: none;
+  background: #FF6644; color: #fff;
+  font-family: 'Figtree', sans-serif; font-size: 10px; font-weight: 600;
+  cursor: pointer; flex-shrink: 0;
+}
+
+/* ── Delete confirm ──────────────────────────── */
 .dangerCard {
   background: #3E3228; border-radius: 10px; padding: 13px;
   margin-bottom: 10px; border: 1px solid rgba(232,50,26,0.10);
@@ -257,34 +287,29 @@
   font-family: 'Figtree', sans-serif; font-size: 11px;
   color: rgba(240,234,214,0.45); line-height: 1.55; margin-bottom: 10px;
 }
+.dangerSubText {
+  font-family: 'Figtree', sans-serif; font-size: 10px;
+  color: rgba(240,234,214,0.36); margin-bottom: 6px;
+}
+.deleteConfirmInput {
+  width: 100%; padding: 7px 10px; border-radius: 6px;
+  background: rgba(240,234,214,0.04); border: 1px solid rgba(240,234,214,0.08);
+  color: #F0EAD6; font-family: 'Figtree', sans-serif; font-size: 11px;
+  margin-bottom: 10px; outline: none;
+}
+.deleteConfirmInput:focus { border-color: rgba(232,50,26,0.30); }
 .dangerBtn {
   background: rgba(232,50,26,0.08); border: 1px solid rgba(232,50,26,0.18);
   border-radius: 8px; padding: 9px 14px; text-align: center; cursor: pointer;
   font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 11px; color: #E8321A;
-  width: 100%;
+  width: 100%; opacity: 0.5; cursor: not-allowed;
 }
-
-/* ── Export sub-page ─────────────────────────── */
-.exportDesc {
-  font-family: 'Figtree', sans-serif; font-size: 11px;
-  color: rgba(240,234,214,0.40); line-height: 1.65; margin-bottom: 14px;
+.dangerBtnActive {
+  composes: dangerBtn;
+  opacity: 1; cursor: pointer;
+  background: rgba(232,50,26,0.12);
 }
-.exportRow {
-  background: #3E3228; border-radius: 9px; padding: 11px 13px;
-  margin-bottom: 6px; display: flex; align-items: center; gap: 10px; cursor: pointer;
-}
-.exportRowText { flex: 1; min-width: 0; }
-.exportRowTitle { font-family: 'Figtree', sans-serif; font-weight: 500; font-size: 12px; color: #F0EAD6; }
-.exportRowSub { font-family: 'Figtree', sans-serif; font-size: 9px; color: rgba(240,234,214,0.22); margin-top: 2px; }
-.exportSent {
-  font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 10px; color: #4CAF50;
-  flex-shrink: 0;
-}
-.exportFooter {
-  font-family: 'Figtree', sans-serif; font-size: 9px;
-  color: rgba(240,234,214,0.22); text-align: center; line-height: 1.6;
-  margin-top: 10px;
-}
+.dangerBtnActive:hover { background: rgba(232,50,26,0.16); }
 
 /* ── About sub-page ──────────────────────────── */
 .aboutBrand {
@@ -298,6 +323,8 @@
 }
 .aboutTagline { font-family: 'Figtree', sans-serif; font-size: 10px; color: rgba(240,234,214,0.22); }
 .aboutVersion { font-family: 'Figtree', sans-serif; font-size: 9px; color: rgba(240,234,214,0.16); margin-top: 4px; }
+
+/* ── Feedback ────────────────────────────────── */
 .feedbackTitle {
   font-family: 'Figtree', sans-serif; font-weight: 600; font-size: 11px;
   color: #F0EAD6; margin-bottom: 6px;

@@ -18,7 +18,7 @@ export default function TabNutrition({ user, profile, showToast, loggedFetch }) 
       <div style={{ flex: 1, textAlign: 'center' }}>
         <div style={{ position: 'relative', width: 72, height: 72, margin: '0 auto 4px' }}>
           <svg width="72" height="72" viewBox="0 0 72 72">
-            <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(245,240,227,0.08)" strokeWidth="6"/>
+            <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(240,234,214,0.08)" strokeWidth="6"/>
             <circle cx="36" cy="36" r={r} fill="none" stroke={color} strokeWidth="6"
               strokeLinecap="round" strokeDasharray={circ}
               strokeDashoffset={circ * (1 - pct)}
@@ -95,7 +95,7 @@ export default function TabNutrition({ user, profile, showToast, loggedFetch }) 
                 style={{ flex: 1, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <div style={{
                   width: 28, height: 28, borderRadius: 8,
-                  background: filled ? `${COL.blue}30` : 'rgba(245,240,227,0.08)',
+                  background: filled ? `${COL.blue}30` : 'rgba(240,234,214,0.08)',
                   border: `1px solid ${filled ? `${COL.blue}60` : COL.charBorder}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 14, color: filled ? COL.blue : COL.micro,

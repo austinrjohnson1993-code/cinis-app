@@ -4,57 +4,59 @@ import showToast from '../../lib/toast';
 
 const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
   const [type, setType] = useState('bill');
-  const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [dueDay, setDueDay] = useState('');
-  const [frequency, setFrequency] = useState('monthly');
-  const [category, setCategory] = useState('housing');
-  const [balance, setBalance] = useState('');
-  const [monthlyPayment, setMonthlyPayment] = useState('');
-  const [interestRate, setInterestRate] = useState('');
+  const [paymentAccount, setPaymentAccount] = useState('');
+
+  // BILL fields
+  const [billName, setBillName] = useState('');
+  const [billAmount, setBillAmount] = useState('');
+  const [billFrequency, setBillFrequency] = useState('monthly');
+  const [billDueDay, setBillDueDay] = useState('');
+  const [billDueDay2, setBillDueDay2] = useState('');
+  const [billAutopay, setBillAutopay] = useState(false);
+  const [billNotes, setBillNotes] = useState('');
+
+  // LOAN fields
+  const [loanName, setLoanName] = useState('');
   const [loanType, setLoanType] = useState('auto');
-  const [currentBalance, setCurrentBalance] = useState('');
-  const [creditLimit, setCreditLimit] = useState('');
-  const [apr, setApr] = useState('');
-  const [minPayment, setMinPayment] = useState('');
-  const [statementDueDay, setStatementDueDay] = useState('');
-  const [lastFour, setLastFour] = useState('');
-  const [autopay, setAutopay] = useState(false);
-  const [createTask, setCreateTask] = useState(true);
-  const [firstDueDate, setFirstDueDate] = useState('');
-  const [customRepeatDays, setCustomRepeatDays] = useState('');
-  const [customRepeatUnit, setCustomRepeatUnit] = useState('weeks');
-  const [customStartDate, setCustomStartDate] = useState('');
-  const [billMonth, setBillMonth] = useState('');
-  const [billDay, setBillDay] = useState('');
+  const [lenderName, setLenderName] = useState('');
+  const [loanCurrentBalance, setLoanCurrentBalance] = useState('');
+  const [loanOriginalAmount, setLoanOriginalAmount] = useState('');
+  const [loanApr, setLoanApr] = useState('');
+  const [loanMonthlyPayment, setLoanMonthlyPayment] = useState('');
+  const [loanDueDay, setLoanDueDay] = useState('');
+  const [loanTermRemaining, setLoanTermRemaining] = useState('');
+
+  // CREDIT CARD fields
+  const [ccName, setCcName] = useState('');
+  const [ccNetwork, setCcNetwork] = useState('visa');
+  const [ccCurrentBalance, setCcCurrentBalance] = useState('');
+  const [ccCreditLimit, setCcCreditLimit] = useState('');
+  const [ccApr, setCcApr] = useState('');
+  const [ccMinPayment, setCcMinPayment] = useState('');
+  const [ccDueDay, setCcDueDay] = useState('');
+  const [ccStatementCloses, setCcStatementCloses] = useState('');
 
   const typeConfig = {
     bill: {
       emoji: '🧾',
       title: 'Bill',
-      sub: 'Recurring payment',
       color: '#E8321A',
       rgba: 'rgba(232,50,26,0.12)',
-      border: 'rgba(232,50,26,0.35)',
-      buttonLabel: 'Add bill'
+      border: 'rgba(232,50,26,0.35)'
     },
     loan: {
       emoji: '🏦',
       title: 'Loan',
-      sub: 'Fixed payments',
       color: '#3B8BD4',
       rgba: 'rgba(59,139,212,0.12)',
-      border: 'rgba(59,139,212,0.35)',
-      buttonLabel: 'Add loan'
+      border: 'rgba(59,139,212,0.35)'
     },
     cc: {
       emoji: '💳',
       title: 'Credit Card',
-      sub: 'Revolving balance',
       color: '#A47BDB',
       rgba: 'rgba(164,123,219,0.12)',
-      border: 'rgba(164,123,219,0.35)',
-      buttonLabel: 'Add card'
+      border: 'rgba(164,123,219,0.35)'
     }
   };
 
@@ -62,80 +64,97 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
     setType(newType);
   };
 
-  const handleSubmit = async () => {
-    if (!name.trim()) {
-      showToast('Please enter a name', 'error');
-      return;
-    }
+  const calculateUtilization = () => {
+    const balance = parseFloat(ccCurrentBalance) || 0;
+    const limit = parseFloat(ccCreditLimit) || 0;
+    if (limit === 0) return 0;
+    return Math.round((balance / limit) * 100);
+  };
 
-    let payload = {
-      name,
-      billType: type,
-      autopay,
-      autoTask: createTask && !autopay
-    };
+  const getUtilizationColor = () => {
+    const util = calculateUtilization();
+    if (util <= 30) return '#A47BDB';
+    if (util <= 50) return '#FFB800';
+    return '#E8321A';
+  };
+
+  const getUtilizationStatus = () => {
+    const util = calculateUtilization();
+    if (util <= 30) return 'Healthy';
+    if (util <= 50) return 'Watch';
+    return 'High';
+  };
+
+  const calculatePayoffProgress = () => {
+    const current = parseFloat(loanCurrentBalance) || 0;
+    const original = parseFloat(loanOriginalAmount) || 0;
+    if (original === 0) return 0;
+    return Math.round(((original - current) / original) * 100);
+  };
+
+  const handleSubmit = async () => {
+    let name, payload;
 
     if (type === 'bill') {
-      if (!amount || !dueDay) {
-        showToast('Please fill in amount and due day', 'error');
+      name = billName;
+      if (!name.trim() || !billAmount || !billDueDay) {
+        showToast('Please fill in name, amount, and due day', 'error');
         return;
       }
+      if (billFrequency === 'bimonthly' && !billDueDay2) {
+        showToast('Please fill in both due days for bimonthly', 'error');
+        return;
+      }
+
       payload = {
-        ...payload,
-        amount: parseFloat(amount),
-        dueDay: parseInt(dueDay),
-        frequency,
-        category
+        name,
+        billType: 'bill',
+        paymentAccount,
+        amount: parseFloat(billAmount),
+        frequency: billFrequency,
+        dueDay: parseInt(billDueDay),
+        ...(billFrequency === 'bimonthly' && { dueDay2: parseInt(billDueDay2) }),
+        autopay: billAutopay,
+        notes: billNotes
       };
-      if (frequency === 'biweekly' && !firstDueDate) {
-        showToast('Please enter first due date for biweekly bills', 'error');
-        return;
-      }
-      if (frequency === 'biweekly') {
-        payload.first_date = parseInt(firstDueDate);
-      }
-      if (frequency === 'yearly' && !billMonth && !billDay) {
-        showToast('Please select month and day for yearly bills', 'error');
-        return;
-      }
-      if (frequency === 'yearly') {
-        payload.first_date = parseInt(billMonth);
-        payload.second_date = parseInt(billDay);
-      }
-      if (frequency === 'custom') {
-        if (!customRepeatDays || !customStartDate) {
-          showToast('Please fill in custom repeat details', 'error');
-          return;
-        }
-        payload.repeat_every = parseInt(customRepeatDays);
-        payload.repeat_unit = customRepeatUnit;
-        payload.start_date = customStartDate;
-      }
     } else if (type === 'loan') {
-      if (!balance || !monthlyPayment || !interestRate || !dueDay) {
-        showToast('Please fill in all loan fields', 'error');
+      name = loanName;
+      if (!name.trim() || !lenderName || !loanCurrentBalance || !loanOriginalAmount || !loanApr || !loanMonthlyPayment || !loanDueDay) {
+        showToast('Please fill in all required loan fields', 'error');
         return;
       }
+
       payload = {
-        ...payload,
-        amount: parseFloat(balance),
-        dueDay: parseInt(dueDay),
-        interestRate: parseFloat(interestRate),
-        loanType: loanType
+        name,
+        billType: 'loan',
+        paymentAccount,
+        loanType,
+        lender: lenderName,
+        currentBalance: parseFloat(loanCurrentBalance),
+        originalAmount: parseFloat(loanOriginalAmount),
+        apr: parseFloat(loanApr),
+        monthlyPayment: parseFloat(loanMonthlyPayment),
+        dueDay: parseInt(loanDueDay),
+        termRemaining: loanTermRemaining ? parseInt(loanTermRemaining) : null
       };
     } else if (type === 'cc') {
-      if (!currentBalance || !creditLimit || !apr || !minPayment || !statementDueDay || !lastFour) {
-        showToast('Please fill in all credit card fields', 'error');
+      name = ccName;
+      if (!name.trim() || !ccCurrentBalance || !ccCreditLimit || !ccApr || !ccMinPayment || !ccDueDay || !ccStatementCloses) {
+        showToast('Please fill in all required credit card fields', 'error');
         return;
       }
+
       payload = {
-        ...payload,
-        amount: parseFloat(currentBalance),
-        dueDay: parseInt(statementDueDay),
-        creditLimit: parseFloat(creditLimit),
-        interestRate: parseFloat(apr),
-        minimumPayment: parseFloat(minPayment),
-        lastFour: lastFour
+        name,
+        billType: 'cc',
+        paymentAccount,
+        cardNetwork: ccNetwork,
+        currentBalance: parseFloat(ccCurrentBalance),
+        creditLimit: parseFloat(ccCreditLimit),
+        apr: parseFloat(ccApr),
+        minimumPayment: parseFloat(ccMinPayment),
+        dueDay: parseInt(ccDueDay),
+        statementCloses: parseInt(ccStatementCloses)
       };
     }
 
@@ -161,53 +180,73 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
 
   const resetForm = () => {
     setType('bill');
-    setName('');
-    setAmount('');
-    setDueDay('');
-    setFrequency('monthly');
-    setCategory('housing');
-    setBalance('');
-    setMonthlyPayment('');
-    setInterestRate('');
+    setPaymentAccount('');
+    setBillName('');
+    setBillAmount('');
+    setBillFrequency('monthly');
+    setBillDueDay('');
+    setBillDueDay2('');
+    setBillAutopay(false);
+    setBillNotes('');
+    setLoanName('');
     setLoanType('auto');
-    setCurrentBalance('');
-    setCreditLimit('');
-    setApr('');
-    setMinPayment('');
-    setStatementDueDay('');
-    setLastFour('');
-    setAutopay(false);
-    setCreateTask(true);
-    setFirstDueDate('');
-    setCustomRepeatDays('');
-    setCustomRepeatUnit('weeks');
-    setCustomStartDate('');
-    setBillMonth('');
-    setBillDay('');
+    setLenderName('');
+    setLoanCurrentBalance('');
+    setLoanOriginalAmount('');
+    setLoanApr('');
+    setLoanMonthlyPayment('');
+    setLoanDueDay('');
+    setLoanTermRemaining('');
+    setCcName('');
+    setCcNetwork('visa');
+    setCcCurrentBalance('');
+    setCcCreditLimit('');
+    setCcApr('');
+    setCcMinPayment('');
+    setCcDueDay('');
+    setCcStatementCloses('');
   };
 
   if (!open) return null;
 
   const config = typeConfig[type];
 
-  const PillButton = ({ label, isActive, onClick, color }) => (
-    <button
-      className={s.pill}
-      onClick={onClick}
-      style={
-        isActive
-          ? {
-              backgroundColor: color === 'ember' ? 'rgba(232,50,26,0.2)' : color === 'blue' ? 'rgba(59,139,212,0.2)' : 'rgba(164,123,219,0.2)',
-              color: color === 'ember' ? '#E8321A' : color === 'blue' ? '#3B8BD4' : '#A47BDB',
-              borderColor: color === 'ember' ? 'rgba(232,50,26,0.5)' : color === 'blue' ? 'rgba(59,139,212,0.5)' : 'rgba(164,123,219,0.5)',
-              borderWidth: '1.5px'
-            }
-          : {}
-      }
-    >
-      {label}
-    </button>
-  );
+  const PillButton = ({ label, isActive, onClick, colorKey }) => {
+    let bgColor, textColor, borderColor;
+
+    if (colorKey === 'ember') {
+      bgColor = 'rgba(232,50,26,0.2)';
+      textColor = '#E8321A';
+      borderColor = 'rgba(232,50,26,0.5)';
+    } else if (colorKey === 'blue') {
+      bgColor = 'rgba(59,139,212,0.2)';
+      textColor = '#3B8BD4';
+      borderColor = 'rgba(59,139,212,0.5)';
+    } else if (colorKey === 'purple') {
+      bgColor = 'rgba(164,123,219,0.2)';
+      textColor = '#A47BDB';
+      borderColor = 'rgba(164,123,219,0.5)';
+    }
+
+    return (
+      <button
+        className={s.pill}
+        onClick={onClick}
+        style={
+          isActive
+            ? {
+                backgroundColor: bgColor,
+                color: textColor,
+                borderColor: borderColor,
+                borderWidth: '1.5px'
+              }
+            : {}
+        }
+      >
+        {label}
+      </button>
+    );
+  };
 
   return (
     <div className={s.overlay} onClick={onClose}>
@@ -215,7 +254,7 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
         <div className={s.handle} />
 
         <div className={s.header}>
-          <h2 className={s.title}>Add Financial Account</h2>
+          <h2 className={s.title}>Add to Finance</h2>
           <button className={s.cancel} onClick={onClose}>
             ✕
           </button>
@@ -240,27 +279,33 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
               <div className={s.typeTitle} style={type === key ? { color: cfg.color } : {}}>
                 {cfg.title}
               </div>
-              <div className={s.typeSub} style={type === key ? { color: cfg.color } : {}}>
-                {cfg.sub}
-              </div>
             </div>
           ))}
         </div>
 
         <div style={{ padding: '0 20px' }}>
-          <label className={s.secLabel}>Name</label>
+          <label className={s.secLabel}>DRAWS FROM</label>
           <input
             className={s.input}
             type="text"
-            placeholder="Name (e.g. Rent, Chase Sapphire, Student Loan)"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Chase Checking ••4521, Venmo, Cash"
+            value={paymentAccount}
+            onChange={(e) => setPaymentAccount(e.target.value)}
           />
         </div>
 
         {type === 'bill' && (
           <div style={{ padding: '0 20px' }}>
             <div className={s.fadeSection}>
+              <label className={s.secLabel}>Name</label>
+              <input
+                className={s.input}
+                type="text"
+                placeholder="e.g. Rent, Internet, Insurance"
+                value={billName}
+                onChange={(e) => setBillName(e.target.value)}
+              />
+
               <div className={s.twoCol}>
                 <div>
                   <label className={s.secLabel}>Amount</label>
@@ -268,8 +313,8 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
                     className={s.input}
                     type="number"
                     placeholder="$0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    value={billAmount}
+                    onChange={(e) => setBillAmount(e.target.value)}
                     step="0.01"
                   />
                 </div>
@@ -278,9 +323,9 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
                   <input
                     className={s.input}
                     type="number"
-                    placeholder="1, 15"
-                    value={dueDay}
-                    onChange={(e) => setDueDay(e.target.value)}
+                    placeholder="1-31"
+                    value={billDueDay}
+                    onChange={(e) => setBillDueDay(e.target.value)}
                     min="1"
                     max="31"
                   />
@@ -291,153 +336,64 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
               <div className={s.pills}>
                 <PillButton
                   label="Monthly"
-                  isActive={frequency === 'monthly'}
-                  onClick={() => setFrequency('monthly')}
-                  color="ember"
+                  isActive={billFrequency === 'monthly'}
+                  onClick={() => setBillFrequency('monthly')}
+                  colorKey="ember"
                 />
                 <PillButton
-                  label="Biweekly"
-                  isActive={frequency === 'biweekly'}
-                  onClick={() => setFrequency('biweekly')}
-                  color="ember"
+                  label="Weekly"
+                  isActive={billFrequency === 'weekly'}
+                  onClick={() => setBillFrequency('weekly')}
+                  colorKey="ember"
+                />
+                <PillButton
+                  label="Bimonthly"
+                  isActive={billFrequency === 'bimonthly'}
+                  onClick={() => setBillFrequency('bimonthly')}
+                  colorKey="ember"
                 />
                 <PillButton
                   label="Yearly"
-                  isActive={frequency === 'yearly'}
-                  onClick={() => setFrequency('yearly')}
-                  color="ember"
-                />
-                <PillButton
-                  label="Custom"
-                  isActive={frequency === 'custom'}
-                  onClick={() => setFrequency('custom')}
-                  color="ember"
+                  isActive={billFrequency === 'yearly'}
+                  onClick={() => setBillFrequency('yearly')}
+                  colorKey="ember"
                 />
               </div>
 
-              {frequency === 'biweekly' && (
+              {billFrequency === 'bimonthly' && (
                 <div>
-                  <label className={s.secLabel}>First Due Date</label>
-                  <input
-                    className={s.dateInput}
-                    type="date"
-                    value={firstDueDate}
-                    onChange={(e) => setFirstDueDate(e.target.value)}
-                  />
-                  <div className={s.infoCard} style={{ color: '#E8321A', borderColor: 'rgba(232,50,26,0.3)' }}>
-                    Payment will repeat every 2 weeks from this date
-                  </div>
-                </div>
-              )}
-
-              {frequency === 'yearly' && (
-                <div>
-                  <label className={s.secLabel}>Month</label>
-                  <div className={s.pills} style={{ flexWrap: 'wrap' }}>
-                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => (
-                      <PillButton
-                        key={m}
-                        label={m}
-                        isActive={billMonth === String(i + 1)}
-                        onClick={() => setBillMonth(String(i + 1))}
-                        color="ember"
-                      />
-                    ))}
-                  </div>
-                  <label className={s.secLabel}>Day</label>
+                  <label className={s.secLabel}>Second Due Day</label>
                   <input
                     className={s.input}
                     type="number"
-                    placeholder="1-31"
-                    value={billDay}
-                    onChange={(e) => setBillDay(e.target.value)}
+                    placeholder="15"
+                    value={billDueDay2}
+                    onChange={(e) => setBillDueDay2(e.target.value)}
                     min="1"
                     max="31"
                   />
                 </div>
               )}
 
-              {frequency === 'custom' && (
+              <div className={s.toggleCard}>
                 <div>
-                  <label className={s.secLabel}>Repeats Every</label>
-                  <input
-                    className={s.input}
-                    type="number"
-                    placeholder="Number"
-                    value={customRepeatDays}
-                    onChange={(e) => setCustomRepeatDays(e.target.value)}
-                    min="1"
-                  />
-                  <label className={s.secLabel}>Unit</label>
-                  <div className={s.pills}>
-                    <PillButton
-                      label="Days"
-                      isActive={customRepeatUnit === 'days'}
-                      onClick={() => setCustomRepeatUnit('days')}
-                      color="ember"
-                    />
-                    <PillButton
-                      label="Weeks"
-                      isActive={customRepeatUnit === 'weeks'}
-                      onClick={() => setCustomRepeatUnit('weeks')}
-                      color="ember"
-                    />
-                    <PillButton
-                      label="Months"
-                      isActive={customRepeatUnit === 'months'}
-                      onClick={() => setCustomRepeatUnit('months')}
-                      color="ember"
-                    />
-                  </div>
-                  <label className={s.secLabel}>Starting Date</label>
-                  <input
-                    className={s.dateInput}
-                    type="date"
-                    value={customStartDate}
-                    onChange={(e) => setCustomStartDate(e.target.value)}
-                  />
+                  <div className={s.toggleLabel}>Autopay</div>
+                  <div className={s.toggleSub}>Automatically pay on due date</div>
                 </div>
-              )}
-
-              <label className={s.secLabel}>Category</label>
-              <div className={s.pills}>
-                <PillButton
-                  label="Housing"
-                  isActive={category === 'housing'}
-                  onClick={() => setCategory('housing')}
-                  color="ember"
-                />
-                <PillButton
-                  label="Subscription"
-                  isActive={category === 'subscription'}
-                  onClick={() => setCategory('subscription')}
-                  color="ember"
-                />
-                <PillButton
-                  label="Utilities"
-                  isActive={category === 'utilities'}
-                  onClick={() => setCategory('utilities')}
-                  color="ember"
-                />
-                <PillButton
-                  label="Insurance"
-                  isActive={category === 'insurance'}
-                  onClick={() => setCategory('insurance')}
-                  color="ember"
-                />
-                <PillButton
-                  label="Debt"
-                  isActive={category === 'debt'}
-                  onClick={() => setCategory('debt')}
-                  color="ember"
-                />
-                <PillButton
-                  label="Other"
-                  isActive={category === 'other'}
-                  onClick={() => setCategory('other')}
-                  color="ember"
-                />
+                <label className={s.toggle}>
+                  <input type="checkbox" checked={billAutopay} onChange={(e) => setBillAutopay(e.target.checked)} />
+                  <span className={s.toggleThumb} />
+                </label>
               </div>
+
+              <label className={s.secLabel}>Notes (Optional)</label>
+              <input
+                className={s.input}
+                type="text"
+                placeholder="Additional details"
+                value={billNotes}
+                onChange={(e) => setBillNotes(e.target.value)}
+              />
             </div>
           </div>
         )}
@@ -445,15 +401,114 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
         {type === 'loan' && (
           <div style={{ padding: '0 20px' }}>
             <div className={s.fadeSection}>
+              <label className={s.secLabel}>Name</label>
+              <input
+                className={s.input}
+                type="text"
+                placeholder="e.g. Car Loan, Student Loan"
+                value={loanName}
+                onChange={(e) => setLoanName(e.target.value)}
+              />
+
+              <label className={s.secLabel}>Loan Type</label>
+              <div className={s.pills}>
+                <PillButton
+                  label="Auto"
+                  isActive={loanType === 'auto'}
+                  onClick={() => setLoanType('auto')}
+                  colorKey="blue"
+                />
+                <PillButton
+                  label="Student"
+                  isActive={loanType === 'student'}
+                  onClick={() => setLoanType('student')}
+                  colorKey="blue"
+                />
+                <PillButton
+                  label="Personal"
+                  isActive={loanType === 'personal'}
+                  onClick={() => setLoanType('personal')}
+                  colorKey="blue"
+                />
+                <PillButton
+                  label="Medical"
+                  isActive={loanType === 'medical'}
+                  onClick={() => setLoanType('medical')}
+                  colorKey="blue"
+                />
+                <PillButton
+                  label="Other"
+                  isActive={loanType === 'other'}
+                  onClick={() => setLoanType('other')}
+                  colorKey="blue"
+                />
+              </div>
+
+              <label className={s.secLabel}>Lender/Servicer</label>
+              <input
+                className={s.input}
+                type="text"
+                placeholder="e.g. Chase, Sallie Mae, BMO"
+                value={lenderName}
+                onChange={(e) => setLenderName(e.target.value)}
+              />
+
               <div className={s.twoCol}>
                 <div>
-                  <label className={s.secLabel}>Balance Owed</label>
+                  <label className={s.secLabel}>Current Balance</label>
                   <input
                     className={s.input}
                     type="number"
                     placeholder="$0.00"
-                    value={balance}
-                    onChange={(e) => setBalance(e.target.value)}
+                    value={loanCurrentBalance}
+                    onChange={(e) => setLoanCurrentBalance(e.target.value)}
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className={s.secLabel}>Original Amount</label>
+                  <input
+                    className={s.input}
+                    type="number"
+                    placeholder="$0.00"
+                    value={loanOriginalAmount}
+                    onChange={(e) => setLoanOriginalAmount(e.target.value)}
+                    step="0.01"
+                  />
+                </div>
+              </div>
+
+              {loanCurrentBalance && loanOriginalAmount && (
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>Payoff Progress</div>
+                  <div style={{
+                    height: '8px',
+                    backgroundColor: 'rgba(0,0,0,0.08)',
+                    borderRadius: '4px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      height: '100%',
+                      width: `${calculatePayoffProgress()}%`,
+                      backgroundColor: '#3B8BD4',
+                      transition: 'width 0.2s ease'
+                    }} />
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px', textAlign: 'right' }}>
+                    {calculatePayoffProgress()}% paid
+                  </div>
+                </div>
+              )}
+
+              <div className={s.twoCol}>
+                <div>
+                  <label className={s.secLabel}>APR</label>
+                  <input
+                    className={s.input}
+                    type="number"
+                    placeholder="5.5"
+                    value={loanApr}
+                    onChange={(e) => setLoanApr(e.target.value)}
                     step="0.01"
                   />
                 </div>
@@ -463,75 +518,46 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
                     className={s.input}
                     type="number"
                     placeholder="$0.00"
-                    value={monthlyPayment}
-                    onChange={(e) => setMonthlyPayment(e.target.value)}
+                    value={loanMonthlyPayment}
+                    onChange={(e) => setLoanMonthlyPayment(e.target.value)}
                     step="0.01"
                   />
                 </div>
               </div>
+              {!loanMonthlyPayment && (
+                <p style={{ fontSize: '12px', color: 'rgba(240,234,214,0.4)', margin: '-4px 0 12px 0' }}>
+                  What's the monthly payment amount?
+                </p>
+              )}
 
               <div className={s.twoCol}>
-                <div>
-                  <label className={s.secLabel}>Interest Rate (APR)</label>
-                  <input
-                    className={s.input}
-                    type="number"
-                    placeholder="6.5"
-                    value={interestRate}
-                    onChange={(e) => setInterestRate(e.target.value)}
-                    step="0.01"
-                  />
-                </div>
                 <div>
                   <label className={s.secLabel}>Due Day</label>
                   <input
                     className={s.input}
                     type="number"
                     placeholder="15"
-                    value={dueDay}
-                    onChange={(e) => setDueDay(e.target.value)}
+                    value={loanDueDay}
+                    onChange={(e) => setLoanDueDay(e.target.value)}
                     min="1"
                     max="31"
                   />
                 </div>
-              </div>
-
-              <label className={s.secLabel}>Loan Type</label>
-              <div className={s.pills}>
-                <PillButton
-                  label="Auto"
-                  isActive={loanType === 'auto'}
-                  onClick={() => setLoanType('auto')}
-                  color="blue"
-                />
-                <PillButton
-                  label="Student"
-                  isActive={loanType === 'student'}
-                  onClick={() => setLoanType('student')}
-                  color="blue"
-                />
-                <PillButton
-                  label="Personal"
-                  isActive={loanType === 'personal'}
-                  onClick={() => setLoanType('personal')}
-                  color="blue"
-                />
-                <PillButton
-                  label="Mortgage"
-                  isActive={loanType === 'mortgage'}
-                  onClick={() => setLoanType('mortgage')}
-                  color="blue"
-                />
-                <PillButton
-                  label="Other"
-                  isActive={loanType === 'other'}
-                  onClick={() => setLoanType('other')}
-                  color="blue"
-                />
+                <div>
+                  <label className={s.secLabel}>Term Remaining</label>
+                  <input
+                    className={s.input}
+                    type="number"
+                    placeholder="Months (optional)"
+                    value={loanTermRemaining}
+                    onChange={(e) => setLoanTermRemaining(e.target.value)}
+                    min="0"
+                  />
+                </div>
               </div>
 
               <div className={s.infoCard} style={{ color: '#3B8BD4', borderColor: 'rgba(59,139,212,0.3)' }}>
-                Tracks your payoff timeline based on balance, rate, and payment
+                Higher APR loans get priority in the debt avalanche strategy
               </div>
             </div>
           </div>
@@ -540,6 +566,43 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
         {type === 'cc' && (
           <div style={{ padding: '0 20px' }}>
             <div className={s.fadeSection}>
+              <label className={s.secLabel}>Name</label>
+              <input
+                className={s.input}
+                type="text"
+                placeholder="e.g. Chase Sapphire, Amex Business"
+                value={ccName}
+                onChange={(e) => setCcName(e.target.value)}
+              />
+
+              <label className={s.secLabel}>Card Network</label>
+              <div className={s.pills}>
+                <PillButton
+                  label="Visa"
+                  isActive={ccNetwork === 'visa'}
+                  onClick={() => setCcNetwork('visa')}
+                  colorKey="purple"
+                />
+                <PillButton
+                  label="Mastercard"
+                  isActive={ccNetwork === 'mastercard'}
+                  onClick={() => setCcNetwork('mastercard')}
+                  colorKey="purple"
+                />
+                <PillButton
+                  label="Amex"
+                  isActive={ccNetwork === 'amex'}
+                  onClick={() => setCcNetwork('amex')}
+                  colorKey="purple"
+                />
+                <PillButton
+                  label="Other"
+                  isActive={ccNetwork === 'other'}
+                  onClick={() => setCcNetwork('other')}
+                  colorKey="purple"
+                />
+              </div>
+
               <div className={s.twoCol}>
                 <div>
                   <label className={s.secLabel}>Current Balance</label>
@@ -547,8 +610,8 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
                     className={s.input}
                     type="number"
                     placeholder="$0.00"
-                    value={currentBalance}
-                    onChange={(e) => setCurrentBalance(e.target.value)}
+                    value={ccCurrentBalance}
+                    onChange={(e) => setCcCurrentBalance(e.target.value)}
                     step="0.01"
                   />
                 </div>
@@ -558,12 +621,34 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
                     className={s.input}
                     type="number"
                     placeholder="$0.00"
-                    value={creditLimit}
-                    onChange={(e) => setCreditLimit(e.target.value)}
+                    value={ccCreditLimit}
+                    onChange={(e) => setCcCreditLimit(e.target.value)}
                     step="0.01"
                   />
                 </div>
               </div>
+
+              {ccCurrentBalance && ccCreditLimit && (
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>Utilization</div>
+                  <div style={{
+                    height: '8px',
+                    backgroundColor: 'rgba(0,0,0,0.08)',
+                    borderRadius: '4px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      height: '100%',
+                      width: `${Math.min(calculateUtilization(), 100)}%`,
+                      backgroundColor: getUtilizationColor(),
+                      transition: 'background-color 0.2s ease, width 0.2s ease'
+                    }} />
+                  </div>
+                  <div style={{ fontSize: '12px', color: getUtilizationColor(), marginTop: '4px', textAlign: 'right', fontWeight: '500' }}>
+                    {calculateUtilization()}% {getUtilizationStatus()}
+                  </div>
+                </div>
+              )}
 
               <div className={s.twoCol}>
                 <div>
@@ -571,20 +656,20 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
                   <input
                     className={s.input}
                     type="number"
-                    placeholder="24.99"
-                    value={apr}
-                    onChange={(e) => setApr(e.target.value)}
+                    placeholder="18.99"
+                    value={ccApr}
+                    onChange={(e) => setCcApr(e.target.value)}
                     step="0.01"
                   />
                 </div>
                 <div>
-                  <label className={s.secLabel}>Min. Payment</label>
+                  <label className={s.secLabel}>Minimum Payment</label>
                   <input
                     className={s.input}
                     type="number"
                     placeholder="$0.00"
-                    value={minPayment}
-                    onChange={(e) => setMinPayment(e.target.value)}
+                    value={ccMinPayment}
+                    onChange={(e) => setCcMinPayment(e.target.value)}
                     step="0.01"
                   />
                 </div>
@@ -592,65 +677,37 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
 
               <div className={s.twoCol}>
                 <div>
-                  <label className={s.secLabel}>Statement Due Day</label>
+                  <label className={s.secLabel}>Due Day</label>
                   <input
                     className={s.input}
                     type="number"
                     placeholder="22"
-                    value={statementDueDay}
-                    onChange={(e) => setStatementDueDay(e.target.value)}
+                    value={ccDueDay}
+                    onChange={(e) => setCcDueDay(e.target.value)}
                     min="1"
                     max="31"
                   />
                 </div>
                 <div>
-                  <label className={s.secLabel}>Last 4 Digits</label>
+                  <label className={s.secLabel}>Statement Closes</label>
                   <input
                     className={s.input}
-                    type="text"
-                    placeholder="4242"
-                    value={lastFour}
-                    onChange={(e) => setLastFour(e.target.value.slice(0, 4))}
-                    maxLength="4"
+                    type="number"
+                    placeholder="20"
+                    value={ccStatementCloses}
+                    onChange={(e) => setCcStatementCloses(e.target.value)}
+                    min="1"
+                    max="31"
                   />
                 </div>
               </div>
 
-              <div className={s.infoCard} style={{ color: '#A47BDB', borderColor: 'rgba(164,123,219,0.3)' }}>
-                Monitors your credit utilization and payment deadlines
+              <div className={s.infoCard} style={{ color: '#FFB800', borderColor: 'rgba(255,184,0,0.3)' }}>
+                Keep utilization below 30% for best credit impact
               </div>
             </div>
           </div>
         )}
-
-        <div style={{ padding: '0 20px' }}>
-          <div className={s.toggleCard}>
-            <div>
-              <div className={s.toggleLabel}>Autopay</div>
-              <div className={s.toggleSub}>Automatically pay on due date</div>
-            </div>
-            <label className={s.toggle}>
-              <input type="checkbox" checked={autopay} onChange={(e) => setAutopay(e.target.checked)} />
-              <span className={s.toggleThumb} />
-            </label>
-          </div>
-
-          <div className={autopay ? s.toggleCardDisabled : s.toggleCard}>
-            <div>
-              <div className={s.toggleLabel}>Create task</div>
-              <div className={s.toggleSub}>Adds a task 2 days before due date</div>
-            </div>
-            <label className={s.toggle}>
-              <input
-                type="checkbox"
-                checked={createTask}
-                onChange={(e) => setCreateTask(e.target.checked)}
-                disabled={autopay}
-              />
-              <span className={s.toggleThumb} />
-            </label>
-          </div>
-        </div>
 
         <div style={{ padding: '20px' }}>
           <button
@@ -658,7 +715,7 @@ const AddBillSheet = ({ open, onClose, onSave, loggedFetch }) => {
             onClick={handleSubmit}
             style={{ backgroundColor: config.color }}
           >
-            {config.buttonLabel}
+            Add {config.title}
           </button>
         </div>
       </div>

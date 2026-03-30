@@ -11,7 +11,7 @@ export default function LandingEmpathy() {
         </h2>
         <div className={styles.empathyBody}>
           <p>
-            You&apos;ve been here before. <strong>The Notion database, set up perfectly and never opened again.</strong> The Todoist workflow with 47 overdue tasks you stopped looking at. The planner you bought with genuine optimism in January. Every one failed — not because you&apos;re broken, but because every one assumed your problem was organizational.
+            Every other app abandons you right there. <strong>The Notion database, set up perfectly and never opened again.</strong> The Todoist workflow with 47 overdue tasks you stopped looking at. The planner you bought with genuine optimism in January. Every one failed — not because you&apos;re broken, but because every one assumed your problem was organizational.
           </p>
           <p>
             <strong>It isn&apos;t.</strong> The gap between knowing what to do and actually starting it is neurological. It&apos;s the distance between intention and action — and it&apos;s not solved by a better system. It&apos;s solved by something that shows up for you. Something that knows when you&apos;re avoiding, notices what you keep rescheduling, and reaches out before you fall behind.

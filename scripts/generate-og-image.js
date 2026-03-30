@@ -13,14 +13,14 @@ ctx.fillRect(0, 0, width, height);
 
 // Left side: CINIS wordmark
 ctx.font = 'bold 72px Arial';
-ctx.fillStyle = '#F5F0E3';
+ctx.fillStyle = '#F0EAD6';
 ctx.textBaseline = 'top';
 const wordmarkX = 80;
 const wordmarkY = 280;
 ctx.fillText('CINIS', wordmarkX, wordmarkY);
 
 // Separator line
-ctx.strokeStyle = '#F5F0E318';
+ctx.strokeStyle = '#F0EAD618';
 ctx.lineWidth = 1;
 ctx.beginPath();
 ctx.moveTo(80, 310);

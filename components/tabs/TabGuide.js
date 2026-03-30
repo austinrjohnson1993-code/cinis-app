@@ -11,8 +11,8 @@ const SparkSvg = ({ color = '#FF6644', size = 9 }) => (
 
 /* ── Situation color map ──────────────────────────────────────────────────── */
 const SIT_COLORS = {
-  stuck: '#FF6644', overwhelmed: '#FF6644', momentum: '#FFB800',
-  win: '#4CAF50', focus: '#3B8BD4', crash: 'rgba(240,234,214,0.22)',
+  stuck: '#FF6644', overwhelmed: '#3B8BD4', momentum: '#FFB800',
+  win: '#4CAF50', focus: '#3B8BD4', crash: 'rgba(240,234,214,0.5)',
 }
 
 /* ── Situations data ──────────────────────────────────────────────────────── */
@@ -20,7 +20,7 @@ const SITUATIONS = {
   stuck: {
     emoji: '\uD83E\uDDF1', title: 'Stuck', sub: "Task won't move. Brain won't engage.",
     gridTitle: "I can't get started",
-    playName: 'Shrink it',
+    playName: 'Shrink the first step',
     playBody: "The task feels too big or unclear. Your brain resists ambiguity. Make it stupidly small — so small it feels insulting. That's the entry point.",
     steps: [
       'Pick the stuck task. Rewrite it as a 5-minute version. "Write report" → "Open doc and type one sentence."',
@@ -28,13 +28,13 @@ const SITUATIONS = {
       "When the timer ends, stop. If you want to keep going, start a new session. If not, you still moved.",
     ],
     whyItWorks: "ADHD brains struggle with task initiation, not task execution. Shrinking the task bypasses the prefrontal gatekeeping that says 'this is too much.' Once you're in motion, momentum takes over.",
-    ctaLabel: 'Start 5-min focus session',
-    ctaTab: 'focus',
+    ctaLabel: 'Open Tasks',
+    ctaTab: 'tasks',
   },
   overwhelmed: {
     emoji: '\uD83C\uDF0A', title: 'Overwhelmed', sub: 'Too much, nowhere obvious to start.',
     gridTitle: "I'm overwhelmed",
-    playName: 'Triage',
+    playName: 'The one-thing triage',
     playBody: "You have too many things competing for attention. You need to see them all in one place, then ruthlessly cut to three.",
     steps: [
       "Go to your task list. Star exactly 3 tasks — the ones that would make today feel like a win if nothing else happened.",
@@ -42,13 +42,13 @@ const SITUATIONS = {
       "Start with whichever starred task has the lowest friction. Easy wins build capacity for hard ones.",
     ],
     whyItWorks: "Overwhelm is a working memory problem. You can't hold 15 priorities simultaneously. By externalizing to a list and constraining to 3, you free up cognitive bandwidth for actual execution.",
-    ctaLabel: 'Open my tasks',
+    ctaLabel: 'Open Tasks',
     ctaTab: 'tasks',
   },
   momentum: {
     emoji: '\uD83D\uDCC9', title: 'Losing momentum', sub: 'Streak slipping. Energy dropping.',
     gridTitle: "I'm losing momentum",
-    playName: 'Minimum viable day',
+    playName: 'Protect the streak',
     playBody: "You don't need a great day. You need a non-zero day. One task, one check-in, one entry. That preserves the streak and keeps the habit alive.",
     steps: [
       "Find your smallest, easiest task. Something you could do in under 2 minutes.",
@@ -56,8 +56,8 @@ const SITUATIONS = {
       "If you have energy for more, do one more. If not, you're done. The streak lives.",
     ],
     whyItWorks: "Momentum isn't about intensity — it's about consistency. Missing one day makes missing two days 3x more likely. A minimum viable day keeps the chain unbroken.",
-    ctaLabel: 'Find my smallest task',
-    ctaTab: 'tasks',
+    ctaLabel: 'Open Habits',
+    ctaTab: 'habits',
   },
   win: {
     emoji: '\u26A1', title: 'Need a quick win', sub: 'Low energy. Need to feel progress.',
@@ -72,6 +72,7 @@ const SITUATIONS = {
     whyItWorks: "Quick wins activate the reward circuit. Each completion releases a small dopamine hit, which lowers the activation energy for the next task. It's a flywheel.",
     ctaLabel: 'Show quick tasks',
     ctaTab: 'tasks',
+    rememberCard: false,
   },
   focus: {
     emoji: '\uD83C\uDFAF', title: "Can't focus", sub: "Distracted, scattered, can't lock in.",
@@ -84,8 +85,9 @@ const SITUATIONS = {
       "During the session: one tab, one task, one timer. Nothing else exists for 25 minutes.",
     ],
     whyItWorks: "ADHD focus problems aren't about willpower. They're about insufficient external structure. Timers add time pressure (urgency), body doubles add social accountability. Both bypass the need for internal motivation.",
-    ctaLabel: 'Open Focus + partner up',
+    ctaLabel: 'Open Focus',
     ctaTab: 'focus',
+    rememberCard: false,
   },
   crash: {
     emoji: '\uD83D\uDCA5', title: 'Crashed today', sub: 'Got nothing done. Need to reset.',
@@ -100,14 +102,15 @@ const SITUATIONS = {
     whyItWorks: "After a crash, the biggest risk is shame spiral → avoidance → another crash. A soft reset breaks that cycle by normalizing the bad day and creating a forward-facing plan.",
     ctaLabel: 'Talk to my coach',
     ctaTab: 'checkin',
+    rememberCard: true,
   },
 }
 const SIT_ORDER = ['stuck', 'overwhelmed', 'momentum', 'win', 'focus', 'crash']
 
 /* ── Fallback For You cards ───────────────────────────────────────────────── */
 const FALLBACK_FY = [
-  { situationKey: 'stuck', title: 'Feeling stuck?', body: "Start a 5-minute focus session. That's all it takes to break through.", cta_label: 'Try it', is_primary: true },
-  { situationKey: 'win', title: 'Low on energy?', body: 'Knock out 3 tiny tasks in 10 minutes. Speed creates energy.', cta_label: 'Quick sweep', is_primary: false },
+  { situationKey: 'stuck', title: "You're stalling on LLC", body: "Day 4. Try the shrink-it play — one step, 5 minutes.", cta_label: 'Help me start →', is_primary: true },
+  { situationKey: 'overwhelmed', title: '6 tasks, no clear start', body: 'Classic freeze. The triage play cuts it to one thing.', cta_label: 'Run triage →', is_primary: false },
 ]
 
 /* ── Component ────────────────────────────────────────────────────────────── */
@@ -166,6 +169,7 @@ export default function TabGuide({ user, profile, tasks = [], switchTab, loggedF
             <div
               key={i}
               className={card.is_primary !== false ? styles.fyCardPrimary : styles.fyCard}
+              data-sit={card.situationKey}
               onClick={() => card.situationKey ? openSituation(card.situationKey) : null}
             >
               <div className={styles.fyEmoji}>{SITUATIONS[card.situationKey]?.emoji || '\uD83D\uDD25'}</div>
@@ -236,6 +240,14 @@ export default function TabGuide({ user, profile, tasks = [], switchTab, loggedF
               <div className={styles.whyCard}>
                 <div className={styles.whyLabel}>WHY THIS WORKS</div>
                 <div className={styles.whyText}>{sit.whyItWorks}</div>
+              </div>
+            )}
+
+            {/* REMEMBER card (crash only) */}
+            {sit.rememberCard && (
+              <div className={styles.rememberCard}>
+                <div className={styles.rememberLabel}>REMEMBER</div>
+                <div className={styles.rememberText}>A crash day is data, not defeat. You didn't fail — you got signal about what doesn't work. That's progress.</div>
               </div>
             )}
 

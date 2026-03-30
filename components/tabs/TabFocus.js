@@ -160,10 +160,53 @@ export default function TabFocus({
   // Working on task
   const workingTask = topTask || tasks.find(t => t.starred && !t.completed && !t.archived) || tasks.find(t => !t.completed && !t.archived)
 
+  // Check if there are any focus sessions (empty state trigger)
+  const hasFocusSessions = sessionsTotal > 0
+
   return (
     <div className={styles.wrap}>
+      {/* ── EMPTY STATE ──────────────────────────────────────────────── */}
+      {phase === 'idle' && !hasFocusSessions && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '100vh' }}>
+          {/* Icon circle */}
+          <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(59,139,212,0.08)', border: '1px solid rgba(59,139,212,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B8BD4" strokeWidth="1.5" strokeLinecap="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+          </div>
+          {/* Heading */}
+          <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: '#F0EAD6', marginBottom: 6 }}>
+            No sessions yet.
+          </div>
+          {/* Body */}
+          <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.35)', lineHeight: 1.65, maxWidth: 220, marginBottom: 6 }}>
+            Run your first focus session. Pick a duration and go.
+          </div>
+          {/* Sub-line */}
+          <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.22)', marginBottom: 20 }}>
+            5 minutes counts. Starting is the hardest part.
+          </div>
+          {/* CTA button */}
+          <button onClick={() => setDur(5)} style={{ background: 'rgba(59,139,212,0.12)', border: '1px solid rgba(59,139,212,0.25)', borderRadius: 9, padding: '10px 20px', fontSize: 12, fontWeight: 600, color: '#3B8BD4', cursor: 'pointer', marginBottom: 30 }}>
+            Start a session
+          </button>
+
+          {/* Show duration pills as secondary action */}
+          <div style={{ fontSize: 11, color: 'rgba(240,234,214,0.22)', marginBottom: 12 }}>Or choose a duration:</div>
+          <div className={styles.durRow}>
+            {[5, 15, 25, 45, 60].map(d => (
+              <button key={d} onClick={() => setDur(d)}
+                className={`${styles.durPill} ${dur === d ? styles.durPillActive : ''}`}>
+                {d}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── IDLE STATE ─────────────────────────────────────────────── */}
-      {phase === 'idle' && (
+      {phase === 'idle' && hasFocusSessions && (
         <>
           <div className={styles.headerLabel}>Focus</div>
 

@@ -6,10 +6,10 @@ import getAdminClient from '../../lib/supabaseAdmin'
 const FROM_ADDRESS = 'Cinis <noreply@getcinis.app>'
 
 const CONFIRMATION_HTML = `
-<div style="background:#211A14;color:#F5F0E3;padding:32px;font-family:sans-serif;border-radius:12px;max-width:480px">
+<div style="background:#211A14;color:#F0EAD6;padding:32px;font-family:sans-serif;border-radius:12px;max-width:480px">
   <div style="font-size:24px;font-weight:700;margin-bottom:8px">You're in.</div>
-  <div style="font-size:14px;color:#F5F0E390;margin-bottom:24px">We launch April 14. You'll get another email that morning.</div>
-  <div style="font-size:13px;color:#F5F0E360">Cinis · Where start meets finished.</div>
+  <div style="font-size:14px;color:#F0EAD690;margin-bottom:24px">We launch April 14. You'll get another email that morning.</div>
+  <div style="font-size:13px;color:#F0EAD660">Cinis · Where start meets finished.</div>
 </div>
 `
 

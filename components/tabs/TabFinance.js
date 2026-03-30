@@ -351,8 +351,8 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                 style={{
                   padding: '5px 12px', borderRadius: 20, whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0,
                   background: isActive ? 'rgba(255,102,68,0.15)' : '#3E3228',
-                  color: isActive ? '#FF6644' : 'rgba(245,240,227,0.32)',
-                  border: isActive ? '1px solid rgba(255,102,68,0.25)' : '1px solid rgba(245,240,227,0.12)',
+                  color: isActive ? '#FF6644' : 'rgba(240,234,214,0.32)',
+                  border: isActive ? '1px solid rgba(255,102,68,0.25)' : '1px solid rgba(240,234,214,0.12)',
                   fontFamily: "'Figtree', sans-serif", fontSize: 14, fontWeight: isActive ? 500 : 400,
                 }}>
                 {label}
@@ -377,26 +377,39 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 14px 0', marginBottom: 16 }}>
                   <div>
-                    <span style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(245,240,227,0.32)', fontFamily: "'Figtree', sans-serif" }}>Finance</span>
-                    <h1 style={{ margin: '2px 0 0', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 600, color: '#F5F0E3' }}>Bills</h1>
+                    <span style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(240,234,214,0.32)', fontFamily: "'Figtree', sans-serif" }}>Finance</span>
+                    <h1 style={{ margin: '2px 0 0', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 600, color: '#F0EAD6' }}>Bills</h1>
                     <p className={styles.financeTotal}>{fmtMoney(monthlyTotal)}<span className={styles.financeTotalSub}>/mo</span></p>
                   </div>
-                  <button onClick={() => setShowAddBillModal(true)} className={styles.addTaskBtn}>+ Add bill</button>
                 </div>
-                <EmptyState
-                  customIcon={<Receipt size={32} weight="fill" color="#FF6644" />}
-                  headline="No bills tracked yet"
-                  subtext="Add your first bill to start tracking."
-                  ctaLabel="+ Add bill"
-                  onCtaClick={() => setShowAddBillModal(true)}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '50vh' }}>
+                  {/* Icon circle */}
+                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(232,50,26,0.08)', border: '1px solid rgba(232,50,26,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E8321A" strokeWidth="1.5" strokeLinecap="round">
+                      <line x1="12" y1="2" x2="12" y2="22" />
+                      <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                    </svg>
+                  </div>
+                  {/* Heading */}
+                  <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: '#F0EAD6', marginBottom: 6 }}>
+                    No bills tracked.
+                  </div>
+                  {/* Body */}
+                  <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.35)', lineHeight: 1.65, maxWidth: 230, marginBottom: 20 }}>
+                    Add your recurring bills once. Cinis surfaces them in your task list and calendar automatically.
+                  </div>
+                  {/* CTA button */}
+                  <button onClick={() => setShowAddBillModal(true)} style={{ background: 'rgba(232,50,26,0.12)', border: '1px solid rgba(232,50,26,0.25)', borderRadius: 9, padding: '10px 20px', fontSize: 12, fontWeight: 600, color: '#E8321A', cursor: 'pointer' }}>
+                    Add a bill
+                  </button>
+                </div>
               </>
             ) : (
             <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 14px 0', marginBottom: 16 }}>
               <div>
-                <span style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(245,240,227,0.32)', fontFamily: "'Figtree', sans-serif" }}>Finance</span>
-                <h1 style={{ margin: '2px 0 0', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 600, color: '#F5F0E3' }}>Bills</h1>
+                <span style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(240,234,214,0.32)', fontFamily: "'Figtree', sans-serif" }}>Finance</span>
+                <h1 style={{ margin: '2px 0 0', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 600, color: '#F0EAD6' }}>Bills</h1>
                 <p className={styles.financeTotal}>{fmtMoney(monthlyTotal)}<span className={styles.financeTotalSub}>/mo</span></p>
               </div>
               <button onClick={() => setShowAddBillModal(true)} className={styles.addTaskBtn}>+ Add bill</button>
@@ -407,7 +420,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
               <div className={styles.budgetSetupCard}>
                 <p className={styles.budgetSetupLabel}>What's your monthly take-home pay?</p>
                 <div className={styles.incomeInputRow}>
-                  <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'rgba(245,240,227,0.4)' }}>$</span>
+                  <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'rgba(240,234,214,0.4)' }}>$</span>
                   <input
                     type="number"
                     placeholder="0"
@@ -415,7 +428,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                     step="1"
                     value={monthlyIncomeInput}
                     onChange={e => setMonthlyIncomeInput(e.target.value)}
-                    style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: '#F5F0E3' }}
+                    style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: '#F0EAD6' }}
                     className={styles.incomeInput}
                   />
                 </div>
@@ -550,12 +563,12 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                 <div className={styles.budgetSetupCard}>
                   <p className={styles.budgetSetupLabel}>What's your take-home pay?</p>
                   <div className={styles.incomeInputRow}>
-                    <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'rgba(245,240,227,0.4)' }}>$</span>
+                    <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'rgba(240,234,214,0.4)' }}>$</span>
                     <input
                       type="number" placeholder="0" min="0" step="1"
                       value={monthlyIncomeInput}
                       onChange={e => setMonthlyIncomeInput(e.target.value)}
-                      style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: '#F5F0E3' }}
+                      style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: '#F0EAD6' }}
                       className={styles.incomeInput}
                     />
                   </div>
@@ -605,7 +618,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                     value={spendAmount}
                     onChange={e => setSpendAmount(e.target.value)}
                     className={styles.fieldInput}
-                    style={{ fontFamily: 'Sora, sans-serif', fontSize: '1.4rem', fontWeight: 300, color: '#F5F0E3', textAlign: 'center' }}
+                    style={{ fontFamily: 'Sora, sans-serif', fontSize: '1.4rem', fontWeight: 300, color: '#F0EAD6', textAlign: 'center' }}
                   />
                   <div className={styles.toggleRow} style={{ flexWrap: 'wrap' }}>
                     {['Food','Transport','Shopping','Entertainment','Bills','Other'].map(c => (
@@ -886,7 +899,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                     <span className={styles.learnCardTitle}>{card.title}</span>
                     <span className={styles.learnCardChevron}>▼</span>
                   </div>
-                  {card.desc && <p style={{ fontFamily: 'Figtree, sans-serif', fontSize: '11px', color: '#F5F0E350', margin: '0 0 8px', padding: '0 14px 0 42px', lineHeight: 1.4 }}>{card.desc}</p>}
+                  {card.desc && <p style={{ fontFamily: 'Figtree, sans-serif', fontSize: '11px', color: '#F0EAD650', margin: '0 0 8px', padding: '0 14px 0 42px', lineHeight: 1.4 }}>{card.desc}</p>}
                   {isOpen && (
                     <div className={styles.learnCardContent}>
                       {card.fields.map(f => (
@@ -1100,7 +1113,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
           const paidPct = totalBillAmount > 0 ? Math.round((paidAmount / totalBillAmount) * 100) : 0
 
           // Category breakdown
-          const CAT_COLORS = { Housing: '#FF6644', Subscriptions: '#3B8BD4', Utilities: '#A47BDB', Insurance: '#4CAF50', Debt: '#E8321A', Other: 'rgba(240,234,214,0.22)' }
+          const CAT_COLORS = { Housing: '#FF6644', Subscriptions: '#3B8BD4', Utilities: '#A47BDB', Insurance: '#4CAF50', 'Debt/Loans': '#E8321A', Other: 'rgba(240,234,214,0.22)' }
           const catMap = {}
           bills.forEach(b => {
             const cat = b.category || 'Other'
@@ -1111,19 +1124,27 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
             color: CAT_COLORS[name] || CAT_COLORS.Other,
           }))
 
-          // Flags
-          const overdueBills = bills.filter(b => !b.paid && !b.autopay && b.due_day < now.getDate())
+          // Flags logic
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+          const overdueBills = bills.filter(b => b.due_day && !b.paid && b.due_day < now.getDate())
           const subBills = bills.filter(b => (b.category || '').toLowerCase() === 'subscriptions')
-          const subTotal = subBills.reduce((s, b) => s + (parseFloat(b.amount) || 0), 0)
           const autopayBills = bills.filter(b => b.autopay)
+
+          const hasOverdue = overdueBills.length > 0
+          const hasWatch = subBills.length > 8
+          const hasOnTrack = autopayBills.length > 0
+          const hasFlags = hasOverdue || hasWatch || hasOnTrack
 
           // AI insight (cached monthly)
           const insightKey = `cinis_finance_insight_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`
           const [coachInsight, setCoachInsight] = useState(() => {
             try { return typeof localStorage !== 'undefined' && localStorage.getItem(insightKey) || '' } catch { return '' }
           })
+          const [insightLoading, setInsightLoading] = useState(false)
+
           useEffect(() => {
-            if (coachInsight || bills.length === 0) return
+            if (coachInsight || bills.length === 0 || insightLoading) return
+            setInsightLoading(true)
             loggedFetch('/api/finance/insight', {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ bills: bills.map(b => ({ name: b.name, amount: b.amount, category: b.category, autopay: b.autopay, due_day: b.due_day })), total_income: profile?.monthly_income || monthlyIncome }),
@@ -1132,7 +1153,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                 setCoachInsight(data.insight)
                 try { localStorage.setItem(insightKey, data.insight) } catch {}
               }
-            }).catch(() => {})
+            }).catch(() => {}).finally(() => setInsightLoading(false))
           }, [bills.length])
 
           if (bills.length === 0) return (
@@ -1145,23 +1166,23 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
 
           return (
             <div style={{ padding: '12px 14px 80px' }}>
-              {/* Month summary */}
-              <div className={styles.fiBreakdownCard} style={{ marginBottom: 10 }}>
+              {/* Month summary card */}
+              <div style={{ background: '#3E3228', borderRadius: 12, padding: 14, marginBottom: 10 }}>
                 <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(240,234,214,0.22)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{curMonth}</div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                   <div style={{ flex: 1, textAlign: 'center' }}>
                     <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: '#F0EAD6' }}>{fmtMoney(totalBillAmount)}</div>
-                    <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)', marginTop: 3 }}>Bills this month</div>
+                    <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)' }}>bills this month</div>
                   </div>
-                  <div style={{ width: 1, height: 40, background: 'rgba(240,234,214,0.08)' }} />
+                  <div style={{ width: 1, background: 'rgba(240,234,214,0.08)' }} />
                   <div style={{ flex: 1, textAlign: 'center' }}>
                     <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: '#4CAF50' }}>{fmtMoney(dueThisWeek)}</div>
-                    <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)', marginTop: 3 }}>Due this week</div>
+                    <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)' }}>due this week</div>
                   </div>
-                  <div style={{ width: 1, height: 40, background: 'rgba(240,234,214,0.08)' }} />
+                  <div style={{ width: 1, background: 'rgba(240,234,214,0.08)' }} />
                   <div style={{ flex: 1, textAlign: 'center' }}>
                     <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: '#FFB800' }}>{fmtMoney(paidAmount)}</div>
-                    <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)', marginTop: 3 }}>Paid so far</div>
+                    <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)' }}>paid so far</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
@@ -1173,16 +1194,20 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                 </div>
               </div>
 
-              {/* Coach insight */}
-              {coachInsight && (
+              {/* AI Coach insight card */}
+              {(coachInsight || insightLoading) && (
                 <div style={{ background: '#3E3228', borderRadius: 10, padding: 13, border: '1px solid rgba(255,102,68,0.10)', marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,102,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,102,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <svg width="8" height="8" viewBox="0 0 16 16" fill="#FF6644"><path d="M8 0l2 5h5l-4 3 2 5-5-3-5 3 2-5L1 5h5z" /></svg>
                     </div>
-                    <span style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#FF6644' }}>COACH INSIGHT</span>
+                    <span style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#FF6644', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Coach Insight</span>
                   </div>
-                  <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.60)', lineHeight: 1.65, marginBottom: 8 }}>{coachInsight}</div>
+                  {insightLoading ? (
+                    <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.40)', lineHeight: 1.65, marginBottom: 8 }}>Loading insight...</div>
+                  ) : (
+                    <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.6)', lineHeight: 1.65, marginBottom: 8 }}>{coachInsight}</div>
+                  )}
                   <div onClick={() => setFinanceSub('plans')} style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 10, color: '#FF6644', cursor: 'pointer' }}>Open Plans →</div>
                 </div>
               )}
@@ -1190,11 +1215,11 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
               {/* Category breakdown */}
               {catList.length > 0 && (
                 <>
-                  <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(240,234,214,0.22)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>BREAKDOWN</div>
+                  <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(240,234,214,0.22)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Breakdown</div>
                   <div style={{ background: '#3E3228', borderRadius: 10, padding: 12, marginBottom: 10 }}>
-                    {catList.map(cat => (
-                      <div key={cat.name} style={{ marginBottom: 8 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                    {catList.map((cat, idx) => (
+                      <div key={cat.name} style={{ marginBottom: idx < catList.length - 1 ? 8 : 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                           <span style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: '#F0EAD6' }}>{cat.name}</span>
                           <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: 11, color: '#F0EAD6' }}>{fmtMoney(cat.total)}</span>
                         </div>
@@ -1208,28 +1233,35 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                 </>
               )}
 
-              {/* Flags */}
-              <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(240,234,214,0.22)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>FLAGS</div>
+              {/* Flags section */}
+              <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(240,234,214,0.22)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Flags</div>
 
-              {overdueBills.map(b => (
-                <div key={b.id} style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', marginBottom: 5, borderLeft: '3px solid #E8321A' }}>
-                  <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#E8321A', marginBottom: 3 }}>Overdue</div>
-                  <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.55)', lineHeight: 1.55 }}>{b.name} ({fmtMoney(parseFloat(b.amount) || 0)}) hasn&apos;t been paid &mdash; it was due on the {b.due_day}th.</div>
+              {hasFlags ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {overdueBills.map(b => {
+                    const daysOverdue = now.getDate() - b.due_day
+                    return (
+                      <div key={b.id} style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', borderLeft: '3px solid #E8321A' }}>
+                        <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#E8321A', marginBottom: 3 }}>Overdue</div>
+                        <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.6)', lineHeight: 1.5 }}>{b.name} ({fmtMoney(parseFloat(b.amount) || 0)}) — {daysOverdue} day{daysOverdue !== 1 ? 's' : ''} overdue</div>
+                      </div>
+                    )
+                  })}
+                  {hasWatch && (
+                    <div style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', borderLeft: '3px solid #FFB800' }}>
+                      <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#FFB800', marginBottom: 3 }}>Watch</div>
+                      <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.6)', lineHeight: 1.5 }}>You have {subBills.length} active subscriptions. Monitor spending.</div>
+                    </div>
+                  )}
+                  {hasOnTrack && (
+                    <div style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', borderLeft: '3px solid #4CAF50' }}>
+                      <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#4CAF50', marginBottom: 3 }}>On track</div>
+                      <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.6)', lineHeight: 1.5 }}>{autopayBills.length} bill{autopayBills.length !== 1 ? 's' : ''} on autopay — all set.</div>
+                    </div>
+                  )}
                 </div>
-              ))}
-
-              {(subBills.length > 8 || subTotal > 0) && (
-                <div style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', marginBottom: 5, borderLeft: '3px solid #FFB800' }}>
-                  <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#FFB800', marginBottom: 3 }}>Watch</div>
-                  <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.55)', lineHeight: 1.55 }}>You have {subBills.length} active subscriptions. {fmtMoney(subTotal)}/month.</div>
-                </div>
-              )}
-
-              {autopayBills.length > 0 && (
-                <div style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', marginBottom: 5, borderLeft: '3px solid #4CAF50' }}>
-                  <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#4CAF50', marginBottom: 3 }}>On track</div>
-                  <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.55)', lineHeight: 1.55 }}>{autopayBills.length} bill{autopayBills.length !== 1 ? 's' : ''} on autopay this month.</div>
-                </div>
+              ) : (
+                <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.6)' }}>No flags this month — everything&apos;s on track.</div>
               )}
             </div>
           )

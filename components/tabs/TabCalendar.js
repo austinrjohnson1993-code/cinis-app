@@ -78,8 +78,8 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
   if (loading) return (
     <div style={{ padding: '12px 14px', paddingBottom: 80, overflowY: 'auto', height: '100%' }}>
       <div style={{ background: '#3E3228', borderRadius: 10, padding: 20, marginBottom: 14 }}>
-        <div style={{ height: 14, background: '#F5F0E310', borderRadius: 4, marginBottom: 8, width: '60%' }} />
-        <div style={{ height: 100, background: '#F5F0E308', borderRadius: 6 }} />
+        <div style={{ height: 14, background: '#F0EAD610', borderRadius: 4, marginBottom: 8, width: '60%' }} />
+        <div style={{ height: 100, background: '#F0EAD608', borderRadius: 6 }} />
       </div>
     </div>
   )
@@ -88,8 +88,8 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
     <div style={{ padding: '12px 14px', paddingBottom: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60%' }}>
       <div style={{ textAlign: 'center' }}>
         <span style={{ fontSize: 24 }}>&#9888;&#65039;</span>
-        <div style={{ fontSize: 14, color: '#F5F0E370', fontFamily: ff, marginTop: 8 }}>Couldn&apos;t load your data.</div>
-        <div onClick={() => { if (setTasksError) setTasksError(false); if (setLoading) setLoading(true); if (fetchTasks) fetchTasks(user.id) }} style={{ marginTop: 10, padding: '8px 16px', background: '#FF6644', borderRadius: 8, fontSize: 14, color: '#F5F0E3', fontFamily: ff, cursor: 'pointer', display: 'inline-block' }}>Try again</div>
+        <div style={{ fontSize: 14, color: '#F0EAD670', fontFamily: ff, marginTop: 8 }}>Couldn&apos;t load your data.</div>
+        <div onClick={() => { if (setTasksError) setTasksError(false); if (setLoading) setLoading(true); if (fetchTasks) fetchTasks(user.id) }} style={{ marginTop: 10, padding: '8px 16px', background: '#FF6644', borderRadius: 8, fontSize: 14, color: '#F0EAD6', fontFamily: ff, cursor: 'pointer', display: 'inline-block' }}>Try again</div>
       </div>
     </div>
   )
@@ -102,14 +102,14 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
         <div style={{ background: '#3E3228', borderRadius: 10, padding: '10px 10px 8px', marginBottom: 14 }}>
           {/* Nav */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <div onClick={calPrevMonth} style={{ padding: 6, cursor: 'pointer', color: '#F5F0E370', fontSize: 16 }}>&#8249;</div>
-            <div style={{ fontFamily: ff, fontSize: 15, fontWeight: 600, color: '#F5F0E3' }}>{monthName} {year}</div>
-            <div onClick={calNextMonth} style={{ padding: 6, cursor: 'pointer', color: '#F5F0E370', fontSize: 16 }}>&#8250;</div>
+            <div onClick={calPrevMonth} style={{ padding: 6, cursor: 'pointer', color: '#F0EAD670', fontSize: 16 }}>&#8249;</div>
+            <div style={{ fontFamily: ff, fontSize: 15, fontWeight: 600, color: '#F0EAD6' }}>{monthName} {year}</div>
+            <div onClick={calNextMonth} style={{ padding: 6, cursor: 'pointer', color: '#F0EAD670', fontSize: 16 }}>&#8250;</div>
           </div>
           {/* Day labels */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1 }}>
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-              <div key={i} style={{ fontSize: 14, color: '#F5F0E340', fontFamily: ff, textAlign: 'center', padding: '4px 0' }}>{d}</div>
+              <div key={i} style={{ fontSize: 14, color: '#F0EAD640', fontFamily: ff, textAlign: 'center', padding: '4px 0' }}>{d}</div>
             ))}
           </div>
           {/* Day cells */}
@@ -125,12 +125,12 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
                 <div key={idx} onClick={() => { setCalDay(new Date(year, month, day)); setCalDayPanelOpen(true) }} style={{
                   height: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   borderRadius: 6, cursor: 'pointer',
-                  background: isToday ? '#FF66441F' : isSelected ? '#F5F0E30A' : 'transparent',
+                  background: isToday ? '#FF66441F' : isSelected ? '#F0EAD60A' : 'transparent',
                 }}>
                   <span style={{
                     fontSize: 14, fontFamily: ff,
                     fontWeight: isToday ? 600 : 400,
-                    color: isToday ? '#FF6644' : '#F5F0E3',
+                    color: isToday ? '#FF6644' : '#F0EAD6',
                   }}>{day}</span>
                   <div style={{ display: 'flex', gap: 2, marginTop: 2, height: 3 }}>
                     {dayTaskList.length > 0 && <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#FF6644' }} />}
@@ -143,24 +143,24 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
         </div>
 
         {/* Coming up section */}
-        <div style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#F5F0E350', fontFamily: ff, fontWeight: 500, marginBottom: 8 }}>Coming up</div>
+        <div style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#F0EAD650', fontFamily: ff, fontWeight: 500, marginBottom: 8 }}>Coming up</div>
 
         {Object.keys(upcomingByDate).length === 0 ? (
           <div style={{ textAlign: 'center', padding: '20px 16px' }}>
-            <div style={{ fontSize: 14, color: '#F5F0E350', fontFamily: ff }}>You&apos;re clear for the next 7 days.</div>
+            <div style={{ fontSize: 14, color: '#F0EAD650', fontFamily: ff }}>You&apos;re clear for the next 7 days.</div>
           </div>
         ) : (
           Object.entries(upcomingByDate).map(([dStr, dayList]) => (
             <div key={dStr}>
-              <div style={{ fontSize: 14, fontWeight: 500, fontFamily: ff, padding: '6px 0 3px', color: dStr === todayD ? '#FF6644' : '#F5F0E370' }}>{fmtUpDate(dStr)}</div>
+              <div style={{ fontSize: 14, fontWeight: 500, fontFamily: ff, padding: '6px 0 3px', color: dStr === todayD ? '#FF6644' : '#F0EAD670' }}>{fmtUpDate(dStr)}</div>
               {dayList.map(t => (
                 <div key={t.id} onClick={() => setDetailTask && setDetailTask(t)} style={{
                   display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px',
                   background: '#3E3228', borderRadius: 8, marginBottom: 4, cursor: 'pointer'
                 }}>
-                  <div style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><div style={{ width: 17, height: 17, borderRadius: '50%', border: '1.5px solid #F5F0E350' }} /></div>
-                  <span style={{ fontSize: 14, color: '#F5F0E3', fontFamily: ff, flex: 1 }}>{t.title}</span>
-                  {t.due_time && <span style={{ fontSize: 14, color: '#F5F0E350', fontFamily: sf }}>{new Date(t.due_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>}
+                  <div style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><div style={{ width: 17, height: 17, borderRadius: '50%', border: '1.5px solid #F0EAD650' }} /></div>
+                  <span style={{ fontSize: 14, color: '#F0EAD6', fontFamily: ff, flex: 1 }}>{t.title}</span>
+                  {t.due_time && <span style={{ fontSize: 14, color: '#F0EAD650', fontFamily: sf }}>{new Date(t.due_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>}
                 </div>
               ))}
             </div>
@@ -174,8 +174,8 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
             background: '#3E3228', borderRadius: 8, marginBottom: 4, borderLeft: '3px solid #E8321A'
           }}>
             <span style={{ fontSize: 14 }}>&#129534;</span>
-            <span style={{ fontSize: 14, color: '#F5F0E3', fontFamily: ff, flex: 1 }}>{b.name}</span>
-            <span style={{ fontSize: 14, color: '#F5F0E370', fontFamily: sf }}>{fmtMoney(b.amount)}</span>
+            <span style={{ fontSize: 14, color: '#F0EAD6', fontFamily: ff, flex: 1 }}>{b.name}</span>
+            <span style={{ fontSize: 14, color: '#F0EAD670', fontFamily: sf }}>{fmtMoney(b.amount)}</span>
           </div>
         ))}
 

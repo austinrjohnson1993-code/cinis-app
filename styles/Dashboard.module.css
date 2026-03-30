@@ -2184,7 +2184,7 @@
    FINANCE — BUDGET TAB
    ════════════════════════════════════════════ */
 
-.budgetPanel { display: flex; flex-direction: column; gap: 20px; }
+.budgetPanel { display: flex; flex-direction: column; gap: 20px; padding: 12px 14px 80px; }
 
 .budgetCard {
   background: rgba(255,200,120,0.03); border: 1px solid rgba(255,200,120,0.08);
@@ -4500,7 +4500,7 @@
 /* ── Rings card ── */
 .pgRingsCard {
   background: #3E3228;
-  border: 1px solid rgba(245,240,227,0.08);
+  border: 1px solid rgba(240,234,214,0.08);
   border-radius: 12px;
   padding: 20px 12px 16px;
 }
@@ -4541,7 +4541,7 @@
 }
 .pgRingSubValue {
   font-size: 7px;
-  color: rgba(245,240,227,0.5);
+  color: rgba(240,234,214,0.5);
   font-family: 'Figtree', sans-serif;
   text-align: center;
   line-height: 1;
@@ -4549,7 +4549,7 @@
 .pgRingLabel {
   font-size: 10px;
   font-weight: 500;
-  color: rgba(245,240,227,0.45);
+  color: rgba(240,234,214,0.45);
   font-family: 'Figtree', sans-serif;
   text-align: center;
 }
@@ -4557,7 +4557,7 @@
 /* ── XP card ── */
 .pgXpCard {
   background: #3E3228;
-  border: 1px solid rgba(245,240,227,0.08);
+  border: 1px solid rgba(240,234,214,0.08);
   border-radius: 12px;
   padding: 10px 12px;
 }
@@ -4603,12 +4603,12 @@
 }
 .pgXpNextHint {
   font-size: 8px;
-  color: rgba(245,240,227,0.38);
+  color: rgba(240,234,214,0.38);
   font-family: 'Figtree', sans-serif;
 }
 .pgXpBarTrack {
   height: 6px;
-  background: rgba(245,240,227,0.07);
+  background: rgba(240,234,214,0.07);
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -4625,7 +4625,7 @@
 }
 .pgXpMstone {
   font-size: 8px;
-  color: rgba(245,240,227,0.3);
+  color: rgba(240,234,214,0.3);
   font-family: 'Figtree', sans-serif;
 }
 
@@ -4637,7 +4637,7 @@
 }
 .pgInsightCard {
   background: #3E3228;
-  border: 1px solid rgba(245,240,227,0.08);
+  border: 1px solid rgba(240,234,214,0.08);
   border-left: 3px solid #FF6644;
   border-radius: 10px;
   padding: 10px 12px;
@@ -4664,14 +4664,14 @@
 }
 .pgInsightBody {
   font-size: 11px;
-  color: rgba(245,240,227,0.56);
+  color: rgba(240,234,214,0.56);
   font-family: 'Figtree', sans-serif;
   line-height: 1.5;
 }
 .pgInsightSkeleton {
   height: 120px;
   background: #3E3228;
-  border: 1px solid rgba(245,240,227,0.06);
+  border: 1px solid rgba(240,234,214,0.06);
   border-radius: 10px;
   animation: pgSkeletonPulse 1.4s ease-in-out infinite;
 }
@@ -4683,7 +4683,7 @@
 /* ── Weekly chart ── */
 .pgWeekCard {
   background: #3E3228;
-  border: 1px solid rgba(245,240,227,0.08);
+  border: 1px solid rgba(240,234,214,0.08);
   border-radius: 12px;
   padding: 12px;
 }
@@ -4696,7 +4696,7 @@
 .pgWeekTitle {
   font-size: 10px;
   font-weight: 700;
-  color: rgba(245,240,227,0.45);
+  color: rgba(240,234,214,0.45);
   font-family: 'Figtree', sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -4705,7 +4705,7 @@
   font-family: 'Sora', sans-serif;
   font-size: 11px;
   font-weight: 600;
-  color: rgba(245,240,227,0.4);
+  color: rgba(240,234,214,0.4);
 }
 .pgBarChart {
   display: flex;
@@ -4727,12 +4727,12 @@
 }
 .pgBarPrev {
   width: 8px;
-  background: rgba(245,240,227,0.15);
+  background: rgba(240,234,214,0.15);
   border-radius: 2px 2px 0 0;
 }
 .pgBar {
   width: 8px;
-  background: rgba(245,240,227,0.22);
+  background: rgba(240,234,214,0.22);
   border-radius: 2px 2px 0 0;
   min-height: 3px;
 }
@@ -4740,7 +4740,7 @@
 .pgBarLabel {
   font-size: 9px;
   font-weight: 500;
-  color: rgba(245,240,227,0.3);
+  color: rgba(240,234,214,0.3);
   font-family: 'Figtree', sans-serif;
   text-transform: uppercase;
 }
@@ -4763,14 +4763,14 @@
 }
 .pgWeekLegendLabel {
   font-size: 9px;
-  color: rgba(245,240,227,0.4);
+  color: rgba(240,234,214,0.4);
   font-family: 'Figtree', sans-serif;
 }
 
 /* ── Monthly card ── */
 .pgMonthCard {
   background: #3E3228;
-  border: 1px solid rgba(245,240,227,0.08);
+  border: 1px solid rgba(240,234,214,0.08);
   border-radius: 12px;
   padding: 12px 14px;
 }
@@ -4779,7 +4779,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(245,240,227,0.4);
+  color: rgba(240,234,214,0.4);
   font-family: 'Figtree', sans-serif;
   margin-bottom: 10px;
 }
@@ -4802,19 +4802,19 @@
 }
 .pgMonthStatLabel {
   font-size: 8px;
-  color: rgba(245,240,227,0.38);
+  color: rgba(240,234,214,0.38);
   font-family: 'Figtree', sans-serif;
 }
 .pgMonthDivider {
   width: 0.5px;
   height: 32px;
-  background: rgba(245,240,227,0.12);
+  background: rgba(240,234,214,0.12);
   flex-shrink: 0;
 }
 
 /* legacy */
-.progressSummaryLoading { color: rgba(245,240,227,0.35); font-size: 1.2rem; letter-spacing: 4px; }
-.progressSummaryRefresh { background: transparent; border: 1px solid rgba(245,240,227,0.15); border-radius: 8px; padding: 8px 16px; color: rgba(245,240,227,0.5); font-size: 0.85rem; font-family: 'Figtree', sans-serif; cursor: pointer; }
+.progressSummaryLoading { color: rgba(240,234,214,0.35); font-size: 1.2rem; letter-spacing: 4px; }
+.progressSummaryRefresh { background: transparent; border: 1px solid rgba(240,234,214,0.15); border-radius: 8px; padding: 8px 16px; color: rgba(240,234,214,0.5); font-size: 0.85rem; font-family: 'Figtree', sans-serif; cursor: pointer; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PART A — VOICE FAB
@@ -5800,8 +5800,8 @@
   font-family: 'Figtree', sans-serif; max-width: 85%;
 }
 .financeChatAssistant {
-  align-self: flex-start; background: rgba(245,240,227,0.05);
-  border: 1px solid rgba(245,240,227,0.08); border-radius: 2px 10px 10px 10px;
+  align-self: flex-start; background: rgba(240,234,214,0.05);
+  border: 1px solid rgba(240,234,214,0.08); border-radius: 2px 10px 10px 10px;
   padding: 8px 12px; font-size: 0.88rem; color: rgba(240,234,214,0.85);
   font-family: 'Figtree', sans-serif; max-width: 90%; line-height: 1.5;
 }
@@ -5813,7 +5813,7 @@
   padding: 12px 14px; font-size: 0.9rem; color: #F0EAD6;
   font-family: 'Figtree', sans-serif;
 }
-.financeChatInput::placeholder { color: rgba(245,240,227,0.25); }
+.financeChatInput::placeholder { color: rgba(240,234,214,0.25); }
 .financeChatSend {
   background: transparent; border: none; border-left: 1px solid rgba(255,102,68,0.15);
   padding: 0 16px; color: #FF6644; font-size: 1.1rem; cursor: pointer;

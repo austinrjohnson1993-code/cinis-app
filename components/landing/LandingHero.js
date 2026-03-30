@@ -140,7 +140,7 @@ export default function LandingHero() {
               <span className={styles.headlineBracket}>]</span>
             </p>
           </div>
-          <WaitlistForm />
+          <WaitlistForm buttonLabel="Start for free" />
         </div>
 
         {/* Right: mark */}

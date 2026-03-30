@@ -185,7 +185,7 @@ export default function Dashboard() {
   // ── Render ───────────────────────────────────────────────────────────────
   if (loading) return (
     <div className={styles.loadingPage}>
-      <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 600, fontSize: '1.3rem', letterSpacing: '0.16em', color: '#F5F0E3' }}>CINIS</span>
+      <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 600, fontSize: '1.3rem', letterSpacing: '0.16em', color: '#F0EAD6' }}>CINIS</span>
     </div>
   )
 
@@ -201,8 +201,8 @@ export default function Dashboard() {
           <div className={styles.sidebarLogo}>
             <CinisMark size={24} aria-hidden="true" style={{ flexShrink: 0 }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.16em', color: '#F5F0E3' }}>CINIS</span>
-              <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: '0.62rem', color: 'rgba(245,240,227,0.3)', letterSpacing: '0.01em', lineHeight: 1 }}>Where start meets finished.</span>
+              <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.16em', color: '#F0EAD6' }}>CINIS</span>
+              <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: '0.62rem', color: 'rgba(240,234,214,0.3)', letterSpacing: '0.01em', lineHeight: 1 }}>Where start meets finished.</span>
             </div>
           </div>
           <nav className={styles.sidebarNav}>

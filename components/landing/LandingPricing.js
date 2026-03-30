@@ -6,8 +6,8 @@ export default function LandingPricing() {
     <section className={styles.pricingSection} id="pricing">
       <div className={styles.pricingInner}>
         <div className={styles.pricingEyebrow}>Launching April 2026</div>
-        <h2 className={styles.pricingHeadline}>Start free.</h2>
-        <p className={styles.pricingSub}>Go Pro when it clicks.</p>
+        <h2 className={styles.pricingHeadline}>Free to start.</h2>
+        <p className={styles.pricingSub}>Pro is $14/mo.</p>
         <p className={styles.pricingDesc}>Most people feel the difference in the first week.</p>
 
         <div className={styles.pricingTiers}>
