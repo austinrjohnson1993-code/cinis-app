@@ -2,6 +2,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import CinisMark from '../lib/CinisMark'
 import { PRICING } from '../lib/constants'
+import { supabase } from '../lib/supabase'
 
 const FREE_FEATURES = [
   'Basic task management',
@@ -21,11 +22,21 @@ const PRO_FEATURES = [
 export default function Pricing() {
   const router = useRouter()
 
-  const handleGoPro = async () => {
+  const handleGoPro = async (plan = 'monthly') => {
     try {
-      const res = await fetch('/api/stripe/create-checkout-session', { method: 'POST' })
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` }),
+        },
+        body: JSON.stringify({ plan }),
+        credentials: 'include',
+      })
       const data = await res.json()
       if (data.url) window.location.href = data.url
+      else console.error('No checkout URL returned:', data)
     } catch {
       console.error('Stripe checkout failed')
     }
@@ -159,7 +170,7 @@ const s = {
     fontFamily: "'Sora', sans-serif",
     fontWeight: 700,
     fontSize: '2.8rem',
-    color: '#F5F0E3',
+    color: '#F0EAD6',
     lineHeight: 1,
     margin: 0,
   },

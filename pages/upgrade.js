@@ -20,12 +20,12 @@ export default function Upgrade() {
       if (session?.user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('subscription_tier')
+          .select('subscription_status')
           .eq('id', session.user.id)
           .single()
         setUser({
           id: session.user.id,
-          subscription_tier: profile?.subscription_tier || 'free'
+          subscription_status: profile?.subscription_status || 'free'
         })
       }
       setLoading(false)
@@ -36,9 +36,13 @@ export default function Upgrade() {
   const handleCheckout = async (plan) => {
     setCheckingOut(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` }),
+        },
         body: JSON.stringify({ plan }),
         credentials: 'include',
       })
@@ -58,7 +62,7 @@ export default function Upgrade() {
     return <div className={styles.page}><div className={styles.loading}>Loading...</div></div>
   }
 
-  const isAlreadyPro = user?.subscription_tier === 'pro'
+  const isAlreadyPro = user?.subscription_status === 'pro'
 
   return (
     <>
