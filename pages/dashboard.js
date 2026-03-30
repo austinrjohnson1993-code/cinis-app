@@ -56,6 +56,7 @@ export default function Dashboard() {
   const [showMoreDrawer, setShowMoreDrawer] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [initialSessionId, setInitialSessionId] = useState(null)
 
   // Voice FAB removed
   const debugRef = useRef({ lastCall: null, lastError: null })
@@ -83,6 +84,14 @@ export default function Dashboard() {
 
   const showToast = (msg) => libShowToast(msg)
   const switchTab = (id) => { setActiveTab(id); setShowMoreDrawer(false) }
+
+  // ── URL param handling: ?tab=focus&session_id=xxx ────────────────────────
+  useEffect(() => {
+    if (!router.isReady) return
+    const { tab, session_id } = router.query
+    if (tab) switchTab(tab)
+    if (session_id) setInitialSessionId(session_id)
+  }, [router.isReady])
 
   // ── Auth + data fetch ────────────────────────────────────────────────────
   useEffect(() => {
@@ -229,7 +238,7 @@ export default function Dashboard() {
           {activeTab === 'home' && <TabErrorBoundary tabName="Home"><TabDashboard {...tabProps} /></TabErrorBoundary>}
           {activeTab === 'tasks' && <TabErrorBoundary tabName="Tasks"><TabTasks {...tabProps} /></TabErrorBoundary>}
           {activeTab === 'checkin' && <TabErrorBoundary tabName="Check-in"><TabCheckin {...tabProps} /></TabErrorBoundary>}
-          {activeTab === 'focus' && <TabErrorBoundary tabName="Focus"><TabFocus {...tabProps} /></TabErrorBoundary>}
+          {activeTab === 'focus' && <TabErrorBoundary tabName="Focus"><TabFocus {...tabProps} initialSessionId={initialSessionId} /></TabErrorBoundary>}
           {activeTab === 'calendar' && <TabErrorBoundary tabName="Calendar"><TabCalendar {...tabProps} /></TabErrorBoundary>}
           {activeTab === 'habits' && <TabErrorBoundary tabName="Habits"><TabHabits {...tabProps} /></TabErrorBoundary>}
           {activeTab === 'tagteam' && <TabErrorBoundary tabName="Tag Team"><TabTagTeam {...tabProps} /></TabErrorBoundary>}
