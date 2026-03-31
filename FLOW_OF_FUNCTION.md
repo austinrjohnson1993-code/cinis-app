@@ -1,3 +1,66 @@
+# 22. NUTRITION TAB (components/tabs/TabNutrition.js)
+
+## 22.1 Overview
+- **File:** components/tabs/TabNutrition.js
+- **Sub-tabs:** `log | meals | stack | body | insights | knowledge | learn`
+- **DB tables:** `nutrition_log`, `supplements`, `body_metrics`, `saved_meals`
+- **API routes:** `/api/nutrition/log`, `/api/nutrition/water`, `/api/nutrition/meals`, `/api/nutrition/supplements`, `/api/nutrition/weight`, `/api/nutrition/body`, `/api/nutrition/insights`
+
+## 22.2 Log Sub-tab
+- **On mount:** GET `/api/nutrition/log?timezone=` → returns today's `entries` + `totals` + `targets`
+- **Macro ring:** calorie progress circle (calories / target) drawn with SVG; protein/carbs/fat bars below
+- **Water dots:** count derived client-side from `logEntries.filter(e => e.meal_type === 'water').length`
+  - Tap unfilled dot → POST `/api/nutrition/water` → re-fetches log
+  - Tap filled dot → DELETE `/api/nutrition/water` → re-fetches log
+- **Add meal:** opens `LogMealSheet`; `onSave` → resets `logLoaded` + re-fetches
+- **Quick-log saved meal:** POST `/api/nutrition/log` with `{ template_id }` → optimistically updates totals + log_count on saved meal
+
+## 22.3 Stack Sub-tab (Supplements)
+- **Lazy load:** fetched only when `nutrSub === 'stack'` and `!suppLoaded`
+- **Source:** GET `/api/nutrition/supplements` → returns `supplements[]`
+- **Grouping:** client-side `suppGroups` map keyed by timing_group, ordered by TIMING_ORDER array
+- **Taken today:** computed as `supp.last_taken_date === todayStr` (no boolean column — date comparison only)
+- **Toggle taken:** PATCH `/api/nutrition/supplements` with `{ id, taken: !takenToday }` → optimistic update on supplement item
+- **Add supplement:** opens `AddSupplementSheet`; `onSave` → resets `suppLoaded` + re-fetches
+
+## 22.4 Meals Sub-tab (Saved Meals)
+- **Lazy load:** fetched only when `nutrSub === 'meals'` and `!mealsLoaded`
+- **Source:** GET `/api/nutrition/meals` → returns `meals[]` with `log_count`
+- **Create meal:** opens `CreateSavedMealSheet`; `onSave` → resets `mealsLoaded` + re-fetches
+
+## 22.5 Body Sub-tab
+- **Lazy load:** fetched only when `nutrSub === 'body'` and `!weightLoaded`
+- **Weight log:** GET `/api/nutrition/weight` → returns recent entries for sparkline
+- **Body goal:** GET `/api/nutrition/body` → returns `{ goal }` from `body_metrics`; saved via POST
+- **Log weight:** opens `LogWeightSheet`; `onSave` → resets `weightLoaded` + re-fetches
+
+## 22.6 Insights Sub-tab
+- **Lazy load:** fetched only when `nutrSub === 'insights'` and `!insightsLoaded`
+- **Source:** GET `/api/nutrition/insights`
+  - Fetches 7-day `nutrition_log` entries + all `supplements` in parallel
+  - Computes: avg_meals_per_day, avg_calories_per_day, avg_protein_per_day, avg_water_per_day, supplement_adherence_pct
+  - Calls `claude-haiku-4-5-20251001` (120 max_tokens) for a 2–3 sentence coaching insight
+  - Returns `{ stats, insight }`
+- **No AI call** if no log entries exist in the last 7 days
+
+## 22.7 Knowledge + Learn Sub-tabs
+- **Knowledge:** static filter chips (All / Protein / Carbs / Fat / Hydration / Supplements / Weight); renders NCard content cards
+- **Learn:** static filter chips + static lesson cards (no API calls)
+
+## 22.8 Supplement API — Key Field Notes
+- **Table:** `supplements` (id, user_id, name, dose, form, timing_groups text[], frequency, frequency_days text[], preferred_time, note, last_taken_date date, created_at)
+- **POST payload fields:** `name`, `dose`, `form`, `timing_groups` (array), `frequency` ('daily'|'trainingdays'|'weekdays'|'custom'), `frequency_days` (array of day strings when custom), `preferred_time` (HH:MM string, optional), `note`
+- **PATCH payload fields:** `id`, `taken` (boolean) — server sets `last_taken_date` to today or null
+
+## 22.9 Water API — Key Notes
+- Water NOT tracked as a separate table — stored in `nutrition_log` with `meal_type = 'water'`, `calories = 0`
+- GET returns `{ count, entries }` for today by timezone
+- DELETE removes the most recently logged water entry for today (LIFO)
+
+*Added S30 · March 30, 2026*
+
+---
+
 # 21. ONBOARDING (pages/onboarding.js)
 
 ## 21.1 Overview

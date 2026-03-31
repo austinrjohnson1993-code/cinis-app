@@ -23,7 +23,7 @@ async function handler(req, res, userId) {
 
   // ── POST — add new supplement ──────────────────────────────────────────────
   if (req.method === 'POST') {
-    const { name, dose, form, timing_groups, frequency, frequency_days, note } = req.body
+    const { name, dose, form, timing_groups, frequency, frequency_days, preferred_time, note } = req.body
 
     if (!name) {
       return res.status(400).json({ error: 'name is required' })
@@ -43,7 +43,8 @@ async function handler(req, res, userId) {
         form: form ? sanitizeTitle(form) : null,
         timing_groups: timing_groups || null,
         frequency: frequency || null,
-        frequency_days: frequency_days ? parseInt(frequency_days) : null,
+        frequency_days: frequency_days || null,
+        preferred_time: preferred_time || null,
         note: note ? sanitizeNotes(note) : null,
         created_at: new Date().toISOString(),
       })
@@ -53,6 +54,31 @@ async function handler(req, res, userId) {
     if (error) {
       console.error('[nutrition/supplements:POST] error:', JSON.stringify(error))
       return res.status(500).json({ error: 'Failed to add supplement' })
+    }
+
+    return res.status(200).json({ supplement })
+  }
+
+  // ── PATCH — mark supplement taken today ──────────────────────────────────
+  if (req.method === 'PATCH') {
+    const { id, taken } = req.body
+    if (!id) return res.status(400).json({ error: 'id is required' })
+
+    const last_taken_date = taken
+      ? new Date().toISOString().split('T')[0]
+      : null
+
+    const { data: supplement, error } = await supabaseAdmin
+      .from('supplements')
+      .update({ last_taken_date })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('[nutrition/supplements:PATCH] error:', JSON.stringify(error))
+      return res.status(500).json({ error: 'Failed to update supplement' })
     }
 
     return res.status(200).json({ supplement })

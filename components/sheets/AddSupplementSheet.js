@@ -11,6 +11,7 @@ const AddSupplementSheet = ({ open, onClose, onSave, loggedFetch }) => {
   const [showCustomDays, setShowCustomDays] = useState(false);
   const [customDays, setCustomDays] = useState([]);
   const [note, setNote] = useState('');
+  const [preferredTime, setPreferredTime] = useState('');
 
   const C = {
     coal: '#211A14',
@@ -56,6 +57,7 @@ const AddSupplementSheet = ({ open, onClose, onSave, loggedFetch }) => {
     setShowCustomDays(false);
     setCustomDays([]);
     setNote('');
+    setPreferredTime('');
   };
 
   const handleSubmit = async () => {
@@ -73,8 +75,10 @@ const AddSupplementSheet = ({ open, onClose, onSave, loggedFetch }) => {
       name: name.trim(),
       dose: dose.trim(),
       form,
-      timing: timing.length > 0 ? timing : ['morning'],
-      frequency: frequency === 'custom' ? customDays : frequency,
+      timing_groups: timing.length > 0 ? timing : ['Morning'],
+      frequency: frequency === 'custom' ? 'custom' : frequency,
+      frequency_days: frequency === 'custom' ? customDays : null,
+      preferred_time: preferredTime || null,
       note: note.trim() || null,
     };
 
@@ -247,6 +251,18 @@ const AddSupplementSheet = ({ open, onClose, onSave, loggedFetch }) => {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Preferred time (optional) */}
+          <div style={{ marginBottom: '20px' }}>
+            <div className={s.secLabel}>Preferred time <span style={{ color: C.dim, fontWeight: 400 }}>(optional)</span></div>
+            <input
+              type="time"
+              className={s.input}
+              value={preferredTime}
+              onChange={(e) => setPreferredTime(e.target.value)}
+              style={{ marginBottom: '0', colorScheme: 'dark' }}
+            />
           </div>
 
           {/* Note */}
