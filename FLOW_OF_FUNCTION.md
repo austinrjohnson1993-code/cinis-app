@@ -1,3 +1,40 @@
+# 21. ONBOARDING (pages/onboarding.js)
+
+## 21.1 Overview
+- **File:** pages/onboarding.js
+- **Styles:** styles/Onboarding.module.css
+- **Phases:** `context → intro → questions → part2 → analyzing → reveal → building`
+
+## 21.2 Part 1 — Questions (9 MC, 3 slides of 3)
+- **SLIDE_THEMES:** `['Your daily reality', 'Your life systems', 'Your coaching style']`
+- **Q1–Q3:** Daily plan relationship, finding out you're behind, money habits
+- **Q4–Q6:** Body/health reality, handling boring stuff, mental clutter
+- **Q7–Q9:** Stuck task shepherd move, accountability relationship, most unguided area
+- **Scoring:** `SCORING[qIdx][optionId]` → weights for 6 personas (drill_sergeant, coach, thinking_partner, hype_person, strategist, empath)
+- **On last slide:** `handleNextSlide` transitions to `part2` phase
+
+## 21.3 Part 2 — Shepherd Questions (3 steps)
+- **Step 0 (Q10):** Open text — "What is one thing currently weighing on your mind the most?" → saves to `shepherdFocus` state
+- **Step 1 (Q11):** 3-option MC — bad pattern interrupt preference (flag / weekly / quiet step) → saves to `shepherdInterrupt` state
+- **Step 2 (Q12):** 3-option MC — celebration style (progress / streak / chart) → saves to `shepherdCelebrate` state
+- **Submit:** `handlePart2Submit` → `computePersonas(answers)` → `personaBlend` → `analyzing` → 1.5s → `reveal`
+- **Progress bar:** `((TOTAL_SLIDES + 1 + part2Step) / (TOTAL_SLIDES + 3)) * 100`
+
+## 21.4 Reveal + Confirm
+- Shows primary persona label + secondary persona "energy"
+- User picks voice preference (warm_gentle / warm_direct / bold_direct / calm_analytical)
+- `handleConfirm` upserts to `profiles`: full_name, onboarded, persona_blend, persona_voice, checkin_times, shepherd_focus, shepherd_interrupt, shepherd_celebrate
+- Falls back to upsert without shepherd fields if columns missing
+
+## 21.5 Persona Computation
+- `computePersonas(answers)` tallies SCORING weights across all 9 MC answers
+- Returns top 3 personas with score > 2, falls back to `['coach']`
+- Persona labels come from `PERSONA_DEFS[key].label`
+
+*Added S30 · March 30, 2026*
+
+---
+
 # 20. LANDING PAGE (getcinis.app)
 
 ## 20.1 Overview

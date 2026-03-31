@@ -7,92 +7,91 @@ import CinisMark from '../lib/CinisMark'
 
 // ── Questions ────────────────────────────────────────────────────────────────
 
-const SLIDE_THEMES = ['How you work', 'How you want to be coached', 'What gets in your way']
+const SLIDE_THEMES = ['Your daily reality', 'Your life systems', 'Your coaching style']
 
 const QUESTIONS = [
-  // ── Slide 1: How you work ──────────────────────────────────
+  // ── Slide 1: Your daily reality ────────────────────────────
   {
-    text: "When you have a big task you've been avoiding, what usually happens?",
+    text: "When a new day starts, what is your relationship with 'The Plan'?",
     options: [
-      { id: 'a', text: "I keep moving it to tomorrow until a deadline forces me" },
-      { id: 'b', text: "I start it but lose momentum halfway through" },
-      { id: 'c', text: "I overthink it until it feels impossible to start" },
-      { id: 'd', text: "I do everything else on my list first" },
+      { id: 'a', text: "I have a solid idea of what needs to happen" },
+      { id: 'b', text: "There are items, but things get lost" },
+      { id: 'c', text: "I'm purely reactive — the day decides" },
+      { id: 'd', text: "I'm starting from zero every morning" },
     ]
   },
   {
-    text: "How do you prefer to start your day?",
+    text: "How do you usually find out that you're 'behind' on life?",
     options: [
-      { id: 'a', text: "With a clear prioritized list ready to go" },
-      { id: 'b', text: "With a quick check-in to assess how I'm feeling" },
-      { id: 'c', text: "Just jumping into the most urgent thing" },
-      { id: 'd', text: "Slowly — I need time to ease in" },
+      { id: 'a', text: "I see it coming and adjust early" },
+      { id: 'b', text: "I scramble when a deadline arrives" },
+      { id: 'c', text: "Late Notice arrives — someone reminds me" },
+      { id: 'd', text: "'Behind' feels like my normal state" },
     ]
   },
   {
-    text: "What does a productive day feel like for you?",
+    text: "Thinking about money: How were you taught to handle it?",
     options: [
-      { id: 'a', text: "I completed everything on my list" },
-      { id: 'b', text: "I made real progress on the one thing that mattered most" },
-      { id: 'c', text: "I stayed focused without feeling overwhelmed" },
-      { id: 'd', text: "I kept my promises to others and myself" },
+      { id: 'a', text: "System or budgeting — it was modeled for me" },
+      { id: 'b', text: "Careful but no real plan" },
+      { id: 'c', text: "Wing it and hope for the best" },
+      { id: 'd', text: "Blind anxiety or avoidance" },
     ]
   },
-  // ── Slide 2: How you want to be coached ────────────────────
+  // ── Slide 2: Your life systems ─────────────────────────────
   {
-    text: "When someone gives you direct, blunt feedback, you:",
+    text: "Taking care of your body (food, health) — what's the reality?",
     options: [
-      { id: 'a', text: "Appreciate it — just tell me straight" },
-      { id: 'b', text: "Need a moment but ultimately value it" },
-      { id: 'c', text: "Prefer it softened with some context" },
-      { id: 'd', text: "Shut down if it feels harsh" },
-    ]
-  },
-  {
-    text: "Your ideal coach would:",
-    options: [
-      { id: 'a', text: "Push you hard and not accept excuses" },
-      { id: 'b', text: "Help you think through problems yourself" },
-      { id: 'c', text: "Celebrate every win and keep energy high" },
-      { id: 'd', text: "Give you a clear logical plan and get out of the way" },
-      { id: 'e', text: "Check in on how you're feeling before anything else" },
+      { id: 'a', text: "I'm intentional about it" },
+      { id: 'b', text: "Convenience wins most days" },
+      { id: 'c', text: "Fastest or easiest food available" },
+      { id: 'd', text: "I forget to eat until I'm exhausted" },
     ]
   },
   {
-    text: "How do you respond to accountability?",
+    text: "How do you handle 'The Boring Stuff' (dishes, mail, admin tasks)?",
     options: [
-      { id: 'a', text: "I need someone checking in or I'll drift" },
-      { id: 'b', text: "I work better when I set my own deadlines" },
-      { id: 'c', text: "Public commitment helps me follow through" },
-      { id: 'd', text: "I do best when I understand the why behind the goal" },
-    ]
-  },
-  // ── Slide 3: What gets in your way ─────────────────────────
-  {
-    text: "When a task keeps getting pushed back, it's usually because:",
-    options: [
-      { id: 'a', text: "I don't know where to start" },
-      { id: 'b', text: "Other things feel more urgent" },
-      { id: 'c', text: "I'm not sure it actually matters" },
-      { id: 'd', text: "It feels too big to tackle in one go" },
+      { id: 'a', text: "It's habitual — I just do it" },
+      { id: 'b', text: "Big cleaning days to catch up" },
+      { id: 'c', text: "Only when I absolutely have to" },
+      { id: 'd', text: "I was never really taught how to maintain a routine" },
     ]
   },
   {
-    text: "When you miss a goal or deadline, your first instinct is:",
+    text: "How do you handle 'Mental Clutter'?",
     options: [
-      { id: 'a', text: "Figure out what went wrong and fix the system" },
-      { id: 'b', text: "Beat myself up about it" },
-      { id: 'c', text: "Remind myself it's not the end of the world" },
-      { id: 'd', text: "Move on quickly and focus on what's next" },
+      { id: 'a', text: "I organize it immediately" },
+      { id: 'b', text: "Notes everywhere I never look at again" },
+      { id: 'c', text: "Keep it in my head and hope" },
+      { id: 'd', text: "Hope the important ones come back to me" },
+    ]
+  },
+  // ── Slide 3: Your coaching style ───────────────────────────
+  {
+    text: "If you're stuck on a task for days, what's the Shepherd move you need?",
+    options: [
+      { id: 'a', text: "A firm reminder — just tell me to do it" },
+      { id: 'b', text: "A gentle nudge — acknowledge it's still there" },
+      { id: 'c', text: "The Breakdown — split it into 2-minute parts" },
+      { id: 'd', text: "The Check-in — ask why it feels heavy" },
     ]
   },
   {
-    text: "When you finish something you've been putting off, you feel:",
+    text: "What is your relationship with 'Accountability'?",
     options: [
-      { id: 'a', text: "Relieved more than proud" },
-      { id: 'b', text: "Genuinely proud — wins matter to me" },
-      { id: 'c', text: "Ready to immediately move to the next thing" },
-      { id: 'd', text: "Like I should have done it sooner" },
+      { id: 'a', text: "I'm my own toughest boss" },
+      { id: 'b', text: "I'm better when someone is counting on me" },
+      { id: 'c', text: "I self-sabotage or quit when I slip" },
+      { id: 'd', text: "I don't really know how to track my own progress" },
+    ]
+  },
+  {
+    text: "What is the one area where you feel most 'unguided'?",
+    options: [
+      { id: 'a', text: "Career and professional growth" },
+      { id: 'b', text: "Household and life management" },
+      { id: 'c', text: "Finance and money" },
+      { id: 'd', text: "Personal health and energy" },
     ]
   },
 ]
@@ -100,18 +99,18 @@ const QUESTIONS = [
 // ── Persona scoring ───────────────────────────────────────────────────────────
 
 const SCORING = [
-  // Slide 1 — How you work
-  /* Q1 procrastination */  { a: { drill_sergeant: 2 }, b: { coach: 2 }, c: { thinking_partner: 2 }, d: { strategist: 2 } },
-  /* Q2 day start */        { a: { strategist: 2, drill_sergeant: 1 }, b: { thinking_partner: 2 }, c: { drill_sergeant: 2 }, d: { coach: 1, empath: 1 } },
-  /* Q3 productive day */   { a: { drill_sergeant: 1, strategist: 1 }, b: { strategist: 2 }, c: { thinking_partner: 2 }, d: { coach: 2 } },
-  // Slide 2 — How you want to be coached
-  /* Q4 feedback */         { a: { drill_sergeant: 3 }, b: { coach: 2 }, c: { thinking_partner: 2 }, d: { empath: 3 } },
-  /* Q5 ideal coach */      { a: { drill_sergeant: 3 }, b: { thinking_partner: 3 }, c: { hype_person: 3 }, d: { strategist: 3 }, e: { empath: 3 } },
-  /* Q6 accountability */   { a: { drill_sergeant: 2, hype_person: 1 }, b: { strategist: 2 }, c: { hype_person: 2 }, d: { thinking_partner: 2 } },
-  // Slide 3 — What gets in your way
-  /* Q7 task stalls */      { a: { thinking_partner: 2 }, b: { strategist: 2 }, c: { thinking_partner: 1, coach: 1 }, d: { coach: 2 } },
-  /* Q8 missed goals */     { a: { strategist: 3 }, b: { thinking_partner: 2 }, c: { coach: 2 }, d: { drill_sergeant: 2 } },
-  /* Q9 completion feel */  { a: { thinking_partner: 1 }, b: { hype_person: 3 }, c: { strategist: 2 }, d: { drill_sergeant: 1 } },
+  // Slide 1 — Your daily reality
+  /* Q1 daily plan */       { a: { strategist: 2 }, b: { coach: 2 }, c: { drill_sergeant: 2 }, d: { empath: 2, coach: 1 } },
+  /* Q2 behind on life */   { a: { strategist: 2 }, b: { drill_sergeant: 2 }, c: { coach: 2 }, d: { empath: 3 } },
+  /* Q3 money */            { a: { strategist: 3 }, b: { thinking_partner: 2 }, c: { drill_sergeant: 2 }, d: { empath: 3 } },
+  // Slide 2 — Your life systems
+  /* Q4 body/health */      { a: { strategist: 2 }, b: { coach: 2 }, c: { drill_sergeant: 2 }, d: { empath: 3 } },
+  /* Q5 boring stuff */     { a: { strategist: 2 }, b: { coach: 2 }, c: { drill_sergeant: 2 }, d: { empath: 2, thinking_partner: 1 } },
+  /* Q6 mental clutter */   { a: { strategist: 3 }, b: { thinking_partner: 2 }, c: { drill_sergeant: 2 }, d: { empath: 2 } },
+  // Slide 3 — Your coaching style
+  /* Q7 stuck task */       { a: { drill_sergeant: 3 }, b: { coach: 3 }, c: { thinking_partner: 3 }, d: { empath: 3 } },
+  /* Q8 accountability */   { a: { drill_sergeant: 3 }, b: { hype_person: 2, coach: 1 }, c: { empath: 2, thinking_partner: 1 }, d: { thinking_partner: 2 } },
+  /* Q9 unguided area */    { a: { strategist: 2 }, b: { coach: 2 }, c: { strategist: 2, thinking_partner: 1 }, d: { empath: 2 } },
 ]
 
 const PERSONA_DEFS = {
@@ -154,14 +153,13 @@ const MH_OPTIONS = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const RANK_ITEMS_DEFAULT = ['Deep focus work', 'Quick wins', 'External commitments', 'Self-care / personal tasks']
 const QUESTIONS_PER_SLIDE = 3
 const TOTAL_SLIDES = Math.ceil(QUESTIONS.length / QUESTIONS_PER_SLIDE)
 
 export default function Onboarding() {
   const router = useRouter()
   const [user, setUser] = useState(null)
-  const [phase, setPhase] = useState('context') // context | intro | questions | rankq | analyzing | reveal | building
+  const [phase, setPhase] = useState('context') // context | intro | questions | part2 | analyzing | reveal | building
   const [mentalHealthContext, setMentalHealthContext] = useState(null)
   const [name, setName] = useState('')
   const [checkinTimes, setCheckinTimes] = useState(['morning', 'evening'])
@@ -171,8 +169,10 @@ export default function Onboarding() {
   const [slideDirection, setSlideDirection] = useState('forward') // forward | backward
   const [personaBlend, setPersonaBlend] = useState([])
   const [personaVoice, setPersonaVoice] = useState('warm_gentle')
-  const [rankItems, setRankItems] = useState([...RANK_ITEMS_DEFAULT])
-  const [rankDragIdx, setRankDragIdx] = useState(null)
+  const [part2Step, setPart2Step] = useState(0)
+  const [shepherdFocus, setShepherdFocus] = useState('')
+  const [shepherdInterrupt, setShepherdInterrupt] = useState(null)
+  const [shepherdCelebrate, setShepherdCelebrate] = useState(null)
 
   useEffect(() => {
     const isReset = window.location.search.includes('reset=1')
@@ -205,7 +205,8 @@ export default function Onboarding() {
       setAnimKey(k => k + 1)
       setCurrentSlide(s => s + 1)
     } else {
-      setPhase('rankq')
+      setPhase('part2')
+      setPart2Step(0)
     }
   }
 
@@ -219,7 +220,7 @@ export default function Onboarding() {
     }
   }
 
-  const handleRankSubmit = () => {
+  const handlePart2Submit = () => {
     const keys = computePersonas(answers)
     const blend = (keys.length ? keys : ['coach']).map(k => PERSONA_DEFS[k].label)
     setPersonaBlend(blend)
@@ -257,7 +258,12 @@ export default function Onboarding() {
 
     // Step 1: save profile
     try {
-      await supabase.from('profiles').upsert({ ...upsertData, ranked_priorities: rankItems })
+      await supabase.from('profiles').upsert({
+        ...upsertData,
+        shepherd_focus: shepherdFocus || null,
+        shepherd_interrupt: shepherdInterrupt || null,
+        shepherd_celebrate: shepherdCelebrate || null,
+      })
     } catch {
       await supabase.from('profiles').upsert(upsertData)
     }
@@ -447,49 +453,121 @@ export default function Onboarding() {
     )
   }
 
-  // ── Rank question ─────────────────────────────────────────────────────────
-  if (phase === 'rankq') {
+  // ── Part 2 questions (Q10–Q12) ───────────────────────────────────────────
+  if (phase === 'part2') {
+    const totalSteps = TOTAL_SLIDES + 3
+    const currentStep = TOTAL_SLIDES + 1 + part2Step
+    const progress = (currentStep / totalSteps) * 100
+
+    const handlePart2Back = () => {
+      if (part2Step > 0) {
+        setPart2Step(s => s - 1)
+      } else {
+        setSlideDirection('backward')
+        setPhase('questions')
+        setCurrentSlide(TOTAL_SLIDES - 1)
+        setAnimKey(k => k + 1)
+      }
+    }
+
     return (
       <>
         <Head><title>Getting Started — Cinis</title></Head>
         <div className={styles.page}>
           <div className={styles.progressBar}>
-            <div className={styles.progressFill} style={{ width: '100%' }} />
+            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
           </div>
           <div className={styles.questionContainer}>
             <div className={styles.questionNav}>
-              <button onClick={() => { setSlideDirection('backward'); setPhase('questions'); setCurrentSlide(TOTAL_SLIDES - 1); setAnimKey(k => k + 1) }} className={styles.backBtn}>&larr; Back</button>
-              <span className={styles.questionCount}>{TOTAL_SLIDES + 1} of {TOTAL_SLIDES + 1}</span>
+              <button onClick={handlePart2Back} className={styles.backBtn}>&larr; Back</button>
+              <span className={styles.questionCount}>{currentStep} of {totalSteps}</span>
             </div>
             <div className={styles.questionWrap}>
-              <h2 className={styles.questionText}>Drag to rank what matters most to you.</h2>
-              <p className={styles.rankSubtext}>Top = highest priority. This helps Cinis sort your tasks.</p>
-              <div className={styles.rankList}>
-                {rankItems.map((item, i) => (
-                  <div
-                    key={item}
-                    draggable
-                    onDragStart={() => setRankDragIdx(i)}
-                    onDragOver={e => { e.preventDefault() }}
-                    onDrop={() => {
-                      if (rankDragIdx === null || rankDragIdx === i) return
-                      const next = [...rankItems]
-                      const [moved] = next.splice(rankDragIdx, 1)
-                      next.splice(i, 0, moved)
-                      setRankItems(next)
-                      setRankDragIdx(null)
-                    }}
-                    className={styles.rankItem}
+
+              {/* Q10 — open text */}
+              {part2Step === 0 && (
+                <div className={styles.questionBlock}>
+                  <p className={styles.slideTheme}>One more thing</p>
+                  <p className={styles.questionLabel}>What is one thing currently weighing on your mind the most?</p>
+                  <textarea
+                    className={styles.part2Textarea}
+                    placeholder="Type anything — there's no wrong answer."
+                    value={shepherdFocus}
+                    onChange={e => setShepherdFocus(e.target.value)}
+                    rows={4}
+                  />
+                  <button
+                    onClick={() => setPart2Step(1)}
+                    className={styles.startBtn}
+                    style={{ marginTop: 16 }}
                   >
-                    <span className={styles.rankPosition}>{i + 1}</span>
-                    <span className={styles.rankItemText}>{item}</span>
-                    <span className={styles.rankHandle}>⠿</span>
+                    Next →
+                  </button>
+                </div>
+              )}
+
+              {/* Q11 — interrupt pattern */}
+              {part2Step === 1 && (
+                <div className={styles.questionBlock}>
+                  <p className={styles.slideTheme}>Your Shepherd</p>
+                  <p className={styles.questionLabel}>If I see you falling into a 'Bad Pattern,' should I:</p>
+                  <div className={styles.optionsList}>
+                    {[
+                      { id: 'a', text: "Flag it immediately" },
+                      { id: 'b', text: "Weekly Check-in" },
+                      { id: 'c', text: "Suggest a quiet Next Step" },
+                    ].map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setShepherdInterrupt(opt.id)}
+                        className={`${styles.optionPill} ${shepherdInterrupt === opt.id ? styles.optionPillSelected : ''}`}
+                      >
+                        {opt.text}
+                      </button>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <button onClick={handleRankSubmit} className={styles.startBtn} style={{ marginTop: '28px' }}>
-                Done →
-              </button>
+                  <button
+                    onClick={() => setPart2Step(2)}
+                    disabled={!shepherdInterrupt}
+                    className={styles.startBtn}
+                    style={{ marginTop: 16 }}
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+
+              {/* Q12 — celebration style */}
+              {part2Step === 2 && (
+                <div className={styles.questionBlock}>
+                  <p className={styles.slideTheme}>Your Shepherd</p>
+                  <p className={styles.questionLabel}>When we succeed, how should we celebrate?</p>
+                  <div className={styles.optionsList}>
+                    {[
+                      { id: 'a', text: "Progress is the reward" },
+                      { id: 'b', text: "Win notification + streak" },
+                      { id: 'c', text: "Visual chart of progress" },
+                    ].map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setShepherdCelebrate(opt.id)}
+                        className={`${styles.optionPill} ${shepherdCelebrate === opt.id ? styles.optionPillSelected : ''}`}
+                      >
+                        {opt.text}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={handlePart2Submit}
+                    disabled={!shepherdCelebrate}
+                    className={styles.startBtn}
+                    style={{ marginTop: 16 }}
+                  >
+                    Done →
+                  </button>
+                </div>
+              )}
+
             </div>
           </div>
         </div>

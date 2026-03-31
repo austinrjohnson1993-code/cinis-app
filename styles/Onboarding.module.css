@@ -898,3 +898,28 @@
     gap: 8px;
   }
 }
+
+/* ── Part 2 ── */
+
+.part2Textarea {
+  width: 100%;
+  background: rgba(240, 234, 214, 0.06);
+  border: 1px solid rgba(240, 234, 214, 0.18);
+  border-radius: 12px;
+  color: #F0EAD6;
+  font-size: 1rem;
+  font-family: inherit;
+  padding: 14px 16px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.part2Textarea::placeholder {
+  color: rgba(240, 234, 214, 0.35);
+}
+
+.part2Textarea:focus {
+  border-color: rgba(255, 102, 68, 0.6);
+}
