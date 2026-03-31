@@ -696,7 +696,7 @@ export default function Onboarding() {
                   key={i}
                   className={`${styles.buildingStep} ${i <= buildStep ? styles.buildingStepVisible : ''} ${i === buildStep ? styles.buildingStepActive : ''}`}
                 >
-                  {i < buildStep && <span className={styles.buildingCheck}>&check;</span>}
+                  {i < buildStep && <span className={styles.buildingCheck}>✓</span>}
                   {step}
                 </p>
               ))}

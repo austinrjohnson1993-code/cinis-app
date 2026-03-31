@@ -1,7 +1,7 @@
 // To generate VAPID keys run:
 //   npx web-push generate-vapid-keys
 // Then add to .env.local and Vercel env vars:
-//   VAPID_PUBLIC_KEY=...         (public key, server-side only)
+//   NEXT_PUBLIC_VAPID_PUBLIC_KEY=...         (public key, server-side only)
 //   VAPID_PRIVATE_KEY=...       (private key, server only)
 
 import webpush from 'web-push';
