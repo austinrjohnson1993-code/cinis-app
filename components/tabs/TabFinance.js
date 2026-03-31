@@ -67,6 +67,14 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
   const [financeChatInput, setFinanceChatInput] = useState('')
   const [financeChatSending, setFinanceChatSending] = useState(false)
 
+  // ── Finance Insights ──────────────────────────────────────────────────────
+  // insightKey must be computed here (top level) so the useState initializer can use it
+  const insightKey = `cinis_finance_insight_${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`
+  const [coachInsight, setCoachInsight] = useState(() => {
+    try { return typeof localStorage !== 'undefined' && localStorage.getItem(insightKey) || '' } catch { return '' }
+  })
+  const [insightLoading, setInsightLoading] = useState(false)
+
   // ── Bill voice input ─────────────────────────────────────────────────────
   const [billListening, setBillListening] = useState(false)
   const [billVoiceTranscript, setBillVoiceTranscript] = useState('')
@@ -128,6 +136,24 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
       fetchBudgetData()
     }
   }, [financeSub, user])
+
+  useEffect(() => {
+    if (financeSub !== 'insights') return
+    if (coachInsight || bills.length === 0 || insightLoading) return
+    setInsightLoading(true)
+    loggedFetch('/api/finance/insight', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bills: bills.map(b => ({ name: b.name, amount: b.amount, category: b.category, autopay: b.autopay, due_day: b.due_day })),
+        total_income: profile?.monthly_income || monthlyIncome,
+      }),
+    }).then(r => r.ok ? r.json() : null).then(data => {
+      if (data?.insight) {
+        setCoachInsight(data.insight)
+        try { localStorage.setItem(insightKey, data.insight) } catch {}
+      }
+    }).catch(() => {}).finally(() => setInsightLoading(false))
+  }, [financeSub, bills.length])
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   const patchSettings = async (updates) => {
@@ -1220,27 +1246,6 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
           const hasWatch = subBills.length > 8
           const hasOnTrack = autopayBills.length > 0
           const hasFlags = hasOverdue || hasWatch || hasOnTrack
-
-          // AI insight (cached monthly)
-          const insightKey = `cinis_finance_insight_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`
-          const [coachInsight, setCoachInsight] = useState(() => {
-            try { return typeof localStorage !== 'undefined' && localStorage.getItem(insightKey) || '' } catch { return '' }
-          })
-          const [insightLoading, setInsightLoading] = useState(false)
-
-          useEffect(() => {
-            if (coachInsight || bills.length === 0 || insightLoading) return
-            setInsightLoading(true)
-            loggedFetch('/api/finance/insight', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ bills: bills.map(b => ({ name: b.name, amount: b.amount, category: b.category, autopay: b.autopay, due_day: b.due_day })), total_income: profile?.monthly_income || monthlyIncome }),
-            }).then(r => r.ok ? r.json() : null).then(data => {
-              if (data?.insight) {
-                setCoachInsight(data.insight)
-                try { localStorage.setItem(insightKey, data.insight) } catch {}
-              }
-            }).catch(() => {}).finally(() => setInsightLoading(false))
-          }, [bills.length])
 
           if (bills.length === 0) return (
             <div style={{ padding: '40px 14px', textAlign: 'center' }}>
