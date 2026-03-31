@@ -50,6 +50,10 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
   const [paydayDay, setPaydayDay] = useState(0)
   const [paydayDayInput, setPaydayDayInput] = useState('')
 
+  // ── Finance Budget API data ──────────────────────────────────────────────
+  const [budgetData, setBudgetData] = useState(null)
+  const [budgetDataLoaded, setBudgetDataLoaded] = useState(false)
+
   // ── Finance Plans sub-tab (calculators) ──────────────────────────────────
   const [expandedPlanCalc, setExpandedPlanCalc] = useState(null)
   const [planCalcInputs, setPlanCalcInputs] = useState({})
@@ -99,6 +103,16 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
     } catch {}
   }
 
+  const fetchBudgetData = async () => {
+    setBudgetDataLoaded(true)
+    try {
+      const res = await loggedFetch('/api/finance/budget')
+      if (!res.ok) return
+      const data = await res.json()
+      setBudgetData(data)
+    } catch {}
+  }
+
   // ── Effects ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (user && !billsLoaded) {
@@ -109,6 +123,9 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
   useEffect(() => {
     if ((financeSub === 'budget' || financeSub === 'insights') && user && !spendLoaded) {
       fetchSpendLog()
+    }
+    if (financeSub === 'budget' && user && !budgetDataLoaded) {
+      fetchBudgetData()
     }
   }, [financeSub, user])
 
@@ -528,15 +545,21 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
 
         {/* ── BUDGET ── */}
         {financeSub === 'budget' && (() => {
-          const incomeSource = profile?.monthly_income || monthlyIncome || 0
-          const freqDays = { weekly: 7, biweekly: 14, bimonthly: 15, monthly: 30 }[profile?.income_frequency || incomeFrequency] || 30
-          const freqMultiplier = { weekly: 4.33, biweekly: 2.17, bimonthly: 2, monthly: 1 }[profile?.income_frequency || incomeFrequency] || 1
+          const incomeSource = profile?.monthly_income || budgetData?.income || monthlyIncome || 0
+          const freq = profile?.income_frequency || incomeFrequency
+          const freqDays = { weekly: 7, biweekly: 14, bimonthly: 15, monthly: 30 }[freq] || 30
+          const freqMultiplier = { weekly: 4.33, biweekly: 2.17, bimonthly: 2, monthly: 1 }[freq] || 1
           const normalizedIncome = incomeSource * freqMultiplier
           const surplus = normalizedIncome - monthlyTotal
           // Budget plan modifier
           const savePct = budgetPlan === 'Pay Yourself First' ? 0.2 : budgetPlan === '80/20' ? 0.2 : budgetPlan === '50/30/20' ? 0.2 : 0
           const spendable = surplus * (1 - savePct)
-          const dailyNumber = normalizedIncome > 0 ? Math.max(0, spendable / freqDays) : 0
+          // Use days until next payday from income_sources if available
+          const nextPayDate = budgetData?.income_sources?.[0]?.next_pay_date
+          const daysUntilPayday = nextPayDate
+            ? Math.max(1, Math.ceil((new Date(nextPayDate) - new Date()) / (1000 * 60 * 60 * 24)))
+            : freqDays
+          const dailyNumber = normalizedIncome > 0 ? Math.max(0, spendable / daysUntilPayday) : 0
           const remaining = dailyNumber - todaySpendTotal
           return (
             <div className={styles.budgetPanel}>
@@ -606,6 +629,61 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                         if (typeof localStorage !== 'undefined') localStorage.setItem('cinis_budget_plan', plan)
                       }}>{plan}</button>
                   ))}
+                </div>
+              )}
+
+              {/* Income sources */}
+              {budgetData?.income_sources?.length > 0 && (
+                <div className={styles.budgetCard}>
+                  <p className={styles.financeBreakdownLabel}>Income sources</p>
+                  {budgetData.income_sources.map(src => {
+                    const monthly = parseFloat(src.monthly_amount) || 0
+                    const annual  = parseFloat(src.annual_amount)  || 0
+                    const displayAmt = monthly || (annual / 12)
+                    return (
+                      <div key={src.id} className={styles.budgetRow}>
+                        <div>
+                          <span className={styles.budgetRowLabel}>{src.name}</span>
+                          <span className={styles.budgetRowDesc}>{src.income_type}{src.pay_frequency ? ` · ${src.pay_frequency}` : ''}{src.next_pay_date ? ` · next ${new Date(src.next_pay_date).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : ''}</span>
+                        </div>
+                        {displayAmt > 0 && <span className={styles.budgetRowAmt}>{fmtMoney(displayAmt)}<span className={styles.financeTotalSub}>/mo</span></span>}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Payday plan — bills due before next payday */}
+              {normalizedIncome > 0 && bills.length > 0 && (
+                <div className={styles.budgetCard}>
+                  <p className={styles.financeBreakdownLabel}>Due before next payday</p>
+                  {(() => {
+                    const dueBills = bills.filter(b => {
+                      if (!b.due_day) return false
+                      const t = new Date()
+                      const payTarget = t.getDate() + daysUntilPayday
+                      return b.due_day >= t.getDate() && b.due_day <= payTarget
+                    })
+                    if (dueBills.length === 0) return <div className={styles.budgetRowDesc} style={{ padding: '4px 0 0' }}>No bills due in the next {daysUntilPayday} days.</div>
+                    const dueTotal = dueBills.reduce((s, b) => s + (parseFloat(b.amount) || 0), 0)
+                    return (
+                      <>
+                        {dueBills.map(b => (
+                          <div key={b.id} className={styles.budgetRow}>
+                            <div>
+                              <span className={styles.budgetRowLabel}>{b.name}</span>
+                              <span className={styles.budgetRowDesc}>Due {b.due_day}{b.due_day === 1 ? 'st' : b.due_day === 2 ? 'nd' : b.due_day === 3 ? 'rd' : 'th'}{b.autopay ? ' · autopay' : ''}</span>
+                            </div>
+                            <span className={styles.budgetRowAmt}>{fmtMoney(b.amount)}</span>
+                          </div>
+                        ))}
+                        <div className={styles.budgetRow} style={{ borderBottom: 'none' }}>
+                          <span className={styles.budgetRowLabel}>Total due</span>
+                          <span className={styles.surplusNegative}>{fmtMoney(dueTotal)}</span>
+                        </div>
+                      </>
+                    )
+                  })()}
                 </div>
               )}
 
@@ -886,10 +964,18 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
               },
             ].map(card => {
               const isOpen = expandedPlanCalc === card.key
+              // Pre-fill defaults from real data
+              const firstLoan = bills.find(b => b.bill_type === 'loan')
               const vals = {
                 ...planCalcInputs[card.key],
                 ...(card.selector ? { [card.selector.key]: (planCalcInputs[card.key] || {})[card.selector.key] || card.selector.options[0] } : {}),
-                ...(card.key === 'ab' && !planCalcInputs?.ab?.abIncome ? { abIncome: String(profile?.monthly_income || monthlyIncome || '') } : {}),
+                // Auto-budget: use budget API income or profile income
+                ...(card.key === 'ab' && !planCalcInputs?.ab?.abIncome ? { abIncome: String(budgetData?.income || profile?.monthly_income || monthlyIncome || '') } : {}),
+                // Debt payoff: pre-fill from first loan bill if no manual input yet
+                ...(card.key === 'debt' && firstLoan && !planCalcInputs?.debt?.debtBal ? {
+                  debtBal:  String(firstLoan.amount || ''),
+                  debtRate: firstLoan.interest_rate != null ? String(firstLoan.interest_rate) : '',
+                } : {}),
               }
               const result = isOpen ? card.compute(vals) : null
               return (

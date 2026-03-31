@@ -870,7 +870,7 @@ async function handler(req, res, userId) {
         id: crew.id,
         name: crew.name,
         type: crew.type,
-        members: members.map(m => ({ id: m.user_id, name: m.profiles?.full_name || 'Unknown' }))
+        members: (members || []).map(m => ({ id: m.user_id, name: m.profiles?.full_name || 'Unknown' }))
       })
     }
     if (crewsList.length > 0) {
@@ -890,7 +890,7 @@ async function handler(req, res, userId) {
   const taskSummary = taskLines.length > 0 ? '\n' + taskLines.join('\n') : 'none'
 
   // Format bills with IDs for AI tool calls
-  const billLines = allBills.slice(0, 8).map(b => {
+  const billLines = (allBills || []).slice(0, 8).map(b => {
     return `- "${b.name}" | id:${b.id} | amount:$${(b.amount || 0).toFixed(2)} | due_day:${b.due_day} | frequency:${b.frequency || 'monthly'} | autopay:${b.autopay ? 'yes' : 'no'}`
   })
   const billSummary = billLines.length > 0 ? '\n' + billLines.join('\n') : 'none'
@@ -914,7 +914,7 @@ async function handler(req, res, userId) {
 
   // Format today's spending
   let todaySpendStr = ''
-  if (todaySpends.length > 0) {
+  if ((todaySpends || []).length > 0) {
     const spendLines = todaySpends.map(s => `- $${(s.amount || 0).toFixed(2)} on ${s.category || 'uncategorized'}${s.description ? ': ' + s.description : ''}${s.impulse ? ' (impulse)' : ''}`)
     todaySpendStr = `\n- Today's spending ($${totalTodaySpent.toFixed(2)}):${spendLines.length > 0 ? '\n  ' + spendLines.join('\n  ') : ' none yet'}`
   }
