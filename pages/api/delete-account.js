@@ -30,12 +30,23 @@ function extractTokenFromCookies(cookieHeader) {
 const USER_TABLES = [
   'tasks',
   'bills',
+  'habits',
+  'habit_completions',
   'journal_entries',
-  'checkins',
+  'checkin_logs',
+  'coach_memories',
   'alarms',
-  'chores',
-  'income',
+  'spend_log',
+  'nutrition_log',
+  'meal_log',
+  'weight_log',
+  'supplements',
+  'meal_templates',
   'progress_snapshots',
+  'income_sources',
+  'financial_goals',
+  'crew_members',
+  'co_sessions',
 ]
 
 export default async function handler(req, res) {

@@ -43,7 +43,6 @@ export async function runBillsToTasks(userId) {
     const amountStr = bill.amount != null ? ` — $${Number(bill.amount).toFixed(2)}` : ''
     const title = `Pay: ${bill.name}${amountStr}`
     const noteParts = [`Recurring ${bill.frequency} bill`]
-    if (bill.account) noteParts.push(bill.account)
     const notes = noteParts.join(' — ')
 
     const { error: insertErr } = await supabaseAdmin

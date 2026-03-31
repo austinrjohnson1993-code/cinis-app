@@ -16,16 +16,20 @@ async function handler(req, res, userId) {
     { data: bills },
     { data: profile },
     { data: weekSpend },
+    { data: goalsData },
   ] = await Promise.all([
     supabaseAdmin.from('bills').select('id, autopay').eq('user_id', userId),
     supabaseAdmin.from('profiles')
-      .select('budget_plan, income_sources, financial_goals')
+      .select('budget_plan, income_sources')
       .eq('id', userId)
       .single(),
     supabaseAdmin.from('spend_log')
       .select('id, impulse')
       .eq('user_id', userId)
       .gte('logged_at', sevenDaysAgo.toISOString()),
+    supabaseAdmin.from('financial_goals')
+      .select('id, category')
+      .eq('user_id', userId),
   ])
 
   const billList = bills || []
@@ -45,10 +49,10 @@ async function handler(req, res, userId) {
   const spending = Math.min(15, Math.round((spendEntries.length / 7) * 15))
 
   // ── Emergency fund (0 or 15) ─────────────────────────────────────────────
-  const financialGoals = profile?.financial_goals || []
-  const hasEmergencyGoal = Array.isArray(financialGoals)
-    ? financialGoals.some(g => String(g).toLowerCase().includes('emergency'))
-    : String(financialGoals).toLowerCase().includes('emergency')
+  const financialGoals = goalsData || []
+  const hasEmergencyGoal = financialGoals.some(g =>
+    String(g.category || '').toLowerCase().includes('emergency')
+  )
   const emergency = hasEmergencyGoal ? 15 : 0
 
   // ── Impulse control (0–13) — start at 13, minus 2 per impulse this week ──

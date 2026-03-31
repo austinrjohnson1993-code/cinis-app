@@ -10,7 +10,7 @@ async function handler(req, res, userId) {
     supabaseAdmin
       .from('profiles')
       .select('monthly_income, income_frequency, payday_day')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .single(),
     supabaseAdmin
       .from('bills')

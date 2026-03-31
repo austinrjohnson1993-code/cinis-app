@@ -99,7 +99,6 @@ export async function runProgressSnapshot(userId) {
       focus_minutes: focusMinutes,
       journal_entries: journalEntries || 0,
       ai_summary: aiSummary,
-      updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id,snapshot_date' })
     .select()
     .single()

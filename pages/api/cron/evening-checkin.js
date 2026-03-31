@@ -4,7 +4,7 @@ import { runProgressSnapshot } from '../progress-snapshot'
 import { buildPersonaPrompt } from '../../../lib/persona'
 import { coachingMessage } from '../../../lib/anthropic'
 import getAdminClient from '../../../lib/supabaseAdmin'
-const { sendPushToUsers } = require('../../../lib/push')
+import { sendPushToUsers } from '../../../lib/push'
 
 
 

@@ -14,7 +14,7 @@ async function handler(req, res, userId) {
   const dayEnd = new Date(`${todayStr}T23:59:59`)
 
   const { data: entries, error } = await supabaseAdmin
-    .from('meal_log')
+    .from('nutrition_log')
     .select('*')
     .eq('user_id', userId)
     .gte('logged_at', dayStart.toISOString())
