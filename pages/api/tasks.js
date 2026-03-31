@@ -5,6 +5,27 @@ import { sanitizeTitle, sanitizeNotes } from '../../lib/sanitize'
 async function handler(req, res, userId) {
   const supabaseAdmin = getAdminClient()
 
+  // ── GET — fetch all tasks for authenticated user ───────────────────────────
+  if (req.method === 'GET') {
+    try {
+      const { data: tasks, error } = await supabaseAdmin
+        .from('tasks')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('[tasks:GET] error:', JSON.stringify(error))
+        return res.status(500).json({ error: 'Failed to fetch tasks' })
+      }
+
+      return res.status(200).json({ tasks: tasks || [] })
+    } catch (err) {
+      console.error('[tasks:GET] error:', err.message)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+
   // ── POST — create a single task ────────────────────────────────────────────
   if (req.method === 'POST') {
     try {
@@ -17,7 +38,8 @@ async function handler(req, res, userId) {
         recurrence_days,
         estimated_minutes,
         reminder,
-        notes
+        notes,
+        starred = false
       } = req.body
 
       // Validate required fields
@@ -35,6 +57,7 @@ async function handler(req, res, userId) {
         title: sanitizedTitle,
         completed: false,
         archived: false,
+        starred: starred || false,
         task_type,
         recurrence,
         recurrence_days: recurrence_days || null,
