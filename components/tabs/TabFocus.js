@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { COLORS, FONTS } from '../../lib/constants'
 import { formatTimer, localDateStr } from './shared'
 import { supabase } from '../../lib/supabase'
 import styles from '../../styles/TabFocus.module.css'
 
 const PURPLE = '#A47BDB'
-const COAL = '#211A14'
-const CHAR = '#3E3228'
-const ASH = '#F0EAD6'
-const HOT = '#FF6644'
-const GREEN = '#4CAF50'
+const COAL = COLORS.coal
+const CHAR = COLORS.char
+const ASH = COLORS.ash
+const HOT = COLORS.hot
+const GREEN = COLORS.green
 
 // ── Avatar initials helper ────────────────────────────────────────────────────
 function initials(name) {
@@ -727,14 +728,14 @@ export default function TabFocus({
     return (
       <div className={styles.wrap} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', minHeight: '100vh' }}>
         <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(59,139,212,0.08)', border: '1px solid rgba(59,139,212,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B8BD4" strokeWidth="1.5" strokeLinecap="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke=COLORS.blue strokeWidth="1.5" strokeLinecap="round">
             <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
           </svg>
         </div>
         <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: ASH, marginBottom: 6 }}>No sessions yet.</div>
         <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.35)', lineHeight: 1.65, maxWidth: 220, marginBottom: 6 }}>Run your first focus session. Pick a duration and go.</div>
         <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.22)', marginBottom: 20 }}>5 minutes counts. Starting is the hardest part.</div>
-        <button onClick={() => setDur(5)} style={{ background: 'rgba(59,139,212,0.12)', border: '1px solid rgba(59,139,212,0.25)', borderRadius: 9, padding: '10px 20px', fontSize: 12, fontWeight: 600, color: '#3B8BD4', cursor: 'pointer', marginBottom: 30 }}>
+        <button onClick={() => setDur(5)} style={{ background: 'rgba(59,139,212,0.12)', border: '1px solid rgba(59,139,212,0.25)', borderRadius: 9, padding: '10px 20px', fontSize: 12, fontWeight: 600, color: COLORS.blue, cursor: 'pointer', marginBottom: 30 }}>
           Start a session
         </button>
         <div style={{ fontSize: 11, color: 'rgba(240,234,214,0.22)', marginBottom: 12 }}>Or choose a duration:</div>
@@ -825,7 +826,7 @@ export default function TabFocus({
             <div className={styles.statLabel}>streak</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statValue} style={{ color: '#3B8BD4' }}>{sessionsTotal}</div>
+            <div className={styles.statValue} style={{ color: COLORS.blue }}>{sessionsTotal}</div>
             <div className={styles.statLabel}>sessions</div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { COLORS, FONTS } from '../../lib/constants'
 import { getCheckinType, loadChatHistory, saveChatHistory } from './shared'
 import CinisMark from '../../lib/CinisMark'
 import styles from '../../styles/TabCheckin.module.css'
@@ -126,7 +127,7 @@ export default function TabCheckin({ user, profile, tasks = [], showToast, logge
         <div className={styles.headerRow}>
           <span className={styles.headerTitle}>Check-in</span>
           <div className={styles.personaBadge}>
-            <svg width="8" height="8" viewBox="0 0 24 24" fill="#FF6644"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" /></svg>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill=COLORS.hot><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" /></svg>
             <span className={styles.personaLabel}>{personaLabel}</span>
           </div>
         </div>
@@ -150,7 +151,7 @@ export default function TabCheckin({ user, profile, tasks = [], showToast, logge
               <CinisMark size={22} />
             </div>
             {/* Heading */}
-            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: '#F0EAD6', marginBottom: 6 }}>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.ash, marginBottom: 6 }}>
               Your coach is ready.
             </div>
             {/* Body */}
@@ -158,7 +159,7 @@ export default function TabCheckin({ user, profile, tasks = [], showToast, logge
               No check-ins yet. Start a conversation — your coach knows your tasks and patterns.
             </div>
             {/* CTA button */}
-            <button onClick={() => { setInput(''); inputRef.current?.focus() }} style={{ background: '#FF6644', padding: '10px 20px', borderRadius: 9, fontSize: 12, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer' }}>
+            <button onClick={() => { setInput(''); inputRef.current?.focus() }} style={{ background: COLORS.hot, padding: '10px 20px', borderRadius: 9, fontSize: 12, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer' }}>
               Start check-in
             </button>
           </div>
@@ -242,7 +243,7 @@ export default function TabCheckin({ user, profile, tasks = [], showToast, logge
             className={`${styles.sendBtn} ${input.trim() ? styles.sendActive : styles.sendInactive}`}
             onClick={() => send(input)}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F0EAD6" strokeWidth="2" strokeLinecap="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke=COLORS.ash strokeWidth="2" strokeLinecap="round">
               <line x1="22" y1="2" x2="11" y2="13" />
               <polygon points="22 2 15 22 11 13 2 9 22 2" />
             </svg>

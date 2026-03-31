@@ -11,6 +11,7 @@ export default function LandingFooter() {
             CINIS
           </a>
           <p className={styles.footerTagline}>Where start meets finished.</p>
+          <p className={styles.footerMission}>From ashes, momentum.</p>
         </div>
         <div className={styles.footerRight}>
           <div className={styles.footerLinks}>

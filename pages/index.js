@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { COLORS, FONTS } from '../lib/constants'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { supabase } from '../lib/supabase'
@@ -29,6 +30,9 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content="Cinis — Where start meets finished." />
         <meta property="og:description" content="AI coaching that reaches out, remembers, and keeps you moving." />
+        <meta property="og:image" content="https://getcinis.app/og-image.png" />
+        <meta property="og:url" content="https://getcinis.app" />
+        <meta property="og:type" content="website" />
         <style>{`
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { background: #211A14; color: #F0EAD6; font-family: 'Figtree', sans-serif; }

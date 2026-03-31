@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { COLORS, FONTS } from '../../lib/constants'
 import { supabase } from '../../lib/supabase'
 import { localDateStr, SkeletonCard, ErrorState } from './shared'
 import styles from '../../styles/TabProgress.module.css'
 
 /* ── Constants ───────────────────────────────────────────────────────────────── */
 const C = {
-  hot: '#FF6644', ember: '#E8321A', green: '#4CAF50',
-  blue: '#3B8BD4', gold: '#FFB800',
+  hot: COLORS.hot, ember: COLORS.ember, green: COLORS.green,
+  blue: COLORS.blue, gold: COLORS.gold,
 }
 const CIRC = 2 * Math.PI * 30 // ≈ 188.5
 
@@ -341,12 +342,12 @@ export default function TabProgress({ user, profile, tasks = [], showToast, logg
       <div className={styles.outer} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '100vh' }}>
         {/* Icon circle */}
         <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,184,0,0.08)', border: '1px solid rgba(255,184,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFB800" strokeWidth="1.5" strokeLinecap="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke=COLORS.gold strokeWidth="1.5" strokeLinecap="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
         </div>
         {/* Heading */}
-        <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: '#F0EAD6', marginBottom: 6 }}>
+        <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.ash, marginBottom: 6 }}>
           Building your picture.
         </div>
         {/* Body */}
@@ -569,7 +570,7 @@ export default function TabProgress({ user, profile, tasks = [], showToast, logg
           </div>
           <div className={styles.heatmapLegend}>
             <span className={styles.heatmapLegendLabel}>Less</span>
-            {['rgba(255,102,68,0.08)', 'rgba(255,102,68,0.22)', 'rgba(255,102,68,0.48)', 'rgba(255,102,68,0.75)', '#FF6644'].map((bg, i) => (
+            {['rgba(255,102,68,0.08)', 'rgba(255,102,68,0.22)', 'rgba(255,102,68,0.48)', 'rgba(255,102,68,0.75)', COLORS.hot].map((bg, i) => (
               <div key={i} className={styles.heatmapSwatch} style={{ background: bg }} />
             ))}
             <span className={styles.heatmapLegendLabel}>More</span>

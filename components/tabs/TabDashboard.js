@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { COLORS, FONTS } from '../../lib/constants'
 import { localDateStr, generateGreetingLine } from './shared'
 import { supabase } from '../../lib/supabase'
 import CinisMark from '../../lib/CinisMark'
@@ -216,19 +217,19 @@ export default function TabDashboard({
       {/* ── ROW 3: Stats strip ──────────────────────────────────── */}
       <div className={styles.statsStrip}>
         <div className={styles.statPill}>
-          <div className={styles.statVal} style={{ color: '#4CAF50' }}>{tasksDoneLabel}</div>
+          <div className={styles.statVal} style={{ color: COLORS.green }}>{tasksDoneLabel}</div>
           <div className={styles.statLbl}>tasks</div>
         </div>
         <div className={styles.statPill}>
-          <div className={styles.statVal} style={{ color: '#3B8BD4' }}>{focusLabel}</div>
+          <div className={styles.statVal} style={{ color: COLORS.blue }}>{focusLabel}</div>
           <div className={styles.statLbl}>focus</div>
         </div>
         <div className={styles.statPill}>
-          <div className={styles.statVal} style={{ color: '#FFB800' }}>{xpLabel}</div>
+          <div className={styles.statVal} style={{ color: COLORS.gold }}>{xpLabel}</div>
           <div className={styles.statLbl}>XP</div>
         </div>
         <div className={styles.statPill}>
-          <div className={styles.statVal} style={{ color: '#4CAF50' }}>{habitsLabel}</div>
+          <div className={styles.statVal} style={{ color: COLORS.green }}>{habitsLabel}</div>
           <div className={styles.statLbl}>habits</div>
         </div>
       </div>
@@ -245,7 +246,7 @@ export default function TabDashboard({
                 <circle
                   cx="24" cy="24" r="19"
                   className={styles.ringFill}
-                  stroke="#FF6644"
+                  stroke=COLORS.hot
                   strokeDasharray={CIRCUMFERENCE}
                   strokeDashoffset={tasksOffset}
                   style={{ '--ring-offset': tasksOffset }}
@@ -254,7 +255,7 @@ export default function TabDashboard({
                   x="24" y="24"
                   textAnchor="middle" dominantBaseline="central"
                   className={styles.ringCenter}
-                  fill="#FF6644"
+                  fill=COLORS.hot
                   transform="rotate(90 24 24)"
                 >
                   {tasksDoneLabel}
@@ -270,7 +271,7 @@ export default function TabDashboard({
                 <circle
                   cx="24" cy="24" r="19"
                   className={styles.ringFill}
-                  stroke="#3B8BD4"
+                  stroke=COLORS.blue
                   strokeDasharray={CIRCUMFERENCE}
                   strokeDashoffset={focusOffset}
                   style={{ '--ring-offset': focusOffset }}
@@ -279,7 +280,7 @@ export default function TabDashboard({
                   x="24" y="24"
                   textAnchor="middle" dominantBaseline="central"
                   className={styles.ringCenter}
-                  fill="#3B8BD4"
+                  fill=COLORS.blue
                   transform="rotate(90 24 24)"
                 >
                   {focusLabel}

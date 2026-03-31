@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { COLORS, FONTS } from '../../lib/constants'
 import {
   localDateStr, todayStr, tomorrowStr,
   getTasksForDate, getTaskOccurrencesForMonth, fmtMoney,
@@ -77,7 +78,7 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
 
   if (loading) return (
     <div style={{ padding: '12px 14px', paddingBottom: 80, overflowY: 'auto', height: '100%' }}>
-      <div style={{ background: '#3E3228', borderRadius: 10, padding: 20, marginBottom: 14 }}>
+      <div style={{ background: COLORS.char, borderRadius: 10, padding: 20, marginBottom: 14 }}>
         <div style={{ height: 14, background: '#F0EAD610', borderRadius: 4, marginBottom: 8, width: '60%' }} />
         <div style={{ height: 100, background: '#F0EAD608', borderRadius: 6 }} />
       </div>
@@ -89,7 +90,7 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
       <div style={{ textAlign: 'center' }}>
         <span style={{ fontSize: 24 }}>&#9888;&#65039;</span>
         <div style={{ fontSize: 14, color: '#F0EAD670', fontFamily: ff, marginTop: 8 }}>Couldn&apos;t load your data.</div>
-        <div onClick={() => { if (setTasksError) setTasksError(false); if (setLoading) setLoading(true); if (fetchTasks) fetchTasks(user.id) }} style={{ marginTop: 10, padding: '8px 16px', background: '#FF6644', borderRadius: 8, fontSize: 14, color: '#F0EAD6', fontFamily: ff, cursor: 'pointer', display: 'inline-block' }}>Try again</div>
+        <div onClick={() => { if (setTasksError) setTasksError(false); if (setLoading) setLoading(true); if (fetchTasks) fetchTasks(user.id) }} style={{ marginTop: 10, padding: '8px 16px', background: COLORS.hot, borderRadius: 8, fontSize: 14, color: COLORS.ash, fontFamily: ff, cursor: 'pointer', display: 'inline-block' }}>Try again</div>
       </div>
     </div>
   )
@@ -99,11 +100,11 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
       <div style={{ padding: '12px 14px', overflowY: 'auto', height: '100%', paddingBottom: 80 }}>
 
         {/* Month grid card */}
-        <div style={{ background: '#3E3228', borderRadius: 10, padding: '10px 10px 8px', marginBottom: 14 }}>
+        <div style={{ background: COLORS.char, borderRadius: 10, padding: '10px 10px 8px', marginBottom: 14 }}>
           {/* Nav */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <div onClick={calPrevMonth} style={{ padding: 6, cursor: 'pointer', color: '#F0EAD670', fontSize: 16 }}>&#8249;</div>
-            <div style={{ fontFamily: ff, fontSize: 15, fontWeight: 600, color: '#F0EAD6' }}>{monthName} {year}</div>
+            <div style={{ fontFamily: ff, fontSize: 15, fontWeight: 600, color: COLORS.ash }}>{monthName} {year}</div>
             <div onClick={calNextMonth} style={{ padding: 6, cursor: 'pointer', color: '#F0EAD670', fontSize: 16 }}>&#8250;</div>
           </div>
           {/* Day labels */}
@@ -130,11 +131,11 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
                   <span style={{
                     fontSize: 14, fontFamily: ff,
                     fontWeight: isToday ? 600 : 400,
-                    color: isToday ? '#FF6644' : '#F0EAD6',
+                    color: isToday ? COLORS.hot : COLORS.ash,
                   }}>{day}</span>
                   <div style={{ display: 'flex', gap: 2, marginTop: 2, height: 3 }}>
-                    {dayTaskList.length > 0 && <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#FF6644' }} />}
-                    {dayBillList.length > 0 && <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#E8321A' }} />}
+                    {dayTaskList.length > 0 && <div style={{ width: 3, height: 3, borderRadius: '50%', background: COLORS.hot }} />}
+                    {dayBillList.length > 0 && <div style={{ width: 3, height: 3, borderRadius: '50%', background: COLORS.ember }} />}
                   </div>
                 </div>
               )
@@ -143,24 +144,24 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
         </div>
 
         {/* Coming up section */}
-        <div style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#F0EAD650', fontFamily: ff, fontWeight: 500, marginBottom: 8 }}>Coming up</div>
+        <div style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.ghost, fontFamily: ff, fontWeight: 500, marginBottom: 8 }}>Coming up</div>
 
         {Object.keys(upcomingByDate).length === 0 ? (
           <div style={{ textAlign: 'center', padding: '20px 16px' }}>
-            <div style={{ fontSize: 14, color: '#F0EAD650', fontFamily: ff }}>You&apos;re clear for the next 7 days.</div>
+            <div style={{ fontSize: 14, color: COLORS.ghost, fontFamily: ff }}>You&apos;re clear for the next 7 days.</div>
           </div>
         ) : (
           Object.entries(upcomingByDate).map(([dStr, dayList]) => (
             <div key={dStr}>
-              <div style={{ fontSize: 14, fontWeight: 500, fontFamily: ff, padding: '6px 0 3px', color: dStr === todayD ? '#FF6644' : '#F0EAD670' }}>{fmtUpDate(dStr)}</div>
+              <div style={{ fontSize: 14, fontWeight: 500, fontFamily: ff, padding: '6px 0 3px', color: dStr === todayD ? COLORS.hot : '#F0EAD670' }}>{fmtUpDate(dStr)}</div>
               {dayList.map(t => (
                 <div key={t.id} onClick={() => setDetailTask && setDetailTask(t)} style={{
                   display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px',
-                  background: '#3E3228', borderRadius: 8, marginBottom: 4, cursor: 'pointer'
+                  background: COLORS.char, borderRadius: 8, marginBottom: 4, cursor: 'pointer'
                 }}>
                   <div style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><div style={{ width: 17, height: 17, borderRadius: '50%', border: '1.5px solid #F0EAD650' }} /></div>
-                  <span style={{ fontSize: 14, color: '#F0EAD6', fontFamily: ff, flex: 1 }}>{t.title}</span>
-                  {t.due_time && <span style={{ fontSize: 14, color: '#F0EAD650', fontFamily: sf }}>{new Date(t.due_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>}
+                  <span style={{ fontSize: 14, color: COLORS.ash, fontFamily: ff, flex: 1 }}>{t.title}</span>
+                  {t.due_time && <span style={{ fontSize: 14, color: COLORS.ghost, fontFamily: sf }}>{new Date(t.due_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>}
                 </div>
               ))}
             </div>
@@ -171,10 +172,10 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
         {upcomingBills.length > 0 && upcomingBills.map(b => (
           <div key={b.id} style={{
             display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px',
-            background: '#3E3228', borderRadius: 8, marginBottom: 4, borderLeft: '3px solid #E8321A'
+            background: COLORS.char, borderRadius: 8, marginBottom: 4, borderLeft: `3px solid ${COLORS.ember}`
           }}>
             <span style={{ fontSize: 14 }}>&#129534;</span>
-            <span style={{ fontSize: 14, color: '#F0EAD6', fontFamily: ff, flex: 1 }}>{b.name}</span>
+            <span style={{ fontSize: 14, color: COLORS.ash, fontFamily: ff, flex: 1 }}>{b.name}</span>
             <span style={{ fontSize: 14, color: '#F0EAD670', fontFamily: sf }}>{fmtMoney(b.amount)}</span>
           </div>
         ))}
@@ -237,7 +238,7 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
                 setCalDayPanelOpen(false)
                 if (setShowAddModal) setShowAddModal(true)
               }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FF6644" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke=COLORS.hot strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                 <span className={cs.addTaskText}>Add task for this day</span>
               </div>
 
@@ -247,7 +248,7 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
                   <div className={cs.secLabel}>BILLS DUE</div>
                   {panelBills.map(b => (
                     <div key={b.id} className={b.autopay ? cs.billRowAuto : cs.billRow}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E8321A" strokeWidth="2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke=COLORS.ember strokeWidth="2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
                       <span className={cs.billName}>{b.name}</span>
                       <span className={cs.billAmount}>{fmtMoney(b.amount)} &middot; {b.autopay ? 'auto' : 'manual'}</span>
                       {b.autopay ? (
@@ -266,7 +267,7 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
                   <div className={cs.secLabel} style={{marginTop: panelBills.length > 0 ? 10 : 0}}>FOCUS SESSIONS</div>
                   {sessionsForDay.map((s, i) => (
                     <div key={s.id || i} className={cs.focusRow}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3B8BD4" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke=COLORS.blue strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
                       <div style={{flex:1}}>
                         <div className={cs.focusName}>{s.task_name || 'Focus session'}</div>
                         <div className={cs.focusSub}>{s.duration_min || Math.round((s.duration || 0)/60)} min &middot; completed {new Date(s.completed_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>

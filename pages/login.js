@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { COLORS, FONTS } from '../lib/constants'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 import Head from 'next/head'

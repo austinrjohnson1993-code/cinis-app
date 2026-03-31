@@ -2,9 +2,9 @@ import styles from '../../styles/Landing.module.css'
 
 const QUOTES = [
   {
-    text: "I\u2019ve downloaded every productivity app that exists. Cinis is the first one where the app reaches out to me instead of waiting. That\u2019s the whole difference.",
+    text: "I\u2019ve downloaded every task app that exists. Cinis is the first one where the app reaches out to me instead of waiting. That\u2019s the whole difference.",
     highlight: "the app reaches out to me",
-    attr: "Alex \u00B7 Software engineer \u00B7 ADHD diagnosis",
+    attr: "Alex \u00B7 Software engineer \u00B7 execution gap",
   },
   {
     text: "It noticed I\u2019d moved the same task three times and asked what was actually in the way. I didn\u2019t have an answer. That was the answer.",

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { COLORS, FONTS } from '../../lib/constants'
 import styles from '../../styles/Dashboard.module.css'
 import { supabase } from '../../lib/supabase'
 import { isDueSoon as billIsDueSoon, formatBillAmount, getBillCategory, getNextDueDate } from '../../lib/billUtils'
@@ -393,8 +394,8 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
               <button key={id} onClick={() => setFinanceSub(id)}
                 style={{
                   padding: '5px 12px', borderRadius: 20, whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0,
-                  background: isActive ? 'rgba(255,102,68,0.15)' : '#3E3228',
-                  color: isActive ? '#FF6644' : 'rgba(240,234,214,0.32)',
+                  background: isActive ? 'rgba(255,102,68,0.15)' : COLORS.char,
+                  color: isActive ? COLORS.hot : 'rgba(240,234,214,0.32)',
                   border: isActive ? '1px solid rgba(255,102,68,0.25)' : '1px solid rgba(240,234,214,0.12)',
                   fontFamily: "'Figtree', sans-serif", fontSize: 14, fontWeight: isActive ? 500 : 400,
                 }}>
@@ -421,20 +422,20 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 14px 0', marginBottom: 16 }}>
                   <div>
                     <span style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(240,234,214,0.32)', fontFamily: "'Figtree', sans-serif" }}>Finance</span>
-                    <h1 style={{ margin: '2px 0 0', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 600, color: '#F0EAD6' }}>Bills</h1>
+                    <h1 style={{ margin: '2px 0 0', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 600, color: COLORS.ash }}>Bills</h1>
                     <p className={styles.financeTotal}>{fmtMoney(monthlyTotal)}<span className={styles.financeTotalSub}>/mo</span></p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '50vh' }}>
                   {/* Icon circle */}
                   <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(232,50,26,0.08)', border: '1px solid rgba(232,50,26,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E8321A" strokeWidth="1.5" strokeLinecap="round">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke=COLORS.ember strokeWidth="1.5" strokeLinecap="round">
                       <line x1="12" y1="2" x2="12" y2="22" />
                       <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
                     </svg>
                   </div>
                   {/* Heading */}
-                  <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: '#F0EAD6', marginBottom: 6 }}>
+                  <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.ash, marginBottom: 6 }}>
                     No bills tracked.
                   </div>
                   {/* Body */}
@@ -442,7 +443,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                     Add your recurring bills once. Cinis surfaces them in your task list and calendar automatically.
                   </div>
                   {/* CTA button */}
-                  <button onClick={() => setShowAddBillModal(true)} style={{ background: 'rgba(232,50,26,0.12)', border: '1px solid rgba(232,50,26,0.25)', borderRadius: 9, padding: '10px 20px', fontSize: 12, fontWeight: 600, color: '#E8321A', cursor: 'pointer' }}>
+                  <button onClick={() => setShowAddBillModal(true)} style={{ background: 'rgba(232,50,26,0.12)', border: '1px solid rgba(232,50,26,0.25)', borderRadius: 9, padding: '10px 20px', fontSize: 12, fontWeight: 600, color: COLORS.ember, cursor: 'pointer' }}>
                     Add a bill
                   </button>
                 </div>
@@ -452,7 +453,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 14px 0', marginBottom: 16 }}>
               <div>
                 <span style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(240,234,214,0.32)', fontFamily: "'Figtree', sans-serif" }}>Finance</span>
-                <h1 style={{ margin: '2px 0 0', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 600, color: '#F0EAD6' }}>Bills</h1>
+                <h1 style={{ margin: '2px 0 0', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 600, color: COLORS.ash }}>Bills</h1>
                 <p className={styles.financeTotal}>{fmtMoney(monthlyTotal)}<span className={styles.financeTotalSub}>/mo</span></p>
               </div>
               <button onClick={() => setShowAddBillModal(true)} className={styles.addTaskBtn}>+ Add bill</button>
@@ -471,7 +472,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                     step="1"
                     value={monthlyIncomeInput}
                     onChange={e => setMonthlyIncomeInput(e.target.value)}
-                    style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: '#F0EAD6' }}
+                    style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: COLORS.ash }}
                     className={styles.incomeInput}
                   />
                 </div>
@@ -617,7 +618,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                       type="number" placeholder="0" min="0" step="1"
                       value={monthlyIncomeInput}
                       onChange={e => setMonthlyIncomeInput(e.target.value)}
-                      style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: '#F0EAD6' }}
+                      style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', color: COLORS.ash }}
                       className={styles.incomeInput}
                     />
                   </div>
@@ -722,7 +723,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                     value={spendAmount}
                     onChange={e => setSpendAmount(e.target.value)}
                     className={styles.fieldInput}
-                    style={{ fontFamily: 'Sora, sans-serif', fontSize: '1.4rem', fontWeight: 300, color: '#F0EAD6', textAlign: 'center' }}
+                    style={{ fontFamily: 'Sora, sans-serif', fontSize: '1.4rem', fontWeight: 300, color: COLORS.ash, textAlign: 'center' }}
                   />
                   <div className={styles.toggleRow} style={{ flexWrap: 'wrap' }}>
                     {['Food','Transport','Shopping','Entertainment','Bills','Other'].map(c => (
@@ -1011,7 +1012,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                     <span className={styles.learnCardTitle}>{card.title}</span>
                     <span className={styles.learnCardChevron}>▼</span>
                   </div>
-                  {card.desc && <p style={{ fontFamily: 'Figtree, sans-serif', fontSize: '11px', color: '#F0EAD650', margin: '0 0 8px', padding: '0 14px 0 42px', lineHeight: 1.4 }}>{card.desc}</p>}
+                  {card.desc && <p style={{ fontFamily: 'Figtree, sans-serif', fontSize: '11px', color: COLORS.ghost, margin: '0 0 8px', padding: '0 14px 0 42px', lineHeight: 1.4 }}>{card.desc}</p>}
                   {isOpen && (
                     <div className={styles.learnCardContent}>
                       {card.fields.map(f => (
@@ -1225,7 +1226,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
           const paidPct = totalBillAmount > 0 ? Math.round((paidAmount / totalBillAmount) * 100) : 0
 
           // Category breakdown
-          const CAT_COLORS = { Housing: '#FF6644', Subscriptions: '#3B8BD4', Utilities: '#A47BDB', Insurance: '#4CAF50', 'Debt/Loans': '#E8321A', Other: 'rgba(240,234,214,0.22)' }
+          const CAT_COLORS = { Housing: COLORS.hot, Subscriptions: COLORS.blue, Utilities: '#A47BDB', Insurance: COLORS.green, 'Debt/Loans': COLORS.ember, Other: 'rgba(240,234,214,0.22)' }
           const catMap = {}
           bills.forEach(b => {
             const cat = b.category || 'Other'
@@ -1251,28 +1252,28 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
             <div style={{ padding: '40px 14px', textAlign: 'center' }}>
               <div style={{ fontSize: 24, marginBottom: 8 }}>💰</div>
               <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.40)', lineHeight: 1.6 }}>No bills added yet.</div>
-              <div onClick={() => setFinanceSub('bills')} style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: '#FF6644', marginTop: 8, cursor: 'pointer' }}>Go to Bills →</div>
+              <div onClick={() => setFinanceSub('bills')} style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: COLORS.hot, marginTop: 8, cursor: 'pointer' }}>Go to Bills →</div>
             </div>
           )
 
           return (
             <div style={{ padding: '12px 14px 80px' }}>
               {/* Month summary card */}
-              <div style={{ background: '#3E3228', borderRadius: 12, padding: 14, marginBottom: 10 }}>
+              <div style={{ background: COLORS.char, borderRadius: 12, padding: 14, marginBottom: 10 }}>
                 <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(240,234,214,0.22)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{curMonth}</div>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                   <div style={{ flex: 1, textAlign: 'center' }}>
-                    <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: '#F0EAD6' }}>{fmtMoney(totalBillAmount)}</div>
+                    <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: COLORS.ash }}>{fmtMoney(totalBillAmount)}</div>
                     <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)' }}>bills this month</div>
                   </div>
                   <div style={{ width: 1, background: 'rgba(240,234,214,0.08)' }} />
                   <div style={{ flex: 1, textAlign: 'center' }}>
-                    <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: '#4CAF50' }}>{fmtMoney(dueThisWeek)}</div>
+                    <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: COLORS.green }}>{fmtMoney(dueThisWeek)}</div>
                     <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)' }}>due this week</div>
                   </div>
                   <div style={{ width: 1, background: 'rgba(240,234,214,0.08)' }} />
                   <div style={{ flex: 1, textAlign: 'center' }}>
-                    <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: '#FFB800' }}>{fmtMoney(paidAmount)}</div>
+                    <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 20, color: COLORS.gold }}>{fmtMoney(paidAmount)}</div>
                     <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 8, color: 'rgba(240,234,214,0.22)' }}>paid so far</div>
                   </div>
                 </div>
@@ -1287,19 +1288,19 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
 
               {/* AI Coach insight card */}
               {(coachInsight || insightLoading) && (
-                <div style={{ background: '#3E3228', borderRadius: 10, padding: 13, border: '1px solid rgba(255,102,68,0.10)', marginBottom: 10 }}>
+                <div style={{ background: COLORS.char, borderRadius: 10, padding: 13, border: '1px solid rgba(255,102,68,0.10)', marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                     <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,102,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <svg width="8" height="8" viewBox="0 0 16 16" fill="#FF6644"><path d="M8 0l2 5h5l-4 3 2 5-5-3-5 3 2-5L1 5h5z" /></svg>
+                      <svg width="8" height="8" viewBox="0 0 16 16" fill=COLORS.hot><path d="M8 0l2 5h5l-4 3 2 5-5-3-5 3 2-5L1 5h5z" /></svg>
                     </div>
-                    <span style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#FF6644', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Coach Insight</span>
+                    <span style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: COLORS.hot, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Coach Insight</span>
                   </div>
                   {insightLoading ? (
                     <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.40)', lineHeight: 1.65, marginBottom: 8 }}>Loading insight...</div>
                   ) : (
                     <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 12, color: 'rgba(240,234,214,0.6)', lineHeight: 1.65, marginBottom: 8 }}>{coachInsight}</div>
                   )}
-                  <div onClick={() => setFinanceSub('plans')} style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 10, color: '#FF6644', cursor: 'pointer' }}>Open Plans →</div>
+                  <div onClick={() => setFinanceSub('plans')} style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 10, color: COLORS.hot, cursor: 'pointer' }}>Open Plans →</div>
                 </div>
               )}
 
@@ -1307,12 +1308,12 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
               {catList.length > 0 && (
                 <>
                   <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: 'rgba(240,234,214,0.22)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Breakdown</div>
-                  <div style={{ background: '#3E3228', borderRadius: 10, padding: 12, marginBottom: 10 }}>
+                  <div style={{ background: COLORS.char, borderRadius: 10, padding: 12, marginBottom: 10 }}>
                     {catList.map((cat, idx) => (
                       <div key={cat.name} style={{ marginBottom: idx < catList.length - 1 ? 8 : 0 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: '#F0EAD6' }}>{cat.name}</span>
-                          <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: 11, color: '#F0EAD6' }}>{fmtMoney(cat.total)}</span>
+                          <span style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: COLORS.ash }}>{cat.name}</span>
+                          <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 600, fontSize: 11, color: COLORS.ash }}>{fmtMoney(cat.total)}</span>
                         </div>
                         <div style={{ height: 5, background: 'rgba(240,234,214,0.07)', borderRadius: 2, overflow: 'hidden' }}>
                           <div style={{ height: '100%', width: `${cat.pct}%`, background: cat.color, borderRadius: 2 }} />
@@ -1332,21 +1333,21 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                   {overdueBills.map(b => {
                     const daysOverdue = now.getDate() - b.due_day
                     return (
-                      <div key={b.id} style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', borderLeft: '3px solid #E8321A' }}>
-                        <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#E8321A', marginBottom: 3 }}>Overdue</div>
+                      <div key={b.id} style={{ background: COLORS.char, borderRadius: 8, padding: '10px 11px', borderLeft: `3px solid ${COLORS.ember}` }}>
+                        <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: COLORS.ember, marginBottom: 3 }}>Overdue</div>
                         <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.6)', lineHeight: 1.5 }}>{b.name} ({fmtMoney(parseFloat(b.amount) || 0)}) — {daysOverdue} day{daysOverdue !== 1 ? 's' : ''} overdue</div>
                       </div>
                     )
                   })}
                   {hasWatch && (
-                    <div style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', borderLeft: '3px solid #FFB800' }}>
-                      <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#FFB800', marginBottom: 3 }}>Watch</div>
+                    <div style={{ background: COLORS.char, borderRadius: 8, padding: '10px 11px', borderLeft: '3px solid #FFB800' }}>
+                      <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: COLORS.gold, marginBottom: 3 }}>Watch</div>
                       <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.6)', lineHeight: 1.5 }}>You have {subBills.length} active subscriptions. Monitor spending.</div>
                     </div>
                   )}
                   {hasOnTrack && (
-                    <div style={{ background: '#3E3228', borderRadius: 8, padding: '10px 11px', borderLeft: '3px solid #4CAF50' }}>
-                      <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: '#4CAF50', marginBottom: 3 }}>On track</div>
+                    <div style={{ background: COLORS.char, borderRadius: 8, padding: '10px 11px', borderLeft: '3px solid #4CAF50' }}>
+                      <div style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: COLORS.green, marginBottom: 3 }}>On track</div>
                       <div style={{ fontFamily: "'Figtree',sans-serif", fontSize: 11, color: 'rgba(240,234,214,0.6)', lineHeight: 1.5 }}>{autopayBills.length} bill{autopayBills.length !== 1 ? 's' : ''} on autopay — all set.</div>
                     </div>
                   )}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { COLORS, FONTS } from '../../lib/constants'
 import { supabase } from '../../lib/supabase'
 import { localDateStr, todayStr } from './shared'
 
@@ -164,7 +165,7 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
   // ── Loading / Error ──────────────────────────────────────────────────────
   if (habitsLoading) return (
     <div style={{ padding: '12px 14px', paddingBottom: 80 }}>
-      {[1, 2].map(i => <div key={i} style={{ background: '#3E3228', borderRadius: 10, padding: 16, marginBottom: 8 }}><div style={{ height: 12, background: '#F0EAD610', borderRadius: 4, width: '60%', marginBottom: 8 }} /><div style={{ height: 10, background: '#F0EAD608', borderRadius: 4, width: '40%' }} /></div>)}
+      {[1, 2].map(i => <div key={i} style={{ background: COLORS.char, borderRadius: 10, padding: 16, marginBottom: 8 }}><div style={{ height: 12, background: '#F0EAD610', borderRadius: 4, width: '60%', marginBottom: 8 }} /><div style={{ height: 10, background: '#F0EAD608', borderRadius: 4, width: '40%' }} /></div>)}
     </div>
   )
   if (habitsError) return (
@@ -172,7 +173,7 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
       <div style={{ textAlign: 'center' }}>
         <span style={{ fontSize: 24 }}>&#9888;&#65039;</span>
         <div style={{ fontSize: 14, color: '#F0EAD670', fontFamily: ff, marginTop: 8 }}>Couldn&apos;t load your data.</div>
-        <div onClick={() => { setHabitsError(false); fetchHabits(user.id) }} style={{ marginTop: 10, padding: '8px 16px', background: '#FF6644', borderRadius: 8, fontSize: 14, color: '#F0EAD6', fontFamily: ff, cursor: 'pointer', display: 'inline-block' }}>Try again</div>
+        <div onClick={() => { setHabitsError(false); fetchHabits(user.id) }} style={{ marginTop: 10, padding: '8px 16px', background: COLORS.hot, borderRadius: 8, fontSize: 14, color: COLORS.ash, fontFamily: ff, cursor: 'pointer', display: 'inline-block' }}>Try again</div>
       </div>
     </div>
   )
@@ -207,34 +208,34 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#F0EAD6', fontFamily: ff }}>Habits</div>
-            <div style={{ fontSize: 14, color: '#F0EAD650', fontFamily: ff }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: COLORS.ash, fontFamily: ff }}>Habits</div>
+            <div style={{ fontSize: 14, color: COLORS.ghost, fontFamily: ff }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</div>
           </div>
           <div onClick={() => setShowAddHabitOverlay(true)} style={{
             display: 'flex', alignItems: 'center', gap: 3, padding: '10px 12px',
             background: '#FF664412', border: '1px solid #FF664425', borderRadius: 6, cursor: 'pointer'
           }}>
-            <span style={{ fontSize: 14, color: '#FF6644', fontFamily: ff, fontWeight: 500 }}>+ Add</span>
+            <span style={{ fontSize: 14, color: COLORS.hot, fontFamily: ff, fontWeight: 500 }}>+ Add</span>
           </div>
         </div>
 
         {/* Progress bar */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14 }}>
           <div style={{ flex: 1, height: 6, background: '#F0EAD612', borderRadius: 3, overflow: 'hidden' }}>
-            <div style={{ width: `${progressDenom > 0 ? (progressNumer / progressDenom) * 100 : 0}%`, height: '100%', background: allDone ? '#4CAF50' : '#FF6644', borderRadius: 3, transition: 'width .3s' }} />
+            <div style={{ width: `${progressDenom > 0 ? (progressNumer / progressDenom) * 100 : 0}%`, height: '100%', background: allDone ? COLORS.green : COLORS.hot, borderRadius: 3, transition: 'width .3s' }} />
           </div>
-          <span style={{ fontFamily: sf, fontSize: 14, fontWeight: 600, color: allDone ? '#4CAF50' : '#F0EAD6' }}>{progressNumer}/{progressDenom}</span>
+          <span style={{ fontFamily: sf, fontSize: 14, fontWeight: 600, color: allDone ? COLORS.green : COLORS.ash }}>{progressNumer}/{progressDenom}</span>
         </div>
 
         {/* Journal card */}
-        <div style={{ background: '#3E3228', borderRadius: 10, padding: '12px 12px 10px', marginBottom: 10, borderLeft: '3px solid #3B8BD4' }}>
+        <div style={{ background: COLORS.char, borderRadius: 10, padding: '12px 12px 10px', marginBottom: 10, borderLeft: '3px solid #3B8BD4' }}>
           {/* Collapsed header — always visible */}
           <div onClick={() => setHabitJournalExpanded(e => !e)} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-            <BigCheck done={journaledToday} color="#3B8BD4" onClick={e => e.stopPropagation()} />
+            <BigCheck done={journaledToday} color=COLORS.blue onClick={e => e.stopPropagation()} />
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontFamily: ff, fontSize: 13, fontWeight: 500, color: journaledToday ? 'rgba(240,234,214,0.22)' : '#F0EAD6', textDecoration: journaledToday ? 'line-through' : 'none' }}>Journal</span>
-                <span style={{ fontSize: 7, fontFamily: ff, fontWeight: 600, color: '#3B8BD4', background: 'rgba(59,139,212,0.15)', borderRadius: 4, padding: '1px 5px' }}>DAILY</span>
+                <span style={{ fontFamily: ff, fontSize: 13, fontWeight: 500, color: journaledToday ? 'rgba(240,234,214,0.22)' : COLORS.ash, textDecoration: journaledToday ? 'line-through' : 'none' }}>Journal</span>
+                <span style={{ fontSize: 7, fontFamily: ff, fontWeight: 600, color: COLORS.blue, background: 'rgba(59,139,212,0.15)', borderRadius: 4, padding: '1px 5px' }}>DAILY</span>
               </div>
               <div style={{ fontSize: 10, color: 'rgba(240,234,214,0.22)', fontFamily: ff, marginTop: 2 }}>
                 {todayEntry
@@ -244,7 +245,7 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: sf, fontSize: 15, fontWeight: 700, color: '#3B8BD4', lineHeight: 1 }}>{journalStreak}</div>
+              <div style={{ fontFamily: sf, fontSize: 15, fontWeight: 700, color: COLORS.blue, lineHeight: 1 }}>{journalStreak}</div>
               <div style={{ fontSize: 7, color: 'rgba(240,234,214,0.22)', fontFamily: ff }}>days</div>
             </div>
             <span style={{ fontSize: 14, color: '#F0EAD640', transform: habitJournalExpanded ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>&#9662;</span>
@@ -256,7 +257,7 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
               const done = journalEntries.some(e => e.created_at && e.created_at.slice(0, 10) === ds)
               return (
                 <div key={i} style={{ flex: 1, height: 18, borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', background: done ? 'rgba(59,139,212,0.25)' : 'rgba(240,234,214,0.05)', border: done ? '1px solid rgba(59,139,212,0.40)' : '1px solid rgba(240,234,214,0.08)' }}>
-                  {done && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#3B8BD4' }} />}
+                  {done && <div style={{ width: 5, height: 5, borderRadius: '50%', background: COLORS.blue }} />}
                 </div>
               )
             })}
@@ -270,8 +271,8 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
                 {['today', 'write'].map(v => (
                   <div key={v} onClick={() => setJournalView(v)} style={{
                     padding: '10px 12px', borderRadius: 6, fontSize: 14, fontFamily: ff, cursor: 'pointer',
-                    background: journalView === v ? '#211A14' : 'transparent',
-                    color: journalView === v ? '#F0EAD6' : '#F0EAD650',
+                    background: journalView === v ? COLORS.coal : 'transparent',
+                    color: journalView === v ? COLORS.ash : COLORS.ghost,
                   }}>{v === 'today' ? "Today's entry" : 'Write new'}</div>
                 ))}
               </div>
@@ -281,23 +282,23 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
                   {/* Mood + meta */}
                   {todayEntry.mood && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <div style={{ width: 30, height: 30, borderRadius: 8, background: '#211A14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{todayEntry.mood}</div>
+                      <div style={{ width: 30, height: 30, borderRadius: 8, background: COLORS.coal, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{todayEntry.mood}</div>
                       <span style={{ fontSize: 14, color: '#F0EAD640', fontFamily: ff }}>{new Date(todayEntry.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} &middot; {(todayEntry.content || '').split(/\s+/).filter(Boolean).length} words</span>
                     </div>
                   )}
-                  <div style={{ fontSize: 14, color: '#F0EAD690', fontFamily: ff, lineHeight: 1.65 }}>{todayEntry.content}</div>
+                  <div style={{ fontSize: 14, color: COLORS.dim, fontFamily: ff, lineHeight: 1.65 }}>{todayEntry.content}</div>
                   {/* AI response */}
                   {(todayEntry.ai_response || habitJournalAiReply) && (
                     <div style={{ marginTop: 8, background: '#FF66440F', border: '1px solid #FF66441A', borderRadius: 8, padding: '10px 12px' }}>
-                      <div style={{ fontSize: 14, color: '#FF6644', fontFamily: ff, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>&#10022; Your coach</div>
-                      <div style={{ fontSize: 14, color: '#F0EAD6', fontFamily: ff, lineHeight: 1.65 }}>{todayEntry.ai_response || habitJournalAiReply}</div>
+                      <div style={{ fontSize: 14, color: COLORS.hot, fontFamily: ff, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>&#10022; Your coach</div>
+                      <div style={{ fontSize: 14, color: COLORS.ash, fontFamily: ff, lineHeight: 1.65 }}>{todayEntry.ai_response || habitJournalAiReply}</div>
                     </div>
                   )}
                 </div>
               )}
 
               {journalView === 'today' && !todayEntry && (
-                <div style={{ textAlign: 'center', padding: 16, fontSize: 14, color: '#F0EAD650', fontFamily: ff }}>No entry yet today. Switch to &quot;Write new&quot; to start.</div>
+                <div style={{ textAlign: 'center', padding: 16, fontSize: 14, color: COLORS.ghost, fontFamily: ff }}>No entry yet today. Switch to &quot;Write new&quot; to start.</div>
               )}
 
               {journalView === 'write' && (
@@ -308,7 +309,7 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
                       <div key={cat} onClick={() => setJournalCategory(journalCategory === cat ? null : cat)} style={{
                         padding: '10px 12px', borderRadius: 6, fontSize: 14, fontFamily: ff, cursor: 'pointer',
                         background: journalCategory === cat ? '#FF664420' : 'transparent',
-                        color: journalCategory === cat ? '#FF6644' : '#F0EAD650',
+                        color: journalCategory === cat ? COLORS.hot : COLORS.ghost,
                         border: journalCategory === cat ? '1px solid #FF664430' : '1px solid #F0EAD612'
                       }}>{cat}</div>
                     ))}
@@ -322,7 +323,7 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
                         : ["What I need tomorrow", "What I'd change about today", "A pattern I noticed"]
                       ).map(p => (
                         <div key={p} onClick={() => setHabitJournalText(p + ': ')} style={{
-                          padding: '8px 10px', background: '#211A14', borderRadius: 6,
+                          padding: '8px 10px', background: COLORS.coal, borderRadius: 6,
                           fontSize: 14, color: '#F0EAD670', fontFamily: ff, cursor: 'pointer'
                         }}>{p}</div>
                       ))}
@@ -336,8 +337,8 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
                     onChange={e => setHabitJournalText(e.target.value)}
                     rows={4}
                     style={{
-                      width: '100%', minHeight: 120, background: '#211A14', border: '1px solid #F0EAD618',
-                      borderRadius: 10, padding: '10px 14px', color: '#F0EAD6', fontSize: 14, fontFamily: ff,
+                      width: '100%', minHeight: 120, background: COLORS.coal, border: `1px solid ${COLORS.border}`,
+                      borderRadius: 10, padding: '10px 14px', color: COLORS.ash, fontSize: 14, fontFamily: ff,
                       lineHeight: 1.6, resize: 'vertical', outline: 'none', boxSizing: 'border-box',
                     }}
                   />
@@ -359,8 +360,8 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
                     <span style={{ fontSize: 14, color: '#F0EAD640', fontFamily: ff }}>{wordCount} word{wordCount !== 1 ? 's' : ''}</span>
                     <div onClick={sendHabitJournal} style={{
                       padding: '8px 16px', borderRadius: 8, fontSize: 14, fontWeight: 500, fontFamily: ff, cursor: 'pointer',
-                      background: habitJournalText.trim() ? '#FF6644' : '#F0EAD610',
-                      color: habitJournalText.trim() ? '#F0EAD6' : '#F0EAD640',
+                      background: habitJournalText.trim() ? COLORS.hot : '#F0EAD610',
+                      color: habitJournalText.trim() ? COLORS.ash : '#F0EAD640',
                       opacity: habitJournalSending ? 0.6 : 1,
                     }}>{habitJournalSending ? 'Thinking\u2026' : 'Save entry'}</div>
                   </div>
@@ -368,8 +369,8 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
                   {/* AI reply */}
                   {habitJournalAiReply && (
                     <div style={{ marginTop: 10, background: '#FF66440F', border: '1px solid #FF66441A', borderRadius: 8, padding: '10px 12px' }}>
-                      <div style={{ fontSize: 14, color: '#FF6644', fontFamily: ff, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>&#10022; Your coach</div>
-                      <div style={{ fontSize: 14, color: '#F0EAD6', fontFamily: ff, lineHeight: 1.65 }}>{habitJournalAiReply}</div>
+                      <div style={{ fontSize: 14, color: COLORS.hot, fontFamily: ff, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>&#10022; Your coach</div>
+                      <div style={{ fontSize: 14, color: COLORS.ash, fontFamily: ff, lineHeight: 1.65 }}>{habitJournalAiReply}</div>
                     </div>
                   )}
                 </div>
@@ -386,7 +387,7 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
                     <div key={entry.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #F0EAD608' }}>
                       {entry.mood && <span style={{ fontSize: 14 }}>{entry.mood}</span>}
                       <span style={{ fontSize: 14, color: '#F0EAD640', fontFamily: ff, flexShrink: 0 }}>{new Date(entry.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                      <span style={{ fontSize: 14, color: '#F0EAD660', fontFamily: ff, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{(entry.content || '').slice(0, 60)}</span>
+                      <span style={{ fontSize: 14, color: COLORS.faint, fontFamily: ff, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{(entry.content || '').slice(0, 60)}</span>
                       <span style={{ fontSize: 14, color: '#F0EAD630', fontFamily: ff, flexShrink: 0 }}>{(entry.content || '').split(/\s+/).filter(Boolean).length}w</span>
                     </div>
                   ))}
@@ -401,12 +402,12 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '60vh' }}>
             {/* Icon circle */}
             <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(76,175,80,0.08)', border: '1px solid rgba(76,175,80,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="1.5" strokeLinecap="round">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke=COLORS.green strokeWidth="1.5" strokeLinecap="round">
                 <path d="M12 2C12 2 8 8 8 13A4 4 0 0016 13C16 8 12 2 12 2Z" />
               </svg>
             </div>
             {/* Heading */}
-            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: '#F0EAD6', marginBottom: 6 }}>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.ash, marginBottom: 6 }}>
               No habits yet.
             </div>
             {/* Body */}
@@ -418,7 +419,7 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
               Start with one. That's it.
             </div>
             {/* CTA button */}
-            <button onClick={() => setShowAddHabitOverlay(true)} style={{ background: 'rgba(76,175,80,0.12)', border: '1px solid rgba(76,175,80,0.25)', borderRadius: 9, padding: '10px 20px', fontSize: 12, fontWeight: 600, color: '#4CAF50', cursor: 'pointer' }}>
+            <button onClick={() => setShowAddHabitOverlay(true)} style={{ background: 'rgba(76,175,80,0.12)', border: '1px solid rgba(76,175,80,0.25)', borderRadius: 9, padding: '10px 20px', fontSize: 12, fontWeight: 600, color: COLORS.green, cursor: 'pointer' }}>
               Add first habit
             </button>
           </div>
@@ -428,18 +429,18 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
             const heat = getHabitHeat(habit.id)
             const streak = getHabitStreak(habit.id)
             const isBreak = habit.habit_type === 'break'
-            const color = isBreak ? '#E8321A' : '#4CAF50'
+            const color = isBreak ? COLORS.ember : COLORS.green
             return (
-              <div key={habit.id} style={{ background: '#3E3228', borderRadius: 10, padding: '12px 12px 10px', marginBottom: 6, borderLeft: `3px solid ${color}` }}>
+              <div key={habit.id} style={{ background: COLORS.char, borderRadius: 10, padding: '12px 12px 10px', marginBottom: 6, borderLeft: `3px solid ${color}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <BigCheck done={done} color={color} onClick={() => toggleHabit(habit.id)} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: ff, fontSize: 14, fontWeight: 500, color: done ? '#F0EAD650' : '#F0EAD6', textDecoration: done ? 'line-through' : 'none' }}>{habit.name}</div>
-                    {habit.description && <div style={{ fontSize: 14, color: '#F0EAD650', fontFamily: ff, marginTop: 2 }}>{habit.description}</div>}
+                    <div style={{ fontFamily: ff, fontSize: 14, fontWeight: 500, color: done ? COLORS.ghost : COLORS.ash, textDecoration: done ? 'line-through' : 'none' }}>{habit.name}</div>
+                    {habit.description && <div style={{ fontSize: 14, color: COLORS.ghost, fontFamily: ff, marginTop: 2 }}>{habit.description}</div>}
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontFamily: sf, fontSize: 14, fontWeight: 600, color }}>{streak}</div>
-                    <div style={{ fontSize: 14, color: '#F0EAD650', fontFamily: ff }}>{isBreak ? 'clean' : 'days'}</div>
+                    <div style={{ fontSize: 14, color: COLORS.ghost, fontFamily: ff }}>{isBreak ? 'clean' : 'days'}</div>
                   </div>
                 </div>
                 <HeatStrip heat={heat} color={color} />
@@ -451,29 +452,29 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
 
       {/* ADD HABIT OVERLAY */}
       {showAddHabitOverlay && (
-        <div style={{ position: 'absolute', inset: 0, background: '#211A14', overflowY: 'auto', padding: '12px 14px 20px', zIndex: 20 }}>
+        <div style={{ position: 'absolute', inset: 0, background: COLORS.coal, overflowY: 'auto', padding: '12px 14px 20px', zIndex: 20 }}>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#F0EAD6', fontFamily: ff }}>New habit</span>
-            <div onClick={() => setShowAddHabitOverlay(false)} style={{ padding: '6px 14px', background: '#FF6644', borderRadius: 8, fontSize: 14, color: '#F0EAD6', fontFamily: ff, cursor: 'pointer' }}>Close</div>
+            <span style={{ fontSize: 14, fontWeight: 600, color: COLORS.ash, fontFamily: ff }}>New habit</span>
+            <div onClick={() => setShowAddHabitOverlay(false)} style={{ padding: '6px 14px', background: COLORS.hot, borderRadius: 8, fontSize: 14, color: COLORS.ash, fontFamily: ff, cursor: 'pointer' }}>Close</div>
           </div>
 
           {/* Mode toggle */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
             <div onClick={() => setNewHabitType('build')} style={{
               flex: 1, padding: '10px 0', textAlign: 'center', borderRadius: 8, cursor: 'pointer', fontFamily: ff, fontSize: 14,
-              background: newHabitType === 'build' ? '#3E3228' : 'transparent',
-              color: newHabitType === 'build' ? '#4CAF50' : '#F0EAD650',
+              background: newHabitType === 'build' ? COLORS.char : 'transparent',
+              color: newHabitType === 'build' ? COLORS.green : COLORS.ghost,
               border: newHabitType === 'build' ? '1px solid #4CAF5030' : '1px solid #F0EAD612',
             }}>&#127793; Build</div>
             <div onClick={() => setNewHabitType('break')} style={{
               flex: 1, padding: '10px 0', textAlign: 'center', borderRadius: 8, cursor: 'pointer', fontFamily: ff, fontSize: 14,
-              background: newHabitType === 'break' ? '#3E3228' : 'transparent',
-              color: newHabitType === 'break' ? '#E8321A' : '#F0EAD650',
-              border: newHabitType === 'break' ? '1px solid #E8321A30' : '1px solid #F0EAD612',
+              background: newHabitType === 'break' ? COLORS.char : 'transparent',
+              color: newHabitType === 'break' ? COLORS.ember : COLORS.ghost,
+              border: newHabitType === 'break' ? `1px solid ${COLORS.ember}30` : '1px solid #F0EAD612',
             }}>&#128683; Break</div>
           </div>
-          <div style={{ fontSize: 14, color: '#F0EAD650', fontFamily: ff, marginBottom: 14, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 14, color: COLORS.ghost, fontFamily: ff, marginBottom: 14, lineHeight: 1.5 }}>
             {newHabitType === 'build' ? 'Something you want to do every day.' : 'Something you want to stop doing.'}
           </div>
 
@@ -485,8 +486,8 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
             onKeyDown={e => { if (e.key === 'Enter' && newHabitName.trim() && !addingHabit) addHabit() }}
             autoFocus
             style={{
-              width: '100%', background: '#3E3228', border: '1px solid #F0EAD618', borderRadius: 10,
-              padding: '12px 14px', color: '#F0EAD6', fontSize: 14, fontFamily: ff, outline: 'none', boxSizing: 'border-box', marginBottom: 8,
+              width: '100%', background: COLORS.char, border: `1px solid ${COLORS.border}`, borderRadius: 10,
+              padding: '12px 14px', color: COLORS.ash, fontSize: 14, fontFamily: ff, outline: 'none', boxSizing: 'border-box', marginBottom: 8,
             }}
           />
           {/* Note input */}
@@ -495,8 +496,8 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
             value={newHabitNote}
             onChange={e => setNewHabitNote(e.target.value)}
             style={{
-              width: '100%', background: '#3E3228', border: '1px solid #F0EAD618', borderRadius: 10,
-              padding: '12px 14px', color: '#F0EAD6', fontSize: 14, fontFamily: ff, outline: 'none', boxSizing: 'border-box', marginBottom: 12,
+              width: '100%', background: COLORS.char, border: `1px solid ${COLORS.border}`, borderRadius: 10,
+              padding: '12px 14px', color: COLORS.ash, fontSize: 14, fontFamily: ff, outline: 'none', boxSizing: 'border-box', marginBottom: 12,
             }}
           />
 
@@ -506,7 +507,7 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
               <div key={f} onClick={() => setNewHabitFrequency(f)} style={{
                 padding: '6px 14px', borderRadius: 20, fontSize: 14, fontFamily: ff, cursor: 'pointer',
                 background: newHabitFrequency === f ? '#FF664420' : 'transparent',
-                color: newHabitFrequency === f ? '#FF6644' : '#F0EAD650',
+                color: newHabitFrequency === f ? COLORS.hot : COLORS.ghost,
                 border: newHabitFrequency === f ? '1px solid #FF664430' : '1px solid #F0EAD612',
               }}>{f.charAt(0).toUpperCase() + f.slice(1)}</div>
             ))}
@@ -515,8 +516,8 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
           {/* Submit */}
           <div onClick={addHabit} style={{
             padding: '12px 0', textAlign: 'center', borderRadius: 10, fontSize: 14, fontWeight: 500, fontFamily: ff, cursor: 'pointer',
-            background: newHabitType === 'build' ? '#4CAF50' : '#E8321A',
-            color: '#F0EAD6',
+            background: newHabitType === 'build' ? COLORS.green : COLORS.ember,
+            color: COLORS.ash,
             opacity: addingHabit || !newHabitName.trim() ? 0.5 : 1,
           }}>{addingHabit ? 'Adding\u2026' : 'Add habit'}</div>
         </div>

@@ -4,7 +4,7 @@ import CinisMark from '../../lib/CinisMark'
 
 // ── THEMES ──────────────────────────────────────────────────────────────────
 export const THEMES = [
-  { id: 'orange-bronze', name: 'Classic', accent: '#FF6644', gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: '#FF6644', dataTheme: 'classic', bg: '#211A14', cardBg: '#3E3228' },
+  { id: 'orange-bronze', name: 'Classic', accent: COLORS.hot, gradient: 'radial-gradient(ellipse at top left, rgba(101,60,10,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(80,45,8,0.35) 0%, transparent 60%)', logo: COLORS.hot, dataTheme: 'classic', bg: COLORS.coal, cardBg: COLORS.char },
   { id: 'teal-ocean', name: 'Ocean', accent: '#2dd4bf', gradient: 'radial-gradient(ellipse at top left, rgba(15,80,90,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(10,60,70,0.35) 0%, transparent 60%)', logo: '#2dd4bf', bg: '#0A1A1C', cardBg: '#0F2A2E' },
   { id: 'purple-cosmos', name: 'Cosmos', accent: '#8b5cf6', gradient: 'radial-gradient(ellipse at top left, rgba(60,20,120,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(40,10,90,0.35) 0%, transparent 60%)', logo: '#8b5cf6', bg: '#0D0A1A', cardBg: '#1A1230' },
   { id: 'blue-arctic', name: 'Arctic', accent: '#3b82f6', gradient: 'radial-gradient(ellipse at top left, rgba(15,40,100,0.4) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(10,30,80,0.35) 0%, transparent 60%)', logo: '#3b82f6', bg: '#090F1E', cardBg: '#111C36' },
@@ -31,11 +31,11 @@ export function applyTheme(theme) {
   } else {
     root.removeAttribute('data-theme')
   }
-  root.style.setProperty('--bg-color', theme.bg || '#211A14')
-  root.style.setProperty('--card-bg', theme.cardBg || '#3E3228')
-  root.style.setProperty('--night', theme.bg || '#211A14')
-  root.style.setProperty('--cream', '#F0EAD6')
-  root.style.setProperty('--text-color', '#F0EAD6')
+  root.style.setProperty('--bg-color', theme.bg || COLORS.coal)
+  root.style.setProperty('--card-bg', theme.cardBg || COLORS.char)
+  root.style.setProperty('--night', theme.bg || COLORS.coal)
+  root.style.setProperty('--cream', COLORS.ash)
+  root.style.setProperty('--text-color', COLORS.ash)
   root.style.setProperty('--text-muted', 'rgba(240,234,214,0.5)')
   root.style.setProperty('--border-color', 'rgba(240,234,214,0.09)')
   const { applyAccentColor } = require('../../lib/accentColor')
@@ -297,12 +297,12 @@ export const BILL_CATEGORIES = ['Housing', 'Utilities', 'Subscriptions', 'Insura
 
 // ── Guide constants ─────────────────────────────────────────────────────────
 export const GUIDE_TAG_COLORS = {
-  'CINIS': '#FF6644',
-  'QUICK WINS': '#4CAF50',
-  'SYSTEMS': '#3B8BD4',
-  'FOCUS': '#3B8BD4',
-  'FINANCE': '#FFB800',
-  'NUTRITION': '#4CAF50',
+  'CINIS': COLORS.hot,
+  'QUICK WINS': COLORS.green,
+  'SYSTEMS': COLORS.blue,
+  'FOCUS': COLORS.blue,
+  'FINANCE': COLORS.gold,
+  'NUTRITION': COLORS.green,
 }
 
 export const GUIDE_STRATEGIES = [

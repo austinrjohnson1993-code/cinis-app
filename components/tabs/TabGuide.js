@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
+import { COLORS, FONTS } from '../../lib/constants'
 import styles from '../../styles/TabGuide.module.css'
 import { localDateStr } from './shared'
 
 /* ── Spark SVG ────────────────────────────────────────────────────────────── */
-const SparkSvg = ({ color = '#FF6644', size = 9 }) => (
+const SparkSvg = ({ color = COLORS.hot, size = 9 }) => (
   <svg width={size} height={size} viewBox="0 0 16 16" fill={color}>
     <path d="M8 0l2 5h5l-4 3 2 5-5-3-5 3 2-5L1 5h5z" />
   </svg>
@@ -11,8 +12,8 @@ const SparkSvg = ({ color = '#FF6644', size = 9 }) => (
 
 /* ── Situation color map ──────────────────────────────────────────────────── */
 const SIT_COLORS = {
-  stuck: '#FF6644', overwhelmed: '#3B8BD4', momentum: '#FFB800',
-  win: '#4CAF50', focus: '#3B8BD4', crash: 'rgba(240,234,214,0.5)',
+  stuck: COLORS.hot, overwhelmed: COLORS.blue, momentum: COLORS.gold,
+  win: COLORS.green, focus: COLORS.blue, crash: 'rgba(240,234,214,0.5)',
 }
 
 /* ── Situations data ──────────────────────────────────────────────────────── */
@@ -148,7 +149,7 @@ export default function TabGuide({ user, profile, tasks = [], switchTab, loggedF
   const closeSituation = () => setActiveSit(null)
 
   const sit = activeSit ? SITUATIONS[activeSit] : null
-  const sitColor = activeSit ? (SIT_COLORS[activeSit] || '#FF6644') : '#FF6644'
+  const sitColor = activeSit ? (SIT_COLORS[activeSit] || COLORS.hot) : COLORS.hot
 
   return (
     <div className={styles.outer}>

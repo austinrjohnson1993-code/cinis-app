@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { COLORS, FONTS } from '../../lib/constants'
 import { useRouter } from 'next/router'
 import { supabase } from '../../lib/supabase'
 import CinisMark from '../../lib/CinisMark'
@@ -24,13 +25,13 @@ const CADENCE_OPTIONS = [
 
 /* ── Color palette ─────────────────────────────────────────────────────────── */
 const C = {
-  coal: '#211A14',
-  char: '#3E3228',
-  ash: '#F0EAD6',
-  hot: '#FF6644',
-  ember: '#E8321A',
-  green: '#4CAF50',
-  gold: '#FFB800',
+  coal: COLORS.coal,
+  char: COLORS.char,
+  ash: COLORS.ash,
+  hot: COLORS.hot,
+  ember: COLORS.ember,
+  green: COLORS.green,
+  gold: COLORS.gold,
   dim: 'rgba(240,234,214,0.36)',
   ghost: 'rgba(240,234,214,0.22)',
   micro: 'rgba(240,234,214,0.14)',
