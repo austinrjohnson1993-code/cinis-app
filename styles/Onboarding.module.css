@@ -271,7 +271,7 @@
 }
 
 .questionWrap {
-  animation: slideInFromRight 0.3s ease;
+  /* animation controlled via .slideIn / .slideOut applied in JS */
 }
 
 .questionWrapBackward {
@@ -279,25 +279,13 @@
 }
 
 @keyframes slideInFromRight {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  0% { opacity: 0; transform: translateX(60px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideOutToLeft {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-100%);
-  }
+  0% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(-60px); }
 }
 
 @keyframes slideInFromLeft {
@@ -855,6 +843,7 @@
   line-height: 1.45;
   cursor: pointer;
   transition: all 0.15s;
+  animation: optionIn 0.3s ease both;
 }
 
 .optionPill:hover {
@@ -922,4 +911,31 @@
 
 .part2Textarea:focus {
   border-color: rgba(255, 102, 68, 0.6);
+}
+
+/* ── Animation utility classes (applied via JS) ── */
+
+.slideIn {
+  animation: slideInFromRight 0.35s ease;
+}
+
+.slideOut {
+  animation: slideOutToLeft 0.25s ease forwards;
+}
+
+.fadeUp {
+  animation: fadeUp 0.3s ease 0.15s both;
+}
+
+.profileReveal {
+  animation: profileReveal 0.5s ease;
+}
+
+.markSpin {
+  animation: markSpin 3s linear infinite;
+}
+
+@keyframes progressFill {
+  0% { width: var(--from); }
+  100% { width: var(--to); }
 }

@@ -173,6 +173,8 @@ export default function Onboarding() {
   const [shepherdFocus, setShepherdFocus] = useState('')
   const [shepherdInterrupt, setShepherdInterrupt] = useState(null)
   const [shepherdCelebrate, setShepherdCelebrate] = useState(null)
+  const [anim, setAnim] = useState('in')
+  const [prevProgress, setPrevProgress] = useState(0)
 
   useEffect(() => {
     const isReset = window.location.search.includes('reset=1')
@@ -200,24 +202,43 @@ export default function Onboarding() {
   }
 
   const handleNextSlide = () => {
-    if (currentSlide < TOTAL_SLIDES - 1) {
-      setSlideDirection('forward')
-      setAnimKey(k => k + 1)
-      setCurrentSlide(s => s + 1)
-    } else {
-      setPhase('part2')
-      setPart2Step(0)
-    }
+    const nextProgress = ((currentSlide + 2) / (TOTAL_SLIDES + 1)) * 100
+    setPrevProgress(((currentSlide + 1) / (TOTAL_SLIDES + 1)) * 100)
+    setAnim('out')
+    setTimeout(() => {
+      if (currentSlide < TOTAL_SLIDES - 1) {
+        setSlideDirection('forward')
+        setAnimKey(k => k + 1)
+        setCurrentSlide(s => s + 1)
+      } else {
+        setPhase('part2')
+        setPart2Step(0)
+      }
+      setPrevProgress(nextProgress)
+      setAnim('in')
+    }, 300)
   }
 
   const handleBack = () => {
     if (currentSlide > 0) {
-      setSlideDirection('backward')
-      setAnimKey(k => k + 1)
-      setCurrentSlide(s => s - 1)
+      setAnim('out')
+      setTimeout(() => {
+        setSlideDirection('backward')
+        setAnimKey(k => k + 1)
+        setCurrentSlide(s => s - 1)
+        setAnim('in')
+      }, 300)
     } else {
       setPhase('intro')
     }
+  }
+
+  const goToPart2Step = (nextStep) => {
+    setAnim('out')
+    setTimeout(() => {
+      setPart2Step(nextStep)
+      setAnim('in')
+    }, 300)
   }
 
   const handlePart2Submit = () => {
@@ -415,7 +436,7 @@ export default function Onboarding() {
               <span className={styles.questionCount}>{currentSlide + 1} of {TOTAL_SLIDES + 1}</span>
             </div>
 
-            <div key={animKey} className={`${styles.questionWrap} ${slideDirection === 'backward' ? styles.questionWrapBackward : ''}`}>
+            <div key={animKey} className={`${styles.questionWrap} ${anim === 'in' ? styles.slideIn : styles.slideOut}`}>
               <p className={styles.slideTheme}>{SLIDE_THEMES[currentSlide]}</p>
 
               {slideQuestions.map((q, i) => {
@@ -424,11 +445,12 @@ export default function Onboarding() {
                   <div key={qIdx} className={styles.questionBlock}>
                     <p className={styles.questionLabel}>{q.text}</p>
                     <div className={styles.optionsList}>
-                      {q.options.map(opt => (
+                      {q.options.map((opt, optIndex) => (
                         <button
                           key={opt.id}
                           onClick={() => handleSelect(qIdx, opt.id)}
                           className={`${styles.optionPill} ${answers[qIdx] === opt.id ? styles.optionPillSelected : ''}`}
+                          style={{ animationDelay: `${0.1 + optIndex * 0.05}s` }}
                         >
                           {opt.text}
                         </button>
@@ -461,12 +483,20 @@ export default function Onboarding() {
 
     const handlePart2Back = () => {
       if (part2Step > 0) {
-        setPart2Step(s => s - 1)
+        setAnim('out')
+        setTimeout(() => {
+          setPart2Step(s => s - 1)
+          setAnim('in')
+        }, 300)
       } else {
-        setSlideDirection('backward')
-        setPhase('questions')
-        setCurrentSlide(TOTAL_SLIDES - 1)
-        setAnimKey(k => k + 1)
+        setAnim('out')
+        setTimeout(() => {
+          setSlideDirection('backward')
+          setPhase('questions')
+          setCurrentSlide(TOTAL_SLIDES - 1)
+          setAnimKey(k => k + 1)
+          setAnim('in')
+        }, 300)
       }
     }
 
@@ -482,7 +512,7 @@ export default function Onboarding() {
               <button onClick={handlePart2Back} className={styles.backBtn}>&larr; Back</button>
               <span className={styles.questionCount}>{currentStep} of {totalSteps}</span>
             </div>
-            <div className={styles.questionWrap}>
+            <div className={`${styles.questionWrap} ${anim === 'in' ? styles.slideIn : styles.slideOut}`}>
 
               {/* Q10 — open text */}
               {part2Step === 0 && (
@@ -497,7 +527,7 @@ export default function Onboarding() {
                     rows={4}
                   />
                   <button
-                    onClick={() => setPart2Step(1)}
+                    onClick={() => goToPart2Step(1)}
                     className={styles.startBtn}
                     style={{ marginTop: 16 }}
                   >
@@ -516,18 +546,19 @@ export default function Onboarding() {
                       { id: 'a', text: "Flag it immediately" },
                       { id: 'b', text: "Weekly Check-in" },
                       { id: 'c', text: "Suggest a quiet Next Step" },
-                    ].map(opt => (
+                    ].map((opt, optIndex) => (
                       <button
                         key={opt.id}
                         onClick={() => setShepherdInterrupt(opt.id)}
                         className={`${styles.optionPill} ${shepherdInterrupt === opt.id ? styles.optionPillSelected : ''}`}
+                        style={{ animationDelay: `${0.1 + optIndex * 0.05}s` }}
                       >
                         {opt.text}
                       </button>
                     ))}
                   </div>
                   <button
-                    onClick={() => setPart2Step(2)}
+                    onClick={() => goToPart2Step(2)}
                     disabled={!shepherdInterrupt}
                     className={styles.startBtn}
                     style={{ marginTop: 16 }}
@@ -547,11 +578,12 @@ export default function Onboarding() {
                       { id: 'a', text: "Progress is the reward" },
                       { id: 'b', text: "Win notification + streak" },
                       { id: 'c', text: "Visual chart of progress" },
-                    ].map(opt => (
+                    ].map((opt, optIndex) => (
                       <button
                         key={opt.id}
                         onClick={() => setShepherdCelebrate(opt.id)}
                         className={`${styles.optionPill} ${shepherdCelebrate === opt.id ? styles.optionPillSelected : ''}`}
+                        style={{ animationDelay: `${0.1 + optIndex * 0.05}s` }}
                       >
                         {opt.text}
                       </button>
@@ -604,7 +636,7 @@ export default function Onboarding() {
       <>
         <Head><title>Getting Started — Cinis</title></Head>
         <div className={styles.page}>
-          <div className={styles.revealContainer}>
+          <div className={`${styles.revealContainer} ${styles.profileReveal}`}>
             <div className={styles.revealCard}>
               <p className={styles.revealLabel}>Your coaching style</p>
               <h1 className={styles.revealPersona}>{primaryLabel}</h1>
@@ -624,11 +656,12 @@ export default function Onboarding() {
                   { id: 'warm_direct',     emoji: '🎯', label: 'Warm & Direct',       desc: 'Caring but no-nonsense, clear action steps' },
                   { id: 'bold_direct',     emoji: '⚡', label: 'Bold & Direct',       desc: 'High energy, blunt, gets you moving' },
                   { id: 'calm_analytical', emoji: '🧠', label: 'Calm & Analytical',   desc: 'Logical, structured, systems-focused' },
-                ].map(opt => (
+                ].map((opt, idx) => (
                   <div
                     key={opt.id}
                     onClick={() => setPersonaVoice(opt.id)}
                     className={`${styles.mhCard} ${personaVoice === opt.id ? styles.mhCardSelected : ''}`}
+                    style={{ animationDelay: `${0.1 + idx * 0.06}s` }}
                   >
                     <div className={styles.mhCardEmoji}>{opt.emoji}</div>
                     <div className={styles.mhCardLabel}>{opt.label}</div>
@@ -654,7 +687,7 @@ export default function Onboarding() {
         <Head><title>Getting Started — Cinis</title></Head>
         <div className={`${styles.page} ${buildFadeOut ? styles.buildFadeOut : ''}`}>
           <div className={styles.buildingContainer}>
-            <div className={styles.buildingMark}>
+            <div className={`${styles.buildingMark} ${styles.markSpin}`}>
               <CinisMark size={56} />
             </div>
             <div className={styles.buildingSteps}>
