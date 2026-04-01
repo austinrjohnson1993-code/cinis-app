@@ -246,7 +246,7 @@ export default function TabDashboard({
                 <circle
                   cx="24" cy="24" r="19"
                   className={styles.ringFill}
-                  stroke=COLORS.hot
+                  stroke={COLORS.hot}
                   strokeDasharray={CIRCUMFERENCE}
                   strokeDashoffset={tasksOffset}
                   style={{ '--ring-offset': tasksOffset }}
@@ -255,7 +255,7 @@ export default function TabDashboard({
                   x="24" y="24"
                   textAnchor="middle" dominantBaseline="central"
                   className={styles.ringCenter}
-                  fill=COLORS.hot
+                  fill={COLORS.hot}
                   transform="rotate(90 24 24)"
                 >
                   {tasksDoneLabel}
@@ -271,7 +271,7 @@ export default function TabDashboard({
                 <circle
                   cx="24" cy="24" r="19"
                   className={styles.ringFill}
-                  stroke=COLORS.blue
+                  stroke={COLORS.blue}
                   strokeDasharray={CIRCUMFERENCE}
                   strokeDashoffset={focusOffset}
                   style={{ '--ring-offset': focusOffset }}
@@ -280,7 +280,7 @@ export default function TabDashboard({
                   x="24" y="24"
                   textAnchor="middle" dominantBaseline="central"
                   className={styles.ringCenter}
-                  fill=COLORS.blue
+                  fill={COLORS.blue}
                   transform="rotate(90 24 24)"
                 >
                   {focusLabel}

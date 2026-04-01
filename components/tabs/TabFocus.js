@@ -728,7 +728,7 @@ export default function TabFocus({
     return (
       <div className={styles.wrap} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', minHeight: '100vh' }}>
         <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(59,139,212,0.08)', border: '1px solid rgba(59,139,212,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke=COLORS.blue strokeWidth="1.5" strokeLinecap="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={COLORS.blue} strokeWidth="1.5" strokeLinecap="round">
             <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
           </svg>
         </div>

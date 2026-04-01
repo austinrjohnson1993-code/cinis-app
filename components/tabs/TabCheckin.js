@@ -127,7 +127,7 @@ export default function TabCheckin({ user, profile, tasks = [], showToast, logge
         <div className={styles.headerRow}>
           <span className={styles.headerTitle}>Check-in</span>
           <div className={styles.personaBadge}>
-            <svg width="8" height="8" viewBox="0 0 24 24" fill=COLORS.hot><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" /></svg>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill={COLORS.hot}><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" /></svg>
             <span className={styles.personaLabel}>{personaLabel}</span>
           </div>
         </div>
@@ -243,7 +243,7 @@ export default function TabCheckin({ user, profile, tasks = [], showToast, logge
             className={`${styles.sendBtn} ${input.trim() ? styles.sendActive : styles.sendInactive}`}
             onClick={() => send(input)}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke=COLORS.ash strokeWidth="2" strokeLinecap="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={COLORS.ash} strokeWidth="2" strokeLinecap="round">
               <line x1="22" y1="2" x2="11" y2="13" />
               <polygon points="22 2 15 22 11 13 2 9 22 2" />
             </svg>

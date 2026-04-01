@@ -342,7 +342,7 @@ export default function TabProgress({ user, profile, tasks = [], showToast, logg
       <div className={styles.outer} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '100vh' }}>
         {/* Icon circle */}
         <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,184,0,0.08)', border: '1px solid rgba(255,184,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke=COLORS.gold strokeWidth="1.5" strokeLinecap="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={COLORS.gold} strokeWidth="1.5" strokeLinecap="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
         </div>

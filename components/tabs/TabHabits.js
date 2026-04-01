@@ -231,7 +231,7 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
         <div style={{ background: COLORS.char, borderRadius: 10, padding: '12px 12px 10px', marginBottom: 10, borderLeft: '3px solid #3B8BD4' }}>
           {/* Collapsed header — always visible */}
           <div onClick={() => setHabitJournalExpanded(e => !e)} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-            <BigCheck done={journaledToday} color=COLORS.blue onClick={e => e.stopPropagation()} />
+            <BigCheck done={journaledToday} color={COLORS.blue} onClick={e => e.stopPropagation()} />
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontFamily: ff, fontSize: 13, fontWeight: 500, color: journaledToday ? 'rgba(240,234,214,0.22)' : COLORS.ash, textDecoration: journaledToday ? 'line-through' : 'none' }}>Journal</span>
@@ -402,7 +402,7 @@ export default function TabHabits({ user, profile, showToast, loggedFetch }) {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '60vh' }}>
             {/* Icon circle */}
             <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(76,175,80,0.08)', border: '1px solid rgba(76,175,80,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke=COLORS.green strokeWidth="1.5" strokeLinecap="round">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="1.5" strokeLinecap="round">
                 <path d="M12 2C12 2 8 8 8 13A4 4 0 0016 13C16 8 12 2 12 2Z" />
               </svg>
             </div>

@@ -429,7 +429,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '50vh' }}>
                   {/* Icon circle */}
                   <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(232,50,26,0.08)', border: '1px solid rgba(232,50,26,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke=COLORS.ember strokeWidth="1.5" strokeLinecap="round">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={COLORS.ember} strokeWidth="1.5" strokeLinecap="round">
                       <line x1="12" y1="2" x2="12" y2="22" />
                       <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
                     </svg>
@@ -1291,7 +1291,7 @@ export default function TabFinance({ user, profile, showToast, loggedFetch, setP
                 <div style={{ background: COLORS.char, borderRadius: 10, padding: 13, border: '1px solid rgba(255,102,68,0.10)', marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                     <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,102,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <svg width="8" height="8" viewBox="0 0 16 16" fill=COLORS.hot><path d="M8 0l2 5h5l-4 3 2 5-5-3-5 3 2-5L1 5h5z" /></svg>
+                      <svg width="8" height="8" viewBox="0 0 16 16" fill={COLORS.hot}><path d="M8 0l2 5h5l-4 3 2 5-5-3-5 3 2-5L1 5h5z" /></svg>
                     </div>
                     <span style={{ fontFamily: "'Figtree',sans-serif", fontWeight: 600, fontSize: 9, color: COLORS.hot, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Coach Insight</span>
                   </div>

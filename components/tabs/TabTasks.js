@@ -187,7 +187,7 @@ export default function TabTasks({ user, profile, tasks = [], setTasks, showToas
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', minHeight: '100vh' }}>
           {/* Icon circle */}
           <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,102,68,0.08)', border: '1px solid rgba(255,102,68,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke=COLORS.hot strokeWidth="1.5" strokeLinecap="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={COLORS.hot} strokeWidth="1.5" strokeLinecap="round">
               <path d="M9 11l3 3L22 4" />
               <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
             </svg>
@@ -218,7 +218,7 @@ export default function TabTasks({ user, profile, tasks = [], setTasks, showToas
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
             </span>
             <button className={styles.addPill} onClick={() => setShowAddForm(v => !v)}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke=COLORS.hot strokeWidth="2.5" strokeLinecap="round">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={COLORS.hot} strokeWidth="2.5" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
               </svg>
               Add
@@ -412,7 +412,7 @@ export default function TabTasks({ user, profile, tasks = [], setTasks, showToas
           </div>
           {billsToday.map(b => (
             <div key={b.id} className={styles.billRow}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke=COLORS.ember strokeWidth="2" strokeLinecap="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={COLORS.ember} strokeWidth="2" strokeLinecap="round">
                 <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
               </svg>
               <div className={styles.billInfo}>
@@ -454,7 +454,7 @@ export default function TabTasks({ user, profile, tasks = [], setTasks, showToas
       <div className={styles.momentumBar}>
         <div className={styles.momentumRow}>
           <div className={styles.momentumLeft}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill=COLORS.hot>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill={COLORS.hot}>
               <path d="M12 23c-3.5 0-7-2.5-7-7.5 0-4 3-7.5 5-10.5.3-.4.8-.4 1.1 0C13.5 8 17 11.5 17 15.5c0 5-3.5 7.5-5 7.5z" />
             </svg>
             <span className={styles.momentumCount}>

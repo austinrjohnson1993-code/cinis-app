@@ -238,7 +238,7 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
                 setCalDayPanelOpen(false)
                 if (setShowAddModal) setShowAddModal(true)
               }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke=COLORS.hot strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={COLORS.hot} strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                 <span className={cs.addTaskText}>Add task for this day</span>
               </div>
 
@@ -248,7 +248,7 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
                   <div className={cs.secLabel}>BILLS DUE</div>
                   {panelBills.map(b => (
                     <div key={b.id} className={b.autopay ? cs.billRowAuto : cs.billRow}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke=COLORS.ember strokeWidth="2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={COLORS.ember} strokeWidth="2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
                       <span className={cs.billName}>{b.name}</span>
                       <span className={cs.billAmount}>{fmtMoney(b.amount)} &middot; {b.autopay ? 'auto' : 'manual'}</span>
                       {b.autopay ? (
@@ -267,7 +267,7 @@ export default function TabCalendar({ user, profile, tasks = [], setTasks, showT
                   <div className={cs.secLabel} style={{marginTop: panelBills.length > 0 ? 10 : 0}}>FOCUS SESSIONS</div>
                   {sessionsForDay.map((s, i) => (
                     <div key={s.id || i} className={cs.focusRow}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke=COLORS.blue strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={COLORS.blue} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
                       <div style={{flex:1}}>
                         <div className={cs.focusName}>{s.task_name || 'Focus session'}</div>
                         <div className={cs.focusSub}>{s.duration_min || Math.round((s.duration || 0)/60)} min &middot; completed {new Date(s.completed_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>
