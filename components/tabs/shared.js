@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styles from '../../styles/Dashboard.module.css'
 import CinisMark from '../../lib/CinisMark'
+import { COLORS } from '../../lib/constants'
 
 // ── THEMES ──────────────────────────────────────────────────────────────────
 export const THEMES = [
