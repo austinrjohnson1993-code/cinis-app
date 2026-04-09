@@ -97,6 +97,20 @@ export default async function handler(req, res) {
     }
   }
 
+  // BUG-05b: crews is keyed on owner_id, not user_id, so the generic
+  // USER_TABLES loop above never touches it. Delete any crews this user owns
+  // BEFORE we remove the profile row — otherwise an orphaned crew stays alive
+  // with a dangling owner_id reference.
+  {
+    const { error: crewsErr } = await supabaseAdmin
+      .from('crews')
+      .delete()
+      .eq('owner_id', userId)
+    if (crewsErr) {
+      console.error(`[delete-account] Failed to delete owned crews for user ${userId}:`, crewsErr.message)
+    }
+  }
+
   // Delete profile row
   await supabaseAdmin.from('profiles').delete().eq('id', userId)
 

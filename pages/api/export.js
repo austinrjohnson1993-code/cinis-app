@@ -1,5 +1,6 @@
 import withAuth from '../../lib/authGuard'
 import getAdminClient from '../../lib/supabaseAdmin'
+import { getLocalDateString, resolveTimezone } from '../../lib/dateUtils'
 
 
 
@@ -33,7 +34,8 @@ async function handler(req, res, userId) {
       supabaseAdmin.from('profiles').select('*').eq('id', userId),
     ])
 
-    const today = new Date().toISOString().split('T')[0]
+    const timezone = resolveTimezone(req.query.timezone)
+    const today = getLocalDateString(new Date(), timezone)
 
     const exportObject = {
       exported_at: new Date().toISOString(),

@@ -240,7 +240,10 @@ export default function TabFocus({
   const handleReschedule = async () => {
     if (topTask) {
       const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1)
-      const dateStr = tomorrow.toISOString().split('T')[0]
+      // Client-side: localDateStr reads the device's local wall clock, which
+      // IS the user's local day. Avoid UTC-based .split('T')[0] — it shifts
+      // the date for anyone west of UTC in the evening.
+      const dateStr = localDateStr(tomorrow)
       await supabase.from('tasks').update({ scheduled_for: dateStr }).eq('id', topTask.id)
       if (setTasks) setTasks(prev => prev.map(t => t.id === topTask.id ? { ...t, scheduled_for: dateStr } : t))
     }

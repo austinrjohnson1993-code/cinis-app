@@ -1,6 +1,6 @@
 import withAuth from '../../../lib/authGuard'
 import getAdminClient from '../../../lib/supabaseAdmin'
-const { sendPushToUsers } = require('../../../lib/push')
+import { sendPushToUsers } from '../../../lib/push'
 
 async function handler(req, res, userId) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })

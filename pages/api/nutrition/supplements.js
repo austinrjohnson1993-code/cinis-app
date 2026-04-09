@@ -1,6 +1,7 @@
 import withAuth from '../../../lib/authGuard'
 import { sanitizeTitle, sanitizeNotes } from '../../../lib/sanitize'
 import getAdminClient from '../../../lib/supabaseAdmin'
+import { getLocalDateString, resolveTimezone } from '../../../lib/dateUtils'
 
 async function handler(req, res, userId) {
   const supabaseAdmin = getAdminClient()
@@ -61,11 +62,14 @@ async function handler(req, res, userId) {
 
   // ── PATCH — mark supplement taken today ──────────────────────────────────
   if (req.method === 'PATCH') {
-    const { id, taken } = req.body
+    const { id, taken, timezone: bodyTz } = req.body
     if (!id) return res.status(400).json({ error: 'id is required' })
 
+    // Attribute "taken today" to the user's LOCAL calendar day so an 11pm
+    // CT log doesn't land on tomorrow UTC.
+    const timezone = resolveTimezone(bodyTz || req.query.timezone)
     const last_taken_date = taken
-      ? new Date().toISOString().split('T')[0]
+      ? getLocalDateString(new Date(), timezone)
       : null
 
     const { data: supplement, error } = await supabaseAdmin

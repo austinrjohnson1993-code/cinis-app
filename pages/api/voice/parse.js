@@ -1,6 +1,7 @@
 import withAuth from '../../../lib/authGuard'
 import { sanitizeTitle } from '../../../lib/sanitize'
 import getAdminClient from '../../../lib/supabaseAdmin'
+import { getLocalDateString, resolveTimezone } from '../../../lib/dateUtils'
 
 export const config = { api: { bodyParser: true } }
 
@@ -42,7 +43,10 @@ async function handler(req, res, userId) {
   const sanitizedText = sanitizeTitle(text)
   if (!sanitizedText) return res.status(400).json({ error: 'text is required' })
 
-  const today = new Date().toISOString().split('T')[0]
+  // Voice parse prompt needs the user's LOCAL today so "tomorrow" maps to
+  // the correct calendar date regardless of their timezone.
+  const timezone = resolveTimezone(req.body?.timezone || req.query?.timezone)
+  const today = getLocalDateString(new Date(), timezone)
   const userMessage = `Parse this: "${sanitizedText}". Today's date is ${today}.`
 
   // ── AI Parse ─────────────────────────────────────────────────────────────

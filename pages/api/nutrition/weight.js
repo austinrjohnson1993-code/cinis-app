@@ -1,6 +1,7 @@
 import withAuth from '../../../lib/authGuard'
 import { sanitizeNotes } from '../../../lib/sanitize'
 import getAdminClient from '../../../lib/supabaseAdmin'
+import { getLocalDateString, resolveTimezone } from '../../../lib/dateUtils'
 
 async function handler(req, res, userId) {
   const supabaseAdmin = getAdminClient()
@@ -24,7 +25,8 @@ async function handler(req, res, userId) {
 
   // ── POST — add new weight entry ────────────────────────────────────────────
   if (req.method === 'POST') {
-    const { weight_lbs, unit_entered, logged_date, note } = req.body
+    const { weight_lbs, unit_entered, logged_date, note, timezone: bodyTz } = req.body
+    const timezone = resolveTimezone(bodyTz || req.query.timezone)
 
     if (weight_lbs === undefined || weight_lbs === null) {
       return res.status(400).json({ error: 'weight_lbs is required' })
@@ -47,7 +49,7 @@ async function handler(req, res, userId) {
         user_id: userId,
         weight_lbs: finalWeight,
         unit_entered: unit_entered || 'lbs',
-        logged_date: logged_date || new Date().toISOString().split('T')[0],
+        logged_date: logged_date || getLocalDateString(new Date(), timezone),
         note: note ? sanitizeNotes(note) : null,
         created_at: new Date().toISOString(),
       })

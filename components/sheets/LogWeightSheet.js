@@ -2,10 +2,20 @@ import React, { useState, useEffect } from 'react';
 import s from '../../styles/Sheet.module.css';
 import { showToast } from '../../lib/toast';
 
+// Client-side local date formatter. On the client, `new Date()` already reads
+// the device's local wall clock, so this mirrors the mobile `getLocalDateString`
+// without the server-side tz lookup dance.
+const localDateStr = (d = new Date()) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
 const LogWeightSheet = ({ open, onClose, onSave, loggedFetch }) => {
   const [weight, setWeight] = useState('');
   const [unit, setUnit] = useState('lbs');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(localDateStr());
   const [note, setNote] = useState('');
   const [lastWeight, setLastWeight] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -55,7 +65,7 @@ const LogWeightSheet = ({ open, onClose, onSave, loggedFetch }) => {
   const resetForm = () => {
     setWeight('');
     setUnit('lbs');
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(localDateStr());
     setNote('');
   };
 
