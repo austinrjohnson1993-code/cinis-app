@@ -95,7 +95,12 @@ export default function TabTasks({ user, profile, tasks = [], setTasks, showToas
       const diff = day === 0 ? 5 : 5 - day
       now.setDate(now.getDate() + (diff > 0 ? diff : 7))
     }
-    return now.toISOString().split('T')[0]
+    // Client-side: format the device's local wall-clock date. UTC-based
+    // .split('T')[0] would shift the date for users west of UTC in the evening.
+    const y = now.getFullYear()
+    const m = String(now.getMonth() + 1).padStart(2, '0')
+    const d = String(now.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
   }
 
   const handleAddSingle = async () => {

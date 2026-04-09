@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import withAuth from '../../lib/authGuard'
+import { getLocalDateString, resolveTimezone } from '../../lib/dateUtils'
 
 const client = new Anthropic()
 
@@ -8,8 +9,11 @@ async function handler(req, res) {
   const { text } = req.body
   if (!text?.trim()) return res.json({ tasks: [] })
 
+  // "Today" must be the user's LOCAL today, otherwise "by Friday" maps to the
+  // wrong calendar Friday for anyone west of UTC after ~6pm.
+  const timezone = resolveTimezone(req.body?.timezone || req.query?.timezone)
   const today = new Date()
-  const todayStr = today.toISOString().split('T')[0]
+  const todayStr = getLocalDateString(today, timezone)
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const todayDow = today.getDay()
 

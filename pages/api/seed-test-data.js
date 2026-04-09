@@ -1,4 +1,5 @@
 import getAdminClient from '../../lib/supabaseAdmin'
+import { getLocalDateString, resolveTimezone } from '../../lib/dateUtils'
 
 
 
@@ -18,9 +19,10 @@ export default async function handler(req, res) {
 
   const userId = user.id
 
-  // Date helpers
+  // Date helpers (tz-aware; dev seed honors the caller's local day)
+  const timezone = resolveTimezone(req.query.timezone || req.body?.timezone)
   const now = new Date()
-  const today = now.toISOString().split('T')[0]
+  const today = getLocalDateString(now, timezone)
   const todayISO = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
   const tomorrowISO = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString()
 

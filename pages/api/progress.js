@@ -1,5 +1,6 @@
 import withAuth from '../../lib/authGuard'
 import getAdminClient from '../../lib/supabaseAdmin'
+import { getLocalDateString, resolveTimezone } from '../../lib/dateUtils'
 
 
 
@@ -101,12 +102,14 @@ async function handler(req, res, userId) {
 
   // ── monthly ───────────────────────────────────────────────────────────────
   if (type === 'monthly') {
-    // Calendar month-to-date (1st of current month through today)
+    // Calendar month-to-date (1st of current month through today) in the
+    // user's local tz so the range lines up with how they experience the month.
+    const timezone = resolveTimezone(req.query.timezone)
     const now = new Date()
-    const currentMonth = now.toLocaleString('en-US', { month: 'long' }) // e.g. "March"
+    const currentMonth = now.toLocaleString('en-US', { month: 'long', timeZone: timezone }) // e.g. "March"
     const currentYear = now.getFullYear()
-    const monthStart = new Date(currentYear, now.getMonth(), 1).toISOString().split('T')[0]
-    const todayStr = now.toISOString().split('T')[0]
+    const monthStart = getLocalDateString(new Date(currentYear, now.getMonth(), 1), timezone)
+    const todayStr = getLocalDateString(now, timezone)
 
     // Days remaining in the month (including today)
     const lastDayOfMonth = new Date(currentYear, now.getMonth() + 1, 0).getDate()

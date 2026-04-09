@@ -1,5 +1,6 @@
 import withAuth from '../../../lib/authGuard'
 import getAdminClient from '../../../lib/supabaseAdmin'
+import { getLocalDateString, resolveTimezone } from '../../../lib/dateUtils'
 
 
 
@@ -8,8 +9,8 @@ async function handler(req, res, userId) {
 
   // ── GET — today's completions for the user ────────────────────────────────
   if (req.method === 'GET') {
-    const timezone = req.query.timezone || 'America/Chicago'
-    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: timezone })
+    const timezone = resolveTimezone(req.query.timezone)
+    const todayStr = getLocalDateString(new Date(), timezone)
     const dayStart = new Date(`${todayStr}T00:00:00.000Z`).toISOString()
     const dayEnd   = new Date(`${todayStr}T23:59:59.999Z`).toISOString()
 
@@ -30,10 +31,11 @@ async function handler(req, res, userId) {
 
   // ── POST — toggle habit completion for a given date ───────────────────────
   if (req.method === 'POST') {
-    const { habitId, date } = req.body
+    const { habitId, date, timezone: bodyTz } = req.body
     if (!habitId) return res.status(400).json({ error: 'habitId required' })
 
-    const targetDate = date || new Date().toISOString().split('T')[0]
+    const timezone = resolveTimezone(bodyTz || req.query.timezone)
+    const targetDate = date || getLocalDateString(new Date(), timezone)
     const dayStart = new Date(`${targetDate}T00:00:00.000Z`).toISOString()
     const dayEnd   = new Date(`${targetDate}T23:59:59.999Z`).toISOString()
 

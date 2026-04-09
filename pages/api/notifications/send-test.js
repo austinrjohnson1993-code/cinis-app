@@ -1,6 +1,6 @@
 import withAuth from '../../../lib/authGuard'
 import getAdminClient from '../../../lib/supabaseAdmin'
-const { sendPushNotification } = require('../../../lib/push')
+import { sendPushNotification } from '../../../lib/push'
 
 
 

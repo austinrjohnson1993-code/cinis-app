@@ -1,5 +1,6 @@
 import withAuth from '../../../lib/authGuard'
 import getAdminClient from '../../../lib/supabaseAdmin'
+import { getLocalDateString, resolveTimezone } from '../../../lib/dateUtils'
 
 
 
@@ -10,7 +11,7 @@ async function handler(req, res, userId) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { duration, outcome } = req.body
+  const { duration, outcome, timezone: bodyTz } = req.body
 
   if (!duration || typeof duration !== 'number' || duration <= 0) {
     return res.status(400).json({ error: 'duration (positive number in minutes) required' })
@@ -20,7 +21,10 @@ async function handler(req, res, userId) {
   }
 
   const supabaseAdmin = getAdminClient()
-  const today = new Date().toISOString().split('T')[0]
+  // Focus session is attributed to the user's LOCAL day, not UTC. Without
+  // this, a 10pm CT session silently lands on tomorrow's snapshot row.
+  const timezone = resolveTimezone(bodyTz || req.query.timezone)
+  const today = getLocalDateString(new Date(), timezone)
 
   // Fetch existing snapshot for today (if any)
   const { data: existing, error: fetchErr } = await supabaseAdmin

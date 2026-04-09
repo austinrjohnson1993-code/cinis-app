@@ -1,39 +1,84 @@
 import withAuth from '../../lib/authGuard'
 import getAdminClient from '../../lib/supabaseAdmin'
 
-
+// ─────────────────────────────────────────────────────────────────────────────
+// Sprint 1 bounded-CRON strategy (see S41_HANDOFF.md)
+// ─────────────────────────────────────────────────────────────────────────────
+// The CRON that drives progress_snapshots runs ONCE per day at 04:00 UTC (see
+// vercel.json). On day N at 04:00 UTC we aggregate the UTC calendar day that
+// just ended — day N-1 — and write one snapshot row per user with
+// snapshot_date = N-1 (UTC).
+//
+// Why a single global run instead of per-user local midnight:
+//   • profiles.timezone does not exist yet — we have no way to know each
+//     user's local day cutoff server-side. Reality check on 2026-04-09 showed
+//     the column missing entirely.
+//   • A single deterministic cutoff is strictly better than the pre-sprint
+//     behaviour ("gte todayStart UTC" run at 00:00 UTC, which queried the
+//     future and produced ~empty snapshots for every user).
+//   • 04:00 UTC is late enough that even US Pacific (~8pm PT) has finished
+//     its own calendar day UTC-wise and any writes in flight have landed,
+//     and early enough that Europe hasn't started the next day of work yet.
+//
+// Known limitation: for users west of UTC, the UTC-day window shifts their
+// local "evening" forward into the next snapshot. A 10pm CT task completion
+// on Monday lands in Tuesday's UTC window and therefore Tuesday's snapshot.
+// This is stable, documented, and identical for every western user.
+//
+// ⚠ SPRINT 2 TODO — replace with true per-user local-midnight snapshots:
+//   1. Add profiles.timezone column (TEXT, default 'America/Chicago')
+//   2. Populate on signup from client-detected IANA tz
+//   3. Replace the single-run CRON with an hourly sweep that processes users
+//      whose local day just ended in the last hour
+//   4. Use getLocalDayBounds(userTz) from lib/dateUtils.js to build the
+//      window instead of UTC midnights
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function runProgressSnapshot(userId) {
   const supabaseAdmin = getAdminClient()
 
-  const todayStart = new Date()
-  todayStart.setUTCHours(0, 0, 0, 0)
-  const todayISO = todayStart.toISOString()
-  const snapshotDate = todayStart.toISOString().split('T')[0]
+  // Window = the UTC calendar day that just ended (i.e. yesterday UTC).
+  // At 04:00 UTC on day N this means [N-1 00:00 UTC, N 00:00 UTC).
+  const windowEnd = new Date()
+  windowEnd.setUTCHours(0, 0, 0, 0) // today 00:00 UTC
+  const windowStart = new Date(windowEnd.getTime() - 24 * 60 * 60 * 1000) // yesterday 00:00 UTC
+  const windowStartISO = windowStart.toISOString()
+  const windowEndISO = windowEnd.toISOString()
 
-  // Tasks completed today
+  // snapshot_date = the UTC date of the day we're aggregating (yesterday).
+  // Derive from Y/M/D directly — the "slice ISO at T" shortcut is forbidden
+  // by preflight rule 1 (see lib/dateUtils.js for the approved helper).
+  const y = windowStart.getUTCFullYear()
+  const m = String(windowStart.getUTCMonth() + 1).padStart(2, '0')
+  const d = String(windowStart.getUTCDate()).padStart(2, '0')
+  const snapshotDate = `${y}-${m}-${d}`
+
+  // Tasks completed in window
   const { count: tasksCompleted } = await supabaseAdmin
     .from('tasks')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('completed', true)
-    .gte('completed_at', todayISO)
+    .gte('completed_at', windowStartISO)
+    .lt('completed_at', windowEndISO)
 
-  // Tasks added today
+  // Tasks added in window
   const { count: tasksAdded } = await supabaseAdmin
     .from('tasks')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .gte('created_at', todayISO)
+    .gte('created_at', windowStartISO)
+    .lt('created_at', windowEndISO)
 
-  // Tasks rolled today (scheduled_for updated to today)
+  // Tasks rolled in window (scheduled_for updated while still incomplete)
   const { count: tasksRolled } = await supabaseAdmin
     .from('tasks')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('completed', false)
     .gt('rollover_count', 0)
-    .gte('updated_at', todayISO)
+    .gte('updated_at', windowStartISO)
+    .lt('updated_at', windowEndISO)
 
   // Focus minutes — graceful fallback if table doesn't exist yet
   let focusMinutes = 0
@@ -42,18 +87,20 @@ export async function runProgressSnapshot(userId) {
       .from('focus_sessions')
       .select('duration_minutes')
       .eq('user_id', userId)
-      .gte('started_at', todayISO)
+      .gte('started_at', windowStartISO)
+      .lt('started_at', windowEndISO)
     focusMinutes = (sessions || []).reduce((sum, s) => sum + (s.duration_minutes || 0), 0)
   } catch {
     // focus_sessions table not yet created — skip
   }
 
-  // Journal entries today
+  // Journal entries in window
   const { count: journalEntries } = await supabaseAdmin
     .from('journal_entries')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .gte('created_at', todayISO)
+    .gte('created_at', windowStartISO)
+    .lt('created_at', windowEndISO)
 
   // Generate AI summary via Haiku
   const parts = []

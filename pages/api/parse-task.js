@@ -1,4 +1,5 @@
 import withAuth from '../../lib/authGuard'
+import { getLocalDateString, resolveTimezone } from '../../lib/dateUtils'
 
 async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
@@ -6,11 +7,15 @@ async function handler(req, res) {
   const { transcript } = req.body
   if (!transcript) return res.status(400).json({ error: 'No transcript' })
 
+  // Parse LLM needs "today" and "tomorrow" in the *user's* local calendar day,
+  // otherwise "tomorrow" turns into "the day after tomorrow" for users west of
+  // UTC during their evening. Timezone comes from body or query.
+  const timezone = resolveTimezone(req.body?.timezone || req.query?.timezone)
   const today = new Date()
-  const todayStr = today.toISOString().split('T')[0]
+  const todayStr = getLocalDateString(today, timezone)
   const tomorrow = new Date(today)
   tomorrow.setDate(tomorrow.getDate() + 1)
-  const tomorrowStr = tomorrow.toISOString().split('T')[0]
+  const tomorrowStr = getLocalDateString(tomorrow, timezone)
 
   const prompt = `You are parsing a spoken task into structured data. Today is ${todayStr}.
 
