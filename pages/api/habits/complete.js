@@ -68,13 +68,17 @@ async function handler(req, res, userId) {
 
       return res.status(200).json({ completed: false })
     } else {
-      // Toggle on — insert completion at noon UTC of the target date
+      // Toggle on — insert completion at noon UTC of the target date.
+      // BUG-06: habit_completions.completed_on has a DB default of CURRENT_DATE
+      // (Postgres server UTC). If we don't set it explicitly, late-night local
+      // completions land on the wrong day. Always pass targetDate.
       const { data: completion, error: insertErr } = await supabaseAdmin
         .from('habit_completions')
         .insert({
           habit_id:     habitId,
           user_id:      userId,
           completed_at: new Date(`${targetDate}T12:00:00.000Z`).toISOString(),
+          completed_on: targetDate,
         })
         .select()
         .single()
